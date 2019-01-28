@@ -1,0 +1,26 @@
+{
+  "extends": ["eslint:recommended", "standard"],
+  "env": {
+    "mocha": true
+  },
+  "rules": {
+    "comma-dangle": ["error", "only-multiline"],
+    "prefer-const": ["error", {"destructuring": "all"}],
+    "lines-between-class-members": ["error", "always"],
+    "no-console": ["error", { "allow": ["warn", "error", "info"] }],
+    "array-bracket-spacing": ["error", "always", {
+      "objectsInArrays": false,
+      "arraysInArrays": false
+    }],
+    "object-curly-spacing": ["error", "always", {
+      "arraysInObjects": true,
+      "objectsInObjects": true
+    }],
+    "arrow-body-style": ["error", "as-needed"],
+    "arrow-parens": ["error", "always"],
+    "computed-property-spacing": ["error", "never"],
+    "max-len": ["error", {
+      "code": 120, "ignoreTrailingComments": true, "ignoreUrls": true, "ignoreTemplateLiterals": true
+    }]
+  }
+}
