@@ -113,7 +113,7 @@ const path = require('path')
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
-| **match** | String | `'SIMPLE'` | No | An object with required parameters for the `type: 'foreign Key'` index |
+| **match** | String | `'SIMPLE'` | No | An object with required parameters for the `type: 'foreignKey'` index |
 | **onDelete** | String | `'NO ACTION'` | No | `CASCADE`&#124;`RESTRICT`&#124;`NO ACTION` |  
 | **onUpdate** | String | `'NO ACTION'` | No | `CASCADE`&#124;`RESTRICT`&#124;`NO ACTION` | 
 | **references** | Object | `null` | Yes | Object with foreign table parameters |  
