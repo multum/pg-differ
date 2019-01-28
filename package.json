@@ -15,6 +15,7 @@
   "author": "vereschak@gmail.com",
   "license": "MIT",
   "dependencies": {
+    "ajv": "^6.7.0",
     "pg": "^7.6.0",
     "ramda": "^0.26.1"
   },

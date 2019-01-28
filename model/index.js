@@ -8,14 +8,14 @@ const { COLUMNS, TYPES } = require('../constants')
 const isConstraint = R.includes(R.__, [ 'primaryKey', 'unique', 'foreignKey', 'index' ])
 
 const _getSchema = R.pipe(
-  parse.schema,
   validate.schema,
+  parse.schema,
 )
 
 const _parseTableName = (name) => {
   const chunks = name.split('.')
   return {
-    schema: chunks[1] ? chunks[0] : null,
+    schema: chunks[1] ? chunks[0] : 'public',
     table: chunks[1] || chunks[0],
   }
 }
@@ -169,12 +169,14 @@ const Model = function (options) {
 
   const _getColumnDiffs = R.pipe(
     R.map((column) => {
-      const diff = _getColumnDiff(column)
-      return (
-        diff && utils.notEmpty(diff)
+      const dbColumn = utils.findByName(_dbColumns, column.name)
+      if (dbColumn) {
+        const diff = _getColumnAttributeDiffs(column, dbColumn)
+        return diff && utils.notEmpty(diff)
           ? { ...column, diff }
           : null
-      )
+      }
+      return column
     }),
     R.filter(Boolean),
   )
@@ -202,15 +204,15 @@ const Model = function (options) {
     if (utils.notEmpty(columnsWithDiffs)) {
       const sql = new Sql()
       columnsWithDiffs.forEach((column) => {
-        const { name, diff } = column
-        Object.keys(diff).forEach((key) => {
-          if (utils.findByName(_dbColumns, name)) {
+        const { diff } = column
+        if (diff) {
+          Object.keys(diff).forEach((key) => {
             const alterQuery = _alterColumn(column, key)
             alterQuery && sql.add(alterQuery)
-          } else {
-            sql.add(_addColumn(column))
-          }
-        })
+          })
+        } else {
+          sql.add(_addColumn(column))
+        }
       })
       return sql
     } else {
@@ -409,11 +411,6 @@ const Model = function (options) {
       return acc
     }, {})
   )
-
-  const _getColumnDiff = (column) => {
-    const dbColumn = utils.findByName(_dbColumns, column.name)
-    return dbColumn ? _getColumnAttributeDiffs(column, dbColumn) : null
-  }
 
   const getSyncConstraintSQL = async () => {
     await _fetchConstraints()

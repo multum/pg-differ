@@ -1,0 +1,146 @@
+{
+  "required": [
+    "table",
+    "columns"
+  ],
+  "definitions": {
+    "index": {
+      "type": "object",
+      "if": {
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "foreignKey"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "references"
+        ]
+      },
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "match": {
+          "type": "string",
+          "enum": [
+            "SIMPLE",
+            "FULL",
+            "PARTIAL"
+          ]
+        },
+        "onDelete": {
+          "type": "string",
+          "enum": [
+            "RESTRICT",
+            "CASCADE",
+            "NO ACTION"
+          ]
+        },
+        "onUpdate": {
+          "type": "string",
+          "enum": [
+            "RESTRICT",
+            "CASCADE",
+            "NO ACTION"
+          ]
+        },
+        "references": {
+          "type": "object",
+          "required": [
+            "table",
+            "columns"
+          ],
+          "properties": {
+            "table": {
+              "type": "string"
+            },
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "columns": {
+          "type": "array"
+        }
+      }
+    },
+    "column": {
+      "required": [
+        "name",
+        "type"
+      ],
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "unique": {
+          "type": "boolean"
+        },
+        "index": {
+          "type": "boolean"
+        },
+        "primaryKey": {
+          "type": "boolean"
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "force": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "properties": {
+    "table": {
+      "type": "string"
+    },
+    "forceIndexes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "foreignKey",
+          "unique",
+          "index"
+        ]
+      }
+    },
+    "indexes": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/index"
+          }
+        ]
+      }
+    },
+    "columns": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/index"
+          },
+          {
+            "$ref": "#/definitions/column"
+          }
+        ]
+      }
+    }
+  }
+}

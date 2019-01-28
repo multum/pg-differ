@@ -175,7 +175,7 @@ const columnConstraints = (
           return utils.notEmpty(value) ? ({
             type,
             columns: [ column.name ],
-            references: { table: value.table, columns: [ value.column ] },
+            references: { table: value.table, columns: value.columns.slice(0, 1) },
             match: column.match,
             onUpdate: column.onUpdate || DEFAULTS.onUpdate,
             onDelete: column.onDelete || DEFAULTS.onDelete,

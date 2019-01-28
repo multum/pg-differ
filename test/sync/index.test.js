@@ -10,7 +10,7 @@ const config = {
 
 describe('sync', () =>
   it('must be synchronized schemas from the folder "schemas"', async function () {
-    this.timeout(5000)
+    this.timeout(20000)
 
     const differ = new Differ(config)
     await differ.sync()
