@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Node.js module for easy synchronization of postgres tables with models (json-schemas). Migration alternative",
   "main": "src/index.js",
+  "keywords": [
+    "postgres"
+  ],
   "scripts": {
     "test": "mocha test/**/*.test.js",
     "dev": "mocha test/**/*.test.js --watch",
