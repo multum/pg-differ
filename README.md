@@ -84,7 +84,7 @@ const path = require('path')
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
-| **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `' table_name'` |
+| **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `'table_name'` |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
 | **forceIndexes** | Array[String] | `null` | No | [`index`&#124;`foreignKey`&#124;`unique`] | 
@@ -103,7 +103,7 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **name** | String | `null` | Yes | Column name |
 | **type** | String | `null` | Yes | Type name (with alias support) |
-| **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint ` NOT NULL` |
+| **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No |  | 
 | **unique** | Boolean | `false` | No |  | 
@@ -122,7 +122,7 @@ const path = require('path')
 
 ### forceIndexes
 
-`forceIndexes` - this is an array with a list of types [`index` |` foreignKey` | `unique`], which are deleted from the database if they are not defined in the model schema
+`forceIndexes` - this is an array with a list of types [`index` |`foreignKey` | `unique`], which are deleted from the database if they are not defined in the model schema
 
 ## License
 postgres-differ is open source software [licensed as MIT](LICENSE).
