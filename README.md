@@ -107,8 +107,7 @@ const path = require('path')
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No |  | 
 | **unique** | Boolean | `false` | No |  | 
-| **foreignKey** | Boolean | `false` | No |  | 
-| [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for `foreignKey: true` |
+| [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
 
 ### foreignKey params
 

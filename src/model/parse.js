@@ -170,10 +170,10 @@ const columnConstraints = (
       R.map(([ type, value ]) => {
         if ([ 'unique', 'primaryKey', 'index' ].includes(type)) {
           return value === true ? ({ type, columns: [ column.name ] }) : null
-        } else if (type === 'foreignKey') {
+        } else if (type === 'references') {
           const DEFAULTS = CONSTRAINTS.FOREIGN_KEY_DEFAULTS
           return utils.notEmpty(value) ? ({
-            type,
+            type: 'foreignKey',
             columns: [ column.name ],
             references: { table: value.table, columns: value.columns.slice(0, 1) },
             match: column.match,
