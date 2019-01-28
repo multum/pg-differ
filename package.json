@@ -7,6 +7,9 @@
     "postgres",
     "node.js"
   ],
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "scripts": {
     "test": "mocha test/**/*.test.js",
     "eslint": "eslint --max-warnings=0 **/*.js"
