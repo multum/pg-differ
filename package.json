@@ -4,7 +4,8 @@
   "description": "Node.js module for easy synchronization of postgres tables with models (json-schemas). Migration alternative",
   "main": "src/index.js",
   "keywords": [
-    "postgres"
+    "postgres",
+    "node.js"
   ],
   "scripts": {
     "test": "mocha test/**/*.test.js",
@@ -14,7 +15,7 @@
     "type": "git",
     "url": "https://github.com/av-dev/pg-differ.git"
   },
-  "author": "vereschak@gmail.com",
+  "author": "Andrey Vereshchak",
   "license": "MIT",
   "dependencies": {
     "ajv": "^6.7.0",
