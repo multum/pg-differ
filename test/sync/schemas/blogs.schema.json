@@ -1,0 +1,41 @@
+{
+  "table": "blogs",
+  "forceIndexes": [
+    "index"
+  ],
+  "indexes": [
+    {
+      "type": "foreignKey",
+      "references": {
+        "table": "users",
+        "columns": [
+          "id"
+        ]
+      },
+      "match": "FULL",
+      "onDelete": "CASCADE",
+      "columns": [
+        "id"
+      ]
+    }
+  ],
+  "columns": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "primaryKey": true
+    },
+    {
+      "name": "maker",
+      "type": "bigint"
+    },
+    {
+      "name": "description",
+      "type": "varchar(255)"
+    },
+    {
+      "name": "date_create",
+      "type": "bigint"
+    }
+  ]
+}
