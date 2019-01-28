@@ -1,0 +1,54 @@
+{
+  "table": "${schema}.test_database",
+  "forceIndexes": [
+    "primaryKey",
+    "unique",
+    "foreignKey"
+  ],
+  "indexes": [
+    {
+      "type": "unique",
+      "columns": [
+        "date_modify",
+        "id"
+      ]
+    },
+    {
+      "type": "foreignKey",
+      "match": "FULL",
+      "onDelete": "CASCADE",
+      "columns": [
+        "parent"
+      ],
+      "references": {
+        "table": "${schema}.test_database",
+        "columns": [
+          "id"
+        ]
+      }
+    }
+  ],
+  "columns": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "default": "123",
+      "unique": true,
+      "primaryKey": true,
+      "nullable": true
+    },
+    {
+      "name": "type",
+      "type": "integer",
+      "unique": true
+    },
+    {
+      "name": "code",
+      "type": "varchar(255)"
+    },
+    {
+      "name": "description",
+      "type": "varchar(255)"
+    }
+  ]
+}
