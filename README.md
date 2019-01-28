@@ -81,6 +81,13 @@ const path = require('path')
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
 | **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` | 
 
+## Methods
+
+| Method | Argument | Description |
+| ------ | ------ | ------ |
+| **define** | [schema](#model-scheme-structure) | Model definition |
+| **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
+
 ## Model scheme structure
 *\* parameters of the `differ.define` method or the` * .schema.json` file structure for `options.schemaFolder`*
 
@@ -125,6 +132,16 @@ const path = require('path')
 ### forceIndexes
 
 `forceIndexes` - this is an array with a list of types [`index` |`foreignKey` | `unique`], which are deleted from the database if they are not defined in the model schema
+
+## Contributing
+
+#### Pull Request
+
+Good pull requests, such as patches, improvements, and new features, are a fantastic help. They should remain focused in scope and avoid containing unrelated commits.
+
+Please **ask first** if somebody else is already working on this or the core developers think your feature is in-scope for postgres-differ. Generally always have a related issue with discussions for whatever you are including.
+
+Please also provide a **test plan**, i.e. specify how you verified that your addition works.
 
 ## License
 postgres-differ is open source software [licensed as MIT](LICENSE).
