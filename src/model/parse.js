@@ -176,7 +176,7 @@ const columnConstraints = (
             type: 'foreignKey',
             columns: [ column.name ],
             references: { table: value.table, columns: value.columns.slice(0, 1) },
-            match: column.match,
+            match: column.match || DEFAULTS.match,
             onUpdate: column.onUpdate || DEFAULTS.onUpdate,
             onDelete: column.onDelete || DEFAULTS.onDelete,
           }) : null
