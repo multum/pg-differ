@@ -60,47 +60,47 @@ const Model = function (options) {
   const _fetchColumns = async () => {
     await _client.find(`select to_regclass('${_table}');`)
     _dbColumns = await _client.find(`
-      select
-        pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
-        ic.collation_name,
-        ic.column_default,
-        ic.is_nullable,
-        ic.column_name
-      from pg_attribute c
-      join pg_class t on c.attrelid = t.oid
-      join pg_namespace n on t.relnamespace = n.oid
-      join information_schema.columns ic
-        on c.attname = ic.column_name
-        and t.relname = ic.table_name
-        and n.nspname = ic.table_schema
-      where t.relname = '${_tableName}'
-        and n.nspname = '${_schemaName}';
+    select
+      pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
+      ic.collation_name,
+      ic.column_default,
+      ic.is_nullable,
+      ic.column_name
+    from pg_attribute c
+    join pg_class t on c.attrelid = t.oid
+    join pg_namespace n on t.relnamespace = n.oid
+    join information_schema.columns ic
+      on c.attname = ic.column_name
+      and t.relname = ic.table_name
+      and n.nspname = ic.table_schema
+    where t.relname = '${_tableName}'
+      and n.nspname = '${_schemaName}';
   `).then(parse.dbColumns)
     return _dbColumns
   }
 
   const _fetchTableConstraints = () => (
-    _client.find(` 
-      select 
-        column_name,
-        ordinal_position,
-        tc.constraint_type,
-        tc.constraint_name
-      from information_schema.table_constraints as tc
-      inner join information_schema.key_column_usage as ku
-        on tc.constraint_name = ku.constraint_name
-      where ku.table_name = '${_tableName}'
-        and tc.constraint_type not in ('FOREIGN KEY')
+    _client.find(`
+    select 
+      column_name,
+      ordinal_position,
+      tc.constraint_type,
+      tc.constraint_name
+    from information_schema.table_constraints as tc
+    inner join information_schema.key_column_usage as ku
+      on tc.constraint_name = ku.constraint_name
+    where ku.table_name = '${_tableName}'
+      and tc.constraint_type not in ('FOREIGN KEY')
       `).then(parse.tableConstraints)
   )
 
   const _fetchForeignKeyConstraints = () => (
     _client.find(`
-        select 
-          conname as name,
-          pg_catalog.pg_get_constraintdef(c.oid, true) as definition
-        from pg_catalog.pg_constraint as c
-          where c.conrelid = '${_table}'::regclass and c.contype = 'f' order by 1
+    select
+      conname as name,
+      pg_catalog.pg_get_constraintdef(c.oid, true) as definition
+    from pg_catalog.pg_constraint as c
+      where c.conrelid = '${_table}'::regclass and c.contype = 'f' order by 1
       `).then(parse.constraintDefinitions('foreignKey'))
   )
 
@@ -283,10 +283,10 @@ const Model = function (options) {
       case 'foreignKey':
         match = match ? ` match ${match}` : ''
         return addConstraint(`
-            ${alterTable}
-            add ${constraintType} (${columns.join(',')})
-            references ${references.table} (${references.columns.join(',')})${match}
-            on update ${onUpdate} on delete ${onDelete};
+        ${alterTable}
+        add ${constraintType} (${columns.join(',')})
+        references ${references.table} (${references.columns.join(',')})${match}
+        on update ${onUpdate} on delete ${onDelete};
         `)
 
       default:

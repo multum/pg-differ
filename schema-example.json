@@ -1,7 +1,6 @@
 {
   "table": "${schema}.test_database",
   "forceIndexes": [
-    "primaryKey",
     "unique",
     "foreignKey"
   ],
@@ -40,7 +39,14 @@
     {
       "name": "type",
       "type": "integer",
-      "unique": true
+      "unique": true,
+      "onDelete": "CASCADE",
+      "references": {
+        "table": "${schema}.types",
+        "columns": [
+          "id"
+        ]
+      }
     },
     {
       "name": "code",
