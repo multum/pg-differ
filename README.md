@@ -82,7 +82,7 @@ const path = require('path')
 | **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
-| **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` | 
+| **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
 
@@ -143,7 +143,7 @@ const path = require('path')
 | Option | Alias | Default | Required | Example | Description |
 | -------- | ------ | ------ | ------ | ------ | ------ |
 | **&#8209;&#8209;connectionString** | **-c** | `null` | Yes | [Connection URI](https://node-postgres.com/features/connecting#connection-uri) | Connection URI to database |
-| **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | An string with names and their values to replace placeholders in `schemaFolder` |
+| **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | An string with names and their values to replace placeholders in `schemaFolder` files |
 | **&#8209;&#8209;logging** | **-l** | `true` | No |  | Option to enable logging in the console |
 | **&#8209;&#8209;schemaFolder** | **-s** | `./schemas` | No |  | Path to the folder with * .schema.json files |
 | **&#8209;&#8209;version** | **-v** |  |  |  | Print out the installed version | 
