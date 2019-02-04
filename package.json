@@ -18,10 +18,14 @@
     "type": "git",
     "url": "https://github.com/av-dev/pg-differ.git"
   },
+  "bin": {
+    "pg-differ": "./bin/pg-differ"
+  },
   "author": "Andrey Vereshchak",
   "license": "MIT",
   "dependencies": {
     "ajv": "^6.7.0",
+    "minimist": "^1.2.0",
     "pg": "^7.6.0",
     "ramda": "^0.26.1"
   },
