@@ -23,13 +23,13 @@ npm i pg-differ
 
 ## Documentation
 
-  - [Usage example](#usage-example)
   - [Constructor params](#constructor-params)
   - [Model scheme structure](#model-scheme-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
     - [*foreignKey* params](#foreignkey-params)
     - [*forceIndexes*](#forceindexes)
+  - [CLI](#cli)
 
 ## Usage example
 
@@ -135,6 +135,19 @@ const path = require('path')
 ### forceIndexes
 
 `forceIndexes` - this is an array with a list of types [`index` |`foreignKey` | `unique`], which are deleted from the database if they are not defined in the model schema
+
+## CLI
+
+#### CLI params
+
+| Option | Alias | Default | Required | Example | Description |
+| -------- | ------ | ------ | ------ | ------ | ------ |
+| **&#8209;&#8209;connectionString** | **-c** | `null` | Yes | [Connection URI](https://node-postgres.com/features/connecting#connection-uri) | Connection URI to database |
+| **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | An string with names and their values to replace placeholders in `schemaFolder` |
+| **&#8209;&#8209;logging** | **-l** | `true` | No |  | Option to enable logging in the console |
+| **&#8209;&#8209;schemaFolder** | **-s** | `./schemas` | No |  | Path to the folder with * .schema.json files |
+| **&#8209;&#8209;version** | **-v** |  |  |  | Print out the installed version | 
+| **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 
 
 ## Contributing
 
