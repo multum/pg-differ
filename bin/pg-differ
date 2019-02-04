@@ -26,10 +26,11 @@ if (argv.version) {
 
 const logOptions = () => {
   console.error(`Usage: pg-differ [options]
+  --connectionString,-c     Connection URI to database
   --schemaFolder,-s         Path to the folder with * .schema.json files. Default value is './schemas'
+  --placeholders,-p         An string with names and their values to replace placeholders in 'schemaFolder' files
+  --logging,-l              Option to enable logging in the console
   --version,-v              Print out the installed version
-  --connectionString, -c    Connection URI to database
-  --logging, -l             Option to enable logging in the console
   --help                    Show this help
   `)
 }
