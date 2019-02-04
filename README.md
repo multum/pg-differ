@@ -79,7 +79,7 @@ const path = require('path')
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
 | **dbConfig** | Object | null | Yes | Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic) |
-| **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `ottions.logger` function) |
+| **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
 | **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` | 
