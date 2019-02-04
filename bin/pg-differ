@@ -45,7 +45,7 @@ if(!argv.connectionString) {
   logOptions()
   process.exit(1)
 }
-console.log(argv.connectionString)
+
 const getPlaceholders = () => (
   argv.placeholders
     ? argv.placeholders
