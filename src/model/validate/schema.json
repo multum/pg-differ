@@ -114,6 +114,7 @@
       "items": {
         "enum": [
           "foreignKey",
+          "primaryKey",
           "unique",
           "index"
         ]

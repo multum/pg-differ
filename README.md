@@ -92,7 +92,7 @@ const path = require('path')
 | **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
 
 ## Model scheme structure
-*\* parameters of the `differ.define` method or the` * .schema.json` file structure for `options.schemaFolder`*
+*\* parameters of the `differ.define` method or the `* .schema.json` file structure for `options.schemaFolder`*
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
@@ -134,7 +134,9 @@ const path = require('path')
 
 ### forceIndexes
 
-`forceIndexes` - this is an array with a list of types [`index` |`foreignKey` | `unique`], which are deleted from the database if they are not defined in the model schema
+*\*[`primaryKey`] by default*
+
+`forceIndexes` - An array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
 
 ## CLI
 
