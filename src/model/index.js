@@ -336,7 +336,8 @@ const Model = function (options) {
       const collate = column.collate ? ` collate ${column.collate}` : ''
       if (
         !oldType ||
-        (oldTypeGroup === newTypeGroup) ||
+        (oldTypeGroup === 'integer' && newTypeGroup === 'integer') ||
+        (oldTypeGroup === 'character' && newTypeGroup === 'character') ||
         (oldTypeGroup === 'integer' && newTypeGroup === 'character')
       ) {
         return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate};`)
