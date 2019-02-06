@@ -1,4 +1,3 @@
-const R = require('ramda')
 const fs = require('fs')
 const path = require('path')
 const utils = require('./utils')
@@ -7,16 +6,16 @@ const Sql = require('./sql')
 const Client = require('./postgres-client')
 const Model = require('./model')
 
-const defaultOptions = {
+const _defaultOptions = {
   logging: false,
   schemaFolder: null,
-  logger: null,
+  logger: console.info,
   dbConfig: null,
 }
 
 const _loadJSON = (path, placeholders) => {
   let file = fs.readFileSync(path, 'utf-8')
-  if (placeholders && R.is(Object, placeholders)) {
+  if (placeholders) {
     Object.entries(placeholders).forEach(([ name, value ]) => {
       const regExp = `\\$\{${name}\\}`
       file = file.replace(new RegExp(regExp, 'g'), value)
@@ -25,21 +24,16 @@ const _loadJSON = (path, placeholders) => {
   return JSON.parse(file)
 }
 
-const _getSchemas = (pathFolder, placeholders) => {
-  try {
-    return fs.readdirSync(pathFolder)
-      .filter((file) => /^.*\.schema.json$/.test(file))
-      .map((file) => (
-        _loadJSON(
-          path.resolve(pathFolder, file),
-          placeholders,
-        )
-      ))
-  } catch (e) {
-    console.error(e)
-    return null
-  }
-}
+const _getSchemas = (pathFolder, placeholders) => (
+  fs.readdirSync(pathFolder)
+    .filter((file) => /^.*\.schema.json$/.test(file))
+    .map((file) => (
+      _loadJSON(
+        path.resolve(pathFolder, file),
+        placeholders,
+      )
+    ))
+)
 
 /**
  * @typedef {object} Differ
@@ -58,26 +52,24 @@ const _getSchemas = (pathFolder, placeholders) => {
  * @returns {Differ}
  */
 module.exports = function (options) {
-  options = { ...defaultOptions, ...options }
+  options = { ..._defaultOptions, ...options }
   const _client = new Client(options.dbConfig)
   const _models = new Map()
 
   const _defineModels = () => {
     const { schemaFolder, placeholders } = options
-    if (!schemaFolder) {
-      return null
+    if (schemaFolder) {
+      const schemas = _getSchemas(schemaFolder, placeholders)
+      return schemas && utils.notEmpty(schemas)
+        ? schemas.map(define)
+        : null
     }
-    const schemas = _getSchemas(schemaFolder, placeholders)
-    return schemas && schemas.length
-      ? schemas.map(define)
-      : null
   }
 
   const logger = (message, ...args) => {
     if (options.logging) {
-      const logger = typeof options.logger === 'function' ? options.logger : console.info
-      logger(`\n----- Postgres Differ: ${message} -----\n`)
-      utils.notEmpty(args) && logger(...args, '\n')
+      options.logger(`\n----- Postgres Differ: ${message} -----\n`)
+      utils.notEmpty(args) && options.logger(...args, '\n')
     }
   }
 

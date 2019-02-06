@@ -4,6 +4,7 @@ const utils = require('./utils')
 /**
  * @typedef {Object} Sql
  * @property {function} add
+ * @property {function} getSize
  * @property {function} getLines
  * @property {function} getOperations
  */
@@ -29,7 +30,7 @@ const Sql = function () {
     return methods
   }
 
-  const size = () => lines.size
+  const getSize = () => lines.size
 
   const getLines = () => [ ...lines ]
 
@@ -38,7 +39,7 @@ const Sql = function () {
     R.map(R.prop('value')),
   )
 
-  methods = Object.freeze({ add, getLines, getOperations, size })
+  methods = Object.freeze({ add, getLines, getOperations, getSize })
 
   return methods
 }

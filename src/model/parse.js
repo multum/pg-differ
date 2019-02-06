@@ -2,11 +2,20 @@ const R = require('ramda')
 const utils = require('../utils')
 const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
 
+exports.trimType = (type) => {
+  let values = type.match(/\(\w+\)|'(\w+|\d+)'/)
+  if (values) {
+    values = values[0]
+    type = type.replace(values, '')
+  }
+  return type.trim()
+}
+
 const normalizeType = (type) => {
-  let maxLength = type.match(/\(\w+\)|'(\w+|\d+)'/)
-  if (maxLength) {
-    maxLength = maxLength[0]
-    type = type.replace(maxLength, '')
+  let values = type.match(/\(\w+\)|'(\w+|\d+)'/)
+  if (values) {
+    values = values[0]
+    type = type.replace(values, '')
   }
   type = type.trim()
 
@@ -15,10 +24,10 @@ const normalizeType = (type) => {
   if (utils.isExist(aliasDescription)) {
     type = TYPES.ALIASES[type]
   }
-  return maxLength ? `${type}${maxLength}` : type
+  return values ? `${type}${values}` : type
 }
 
-const encodeConstraintType = (key) => {
+exports.encodeConstraintType = (key) => {
   switch (key) {
     case 'primaryKey':
       return CONSTRAINTS.TYPES.PRIMARY_KEY
@@ -54,7 +63,7 @@ const _forceDefaults = {
   foreignKey: false,
 }
 
-const schema = (scheme) => {
+exports.schema = (scheme) => {
   const columns = scheme.columns
     .map((column) => {
       column = R.pick(COLUMNS.ALL_PROPERTIES)(column)
@@ -92,7 +101,7 @@ const schema = (scheme) => {
   return { ...scheme, columns, indexes, forceIndexes }
 }
 
-const dbColumns = R.map((column) => ({
+exports.dbColumns = R.map((column) => ({
   name: column['column_name'],
   nullable: column['is_nullable'] === 'YES',
   default: column['column_default'],
@@ -100,7 +109,7 @@ const dbColumns = R.map((column) => ({
   collate: column['collation_name'],
 }))
 
-const tableConstraints = R.pipe(
+exports.tableConstraints = R.pipe(
   R.sortBy(R.prop('ordinal_position')),
   R.groupBy(R.prop('constraint_name')),
   R.mapObjIndexed((value, name) => ({
@@ -154,7 +163,7 @@ const constraintDefinition = (type, definition) => {
   }
 }
 
-const constraintDefinitions = R.curry((type, definitions) => (
+exports.constraintDefinitions = R.curry((type, definitions) => (
   definitions.map(({ name, definition }) => ({
     name,
     type,
@@ -187,12 +196,3 @@ const columnConstraints = (
     )(column)
   ), [])
 )
-
-module.exports = {
-  schema,
-  dbColumns,
-  tableConstraints,
-  constraintDefinitions,
-  columnConstraints,
-  encodeConstraintType,
-}
