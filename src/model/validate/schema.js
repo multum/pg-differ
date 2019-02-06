@@ -9,14 +9,10 @@ const formatErrors = R.pipe(
   R.join('\n'),
 )
 
-const schema = (schema) => {
-  const valid = validate(schema)
-
-  if (valid) {
+module.exports = (schema) => {
+  if (validate(schema)) {
     return schema
+  } else {
+    throw new Error(formatErrors(validate.errors))
   }
-
-  throw new Error(formatErrors(validate.errors))
 }
-
-module.exports = schema

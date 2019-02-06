@@ -5,8 +5,6 @@ const parse = require('./parse')
 const validate = require('./validate')
 const { COLUMNS, TYPES } = require('../constants')
 
-const isConstraint = R.includes(R.__, [ 'primaryKey', 'unique', 'foreignKey', 'index' ])
-
 const _getSchema = R.pipe(
   validate.schema,
   parse.schema,
@@ -58,7 +56,6 @@ const Model = function (options) {
   const getSchema = () => _schema
 
   const _fetchColumns = async () => {
-    await _client.find(`select to_regclass('${_table}');`)
     _dbColumns = await _client.find(`
     select
       pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
@@ -120,13 +117,12 @@ const Model = function (options) {
    *  Database constraint structure
    */
   const _fetchConstraints = async () => {
-    const result = await Promise.all([
+    _dbConstraints = await Promise.all([
       _fetchTableConstraints(),
       _fetchForeignKeyConstraints(),
       _fetchIndexes(),
     ]).then(R.reduce(R.concat, []))
-    _dbConstraints = result
-    return result
+    return _dbConstraints
   }
 
   /**
@@ -160,11 +156,12 @@ const Model = function (options) {
 
   const getSyncSql = async () => {
     try {
-      await _fetchStructure()
+      await _client.find(`select to_regclass('${_table}');`)
     } catch (error) {
       return _createTable()
     }
-    return _synchronize()
+    await _fetchStructure()
+    return _syncColumnsSQL(_schema.columns)
   }
 
   const _getColumnDiffs = R.pipe(
@@ -175,8 +172,9 @@ const Model = function (options) {
         return diff && utils.notEmpty(diff)
           ? { ...column, diff }
           : null
+      } else {
+        return column
       }
-      return column
     }),
     R.filter(Boolean),
   )
@@ -192,13 +190,15 @@ const Model = function (options) {
     }
   }
 
-  const _dropConstraints = (exclude = []) => {
-    const mustBeDrop = _dbConstraints.filter(({ name, type }) => (
-      !exclude.includes(name) &&
-      _force[type]
-    ))
-    return _getDropConstraintQueries(mustBeDrop)
-  }
+  const _dropConstraints = (exclude = []) => (
+    _getDropConstraintQueries(
+      // must be drop
+      _dbConstraints.filter(({ name, type }) => (
+        !exclude.includes(name) &&
+        _force[type]
+      )),
+    )
+  )
 
   const _getSyncColumnSQL = (columnsWithDiffs) => {
     if (utils.notEmpty(columnsWithDiffs)) {
@@ -214,9 +214,9 @@ const Model = function (options) {
           sql.add(_addColumn(column))
         }
       })
-      return sql
+      return (sql.getSize() && sql) || null
     } else {
-      return columnsWithDiffs
+      return null
     }
   }
 
@@ -242,11 +242,6 @@ const Model = function (options) {
     _getSyncColumnSQL,
   )
 
-  const _synchronize = () => {
-    const sql = _syncColumnsSQL(_schema.columns)
-    return sql.size ? sql : null
-  }
-
   const _addColumn = (column) => (
     Sql.create(
       'add column',
@@ -254,14 +249,13 @@ const Model = function (options) {
     )
   )
 
-  const _getTypeGroup = (type) =>
-    Object.entries(TYPES.GROUPS)
+  const _getTypeGroup = (type) => {
+    type = parse.trimType(type)
+    return Object.entries(TYPES.GROUPS)
       .find(([ name, group ]) => R.includes(type, group)) || []
+  }
 
   const _alterConstraint = ({ type, columns, references, onDelete, onUpdate, match }) => {
-    if (R.isEmpty(columns)) {
-      return null
-    }
     const alterTable = `alter table ${_table}`
     const constraintType = parse.encodeConstraintType(type)
 
@@ -300,13 +294,11 @@ const Model = function (options) {
 
   const _dropConstraint = (constraint) => {
     const alterTable = `alter table ${_table}`
-    if (constraint && isConstraint(constraint.type)) {
-      if (constraint.type === 'index') {
-        const indexName = _schemaName ? `${_schemaName}.${constraint.name}` : constraint.name
-        return Sql.create(`drop ${constraint.type}`, `drop index ${indexName};`)
-      }
-      return Sql.create(`drop ${constraint.type}`, `${alterTable} drop constraint ${constraint.name};`)
+    if (constraint.type === 'index') {
+      const indexName = _schemaName ? `${_schemaName}.${constraint.name}` : constraint.name
+      return Sql.create(`drop ${constraint.type}`, `drop index ${indexName};`)
     }
+    return Sql.create(`drop ${constraint.type}`, `${alterTable} drop constraint ${constraint.name};`)
   }
 
   const _alterColumn = (column, key) => {
@@ -316,7 +308,7 @@ const Model = function (options) {
       if (value === true && !_inPrimaryKey(column)) {
         const primaryKey = _findDbConstraintWhere({ type: 'primaryKey' })
         return [
-          _dropConstraint(primaryKey),
+          primaryKey ? _dropConstraint(primaryKey) : null,
           Sql.create('drop not null', `${alterTable} alter column ${column.name} drop not null;`),
         ]
       } else if (value === false) {
@@ -342,7 +334,7 @@ const Model = function (options) {
       ) {
         return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate};`)
       } else if (oldTypeGroup === 'character' && newTypeGroup === 'integer') {
-        return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate} (trim(${column.name})::integer);`)
+        return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate} using (trim(${column.name})::integer);`)
       } else {
         return column.force === true ? Sql.create(
           'drop and add column',

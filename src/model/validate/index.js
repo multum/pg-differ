@@ -1,5 +1,1 @@
-const schema = require('./schema')
-
-module.exports = {
-  schema,
-}
+exports.schema = require('./schema')
