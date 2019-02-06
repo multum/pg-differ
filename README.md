@@ -11,7 +11,16 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
 ## Features
 
   - Easy to use [model scheme structure](#model-scheme-structure)
-  - Logging
+  - Creating tables
+  - Adding/changing columns
+  - Force changing column types *(with `force: true`)*
+  - Constraint support: 
+    - `FOREIGN KEY`
+    - `UNIQUE`
+    - `PRIMARY KEY`
+  - `INDEX` support
+  - Dropping of unnecessary constraints/indexes *(those that are absent in the scheme)*
+  - Change logging
 
 ## Installation
 
@@ -151,7 +160,15 @@ const path = require('path')
 | **&#8209;&#8209;version** | **-v** |  |  |  | Print out the installed version | 
 | **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 
 
+## In future
+  - [ ] Force sync tables(drop&create)
+  - [ ] Support `CHECK` constraint
+
 ## Contributing
+
+#### Issue
+
+Suggestions for introducing new features, bug reports, and any other suggestions can be written in the issue. They will be reviewed immediately.
 
 #### Pull Request
 
