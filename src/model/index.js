@@ -18,6 +18,10 @@ const _parseTableName = (name) => {
   }
 }
 
+const _throwError = (message) => {
+  throw new Error(message)
+}
+
 /**
  * @typedef {object} Schema
  * @property {string} table
@@ -156,7 +160,8 @@ const Model = function (options) {
 
   const getSyncSql = async () => {
     try {
-      await _client.find(`select to_regclass('${_table}');`)
+      const { exist } = await _client.findOne(`select to_regclass('${_table}') as exist;`)
+      R.isNil(exist) && _throwError(`table '${_table}' does not exist`)
     } catch (error) {
       return _createTable()
     }
