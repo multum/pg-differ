@@ -11,7 +11,16 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
 ## Features
 
   - Easy to use [model scheme structure](#model-scheme-structure)
-  - Logging
+  - Creating tables
+  - Adding/changing columns
+  - Force changing column types *(with `force: true`)*
+  - Constraint support: 
+    - `FOREIGN KEY`
+    - `UNIQUE`
+    - `PRIMARY KEY`
+  - `INDEX` support
+  - Dropping of unnecessary constraints/indexes *(those that are absent in the scheme)*
+  - Change logging
 
 ## Installation
 
@@ -99,7 +108,7 @@ const path = require('path')
 | **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `'table_name'` |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
-| **forceIndexes** | Array[String] | `null` | No | [`index`&#124;`foreignKey`&#124;`unique`] | 
+| **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] | 
 
 ### indexes
 
@@ -134,7 +143,7 @@ const path = require('path')
 
 ### forceIndexes
 
-*\*[`primaryKey`] by default*
+*\*`['primaryKey']` by default*
 
 `forceIndexes` - An array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
 
@@ -151,7 +160,15 @@ const path = require('path')
 | **&#8209;&#8209;version** | **-v** |  |  |  | Print out the installed version | 
 | **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 
 
+## In future
+  - [ ] Force sync tables(drop&create)
+  - [ ] Support `CHECK` constraint
+
 ## Contributing
+
+#### Issue
+
+Suggestions for introducing new features, bug reports, and any other suggestions can be written in the issue. They will be reviewed immediately.
 
 #### Pull Request
 
