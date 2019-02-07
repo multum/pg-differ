@@ -108,7 +108,7 @@ const path = require('path')
 | **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `'table_name'` |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
-| **forceIndexes** | Array[String] | `null` | No | [`index`&#124;`foreignKey`&#124;`unique`] | 
+| **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] | 
 
 ### indexes
 
@@ -143,7 +143,7 @@ const path = require('path')
 
 ### forceIndexes
 
-*\*[`primaryKey`] by default*
+*\*`['primaryKey']` by default*
 
 `forceIndexes` - An array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
 
