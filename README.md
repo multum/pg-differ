@@ -42,7 +42,7 @@ npm i pg-differ
 
 ## Usage example
 
-#### *[example *.schema.json](schema-example.json)*
+#### *[*.schema.json example](test/sync/schemas/blogs.schema.json)*
 
 ```javascript
 const Differ = require('pg-differ')
@@ -59,7 +59,7 @@ const path = require('path')
  })
  
  differ.define({
-     table: '${schema}.table_name',
+     table: 'schema_name.table_name',
      indexes: [
        {
             type: 'foreignKey',
