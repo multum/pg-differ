@@ -53,7 +53,8 @@ const Model = function (options) {
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
   const _belongs = new Map()
 
-  const _force = _schema.forceIndexes
+  const _forceIndexes = _schema.forceIndexes
+  const _forceCreate = R.isNil(_schema.force) ? options.force : _schema.force
 
   /**
    * @returns {Schema}`
@@ -160,6 +161,9 @@ const Model = function (options) {
   )
 
   const getSyncSql = async () => {
+    if (_forceCreate) {
+      return _createTable(true)
+    }
     try {
       const { exist } = await _client.findOne(`select to_regclass('${_table}') as exist;`)
       R.isNil(exist) && _throwError(`table '${_table}' does not exist`)
@@ -201,7 +205,7 @@ const Model = function (options) {
       // must be drop
       _dbConstraints.filter(({ name, type }) => (
         !exclude.includes(name) &&
-        _force[type]
+        _forceIndexes[type]
       )),
     )
   )
@@ -280,7 +284,7 @@ const Model = function (options) {
 
       case 'unique':
         return [
-          _force.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
+          _forceIndexes.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
           addConstraint(`${alterTable} add ${constraintType} (${columns.join(',')});`),
         ]
 
@@ -358,7 +362,7 @@ const Model = function (options) {
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
         : _logger(
           null,
-          chalk.red(`To change the ${chalk.green(oldType)} type to ${chalk.green(type)} you need to set 'force: true'`),
+          chalk.red(`To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} you need to set 'force: true' for '${column.name}' column`),
         )
     } else if (key === 'default') {
       return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)
@@ -404,12 +408,15 @@ const Model = function (options) {
     return chunks.join(' ')
   }
 
-  const _createTable = () => {
+  const _createTable = (force) => {
     const sql = new Sql()
     const columns = _schema.columns
       .map(_getColumnDescription)
       .join(',\n')
-    return sql.add(Sql.create('create table', `create table ${_table} (\n${columns}\n);`))
+    return sql.add([
+      force ? Sql.create('drop table', `drop table if exists ${_table} cascade;`) : null,
+      Sql.create('create table', `create table ${_table} (\n${columns}\n);`),
+    ])
   }
 
   const _getColumnAttributeDiffs = (column, dbColumn) => (

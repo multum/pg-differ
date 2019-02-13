@@ -32,7 +32,7 @@ npm i pg-differ
 
 ## Documentation
 
-  - [Constructor params](#constructor-params)
+  - [Settings](#settings)
   - [Model scheme structure](#model-scheme-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
@@ -83,7 +83,7 @@ const path = require('path')
  differ.sync()
 ```
 
-## Constructor params
+## Settings
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
@@ -91,6 +91,7 @@ const path = require('path')
 | **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
+| **force** | Boolean | `false` | No | Force synchronization of tables (delete and create) | 
 | **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
@@ -106,6 +107,7 @@ const path = require('path')
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
 | **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `'table_name'` |
+| **force** | Boolean | `false` | No | Force synchronization of table (delete and create). Priority over the constructor settings for the current table |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
 | **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] | 
@@ -161,7 +163,7 @@ const path = require('path')
 | **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 
 
 ## In future
-  - [ ] Force sync tables(drop&create)
+  - [x] Force sync tables(drop&create) *v0.1.8*
   - [ ] Support `CHECK` constraint
 
 ## Contributing

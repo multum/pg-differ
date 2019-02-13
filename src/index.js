@@ -11,6 +11,7 @@ const _defaultOptions = {
   schemaFolder: null,
   logger: console.info,
   dbConfig: null,
+  force: false,
 }
 
 const _loadJSON = (path, placeholders) => {
@@ -49,6 +50,7 @@ const _getSchemas = (pathFolder, placeholders) => (
  * @param {object=} options.placeholders
  * @param {boolean=} options.logging
  * @param {function=} options.logger
+ * @param {boolean=} options.force
  * @returns {Differ}
  */
 module.exports = function (options) {
@@ -78,10 +80,12 @@ module.exports = function (options) {
   }
 
   const define = (schema) => {
+    const { force } = options
     const model = new Model({
       client: _client,
       schema,
       logger,
+      force,
     })
     const { table } = model.getSchema()
     _models.set(table, model)
