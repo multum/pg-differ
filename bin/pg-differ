@@ -11,16 +11,18 @@ const argv = minimist(process.argv.slice(2), {
     c: 'connectionString',
     p: 'placeholders',
     l: 'logging',
+    f: 'force',
   },
   default: {
     s: './schemas',
-    l: true
+    l: true,
+    f: false
   },
   boolean: [ 'version', 'help', 'logging' ],
 })
 
 if (argv.version) {
-  console.log(pkg.version)
+  console.info(pkg.version)
   process.exit(0)
 }
 
@@ -30,6 +32,7 @@ const logOptions = () => {
   --schemaFolder,-s         Path to the folder with * .schema.json files. Default value is './schemas'
   --placeholders,-p         An string with names and their values to replace placeholders in 'schemaFolder' files
   --logging,-l              Option to enable logging in the console
+  --force,-f                Force synchronization of table (drop and create)
   --version,-v              Print out the installed version
   --help                    Show this help
   `)
@@ -40,7 +43,7 @@ if (argv.help) {
   process.exit(0)
 }
 
-if(!argv.connectionString) {
+if (!argv.connectionString) {
   console.error(`You need to define a required parameter 'connectionString' for postgres connection`)
   logOptions()
   process.exit(1)
@@ -63,8 +66,8 @@ const differ = new Differ({
   placeholders: getPlaceholders(),
   logging: argv.logging,
   dbConfig: {
-      connectionString: argv.connectionString,
-  }
+    connectionString: argv.connectionString,
+  },
 })
 
 differ
