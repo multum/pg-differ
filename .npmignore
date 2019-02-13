@@ -1,7 +1,10 @@
 test/
 node_modules/
+
 .gitignore
 .npmignore
+.eslintrc
+.travis.yml
 
 .idea/
 .vscode/
