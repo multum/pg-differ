@@ -82,29 +82,15 @@ const Model = function (options) {
     return _dbColumns
   }
 
-  const _fetchTableConstraints = () => (
-    _client.find(`
-    select 
-      column_name,
-      ordinal_position,
-      tc.constraint_type,
-      tc.constraint_name
-    from information_schema.table_constraints as tc
-    inner join information_schema.key_column_usage as ku
-      on tc.constraint_name = ku.constraint_name
-    where ku.table_name = '${_tableName}'
-      and tc.constraint_type not in ('FOREIGN KEY')
-      `).then(parse.tableConstraints)
-  )
-
-  const _fetchForeignKeyConstraints = () => (
+  const _fetchConstraints = () => (
     _client.find(`
     select
       conname as name,
+      c.contype as type,
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
-      where c.conrelid = '${_table}'::regclass and c.contype = 'f' order by 1
-      `).then(parse.constraintDefinitions('foreignKey'))
+      where c.conrelid = '${_table}'::regclass order by 1
+      `).then(parse.constraintDefinitions)
   )
 
   const _fetchIndexes = () => (
@@ -116,16 +102,15 @@ const Model = function (options) {
       where schemaname = '${_schemaName}'
         and tablename = '${_tableName}'
         and indexname not in (select conname from pg_catalog.pg_constraint)
-      `).then(parse.constraintDefinitions('index'))
+      `).then(parse.indexDefinitions)
   )
 
   /**
    *  Database constraint structure
    */
-  const _fetchConstraints = async () => {
+  const _fetchAllConstraints = async () => {
     _dbConstraints = await Promise.all([
-      _fetchTableConstraints(),
-      _fetchForeignKeyConstraints(),
+      _fetchConstraints(),
       _fetchIndexes(),
     ]).then(R.reduce(R.concat, []))
     return _dbConstraints
@@ -432,7 +417,7 @@ const Model = function (options) {
   )
 
   const getSyncConstraintSQL = async () => {
-    await _fetchConstraints()
+    await _fetchAllConstraints()
     return _getSyncConstraintSQL([ ..._schema.indexes, ..._getBelongConstraints() ])
   }
 

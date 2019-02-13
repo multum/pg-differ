@@ -34,25 +34,10 @@ exports.encodeConstraintType = (key) => {
   }
 }
 
-const decodeConstraintType = (key) => {
-  switch (key) {
-    case CONSTRAINTS.TYPES.PRIMARY_KEY:
-      return 'primaryKey'
-    case CONSTRAINTS.TYPES.UNIQUE:
-      return 'unique'
-    case CONSTRAINTS.TYPES.FOREIGN_KEY:
-      return 'foreignKey'
-    case CONSTRAINTS.TYPES.INDEX:
-      return 'index'
-    default:
-      return null
-  }
-}
-
 const _forceDefaults = {
-  unique: false,
-  primaryKey: false,
+  primaryKey: true,
   foreignKey: false,
+  unique: false,
 }
 
 exports.schema = (scheme) => {
@@ -101,18 +86,7 @@ exports.dbColumns = R.map((column) => ({
   collate: column['collation_name'],
 }))
 
-exports.tableConstraints = R.pipe(
-  R.sortBy(R.prop('ordinal_position')),
-  R.groupBy(R.prop('constraint_name')),
-  R.mapObjIndexed((value, name) => ({
-    name,
-    type: decodeConstraintType(value[0]['constraint_type']),
-    columns: R.map(R.prop('column_name'), value),
-  })),
-  R.values,
-)
-
-const constraintDefinition = (type, definition) => {
+const constraintDefinitionOptions = (type, definition) => {
   switch (type) {
     /**
      * example foreignKey definition
@@ -143,25 +117,52 @@ const constraintDefinition = (type, definition) => {
     }
 
     /**
-     * example foreignKey definition
+     * example unique and primaryKey definitions
+     * UNIQUE (code)
+     * PRIMARY KEY (code)
+     */
+    case 'unique':
+    case 'primaryKey': {
+      const columns = definition.match(/[^(]+(?=\))/)[0].split(', ')
+      return { columns }
+    }
+
+    /**
+     * example index definition
      * CREATE UNIQUE INDEX index_name ON table_name USING btree (code)
      */
     case 'index': {
       const columns = definition.match(/(?<=\bUSING.*)[^(]+(?=\))/)[0].split(', ')
       return { columns }
     }
+
     default:
       return {}
   }
 }
 
-exports.constraintDefinitions = R.curry((type, definitions) => (
-  definitions.map(({ name, definition }) => ({
-    name,
-    type,
-    ...constraintDefinition(type, definition),
-  }))
-))
+exports.constraintDefinitions = R.map(({ name, definition, type }) => {
+  switch (type) {
+    case 'p':
+      type = 'primaryKey'
+      break
+    case 'f':
+      type = 'foreignKey'
+      break
+    case 'u':
+      type = 'unique'
+      break
+    default:
+      break
+  }
+  return { name, type, ...constraintDefinitionOptions(type, definition) }
+})
+
+exports.indexDefinitions = R.map(({ name, definition }) => ({
+  name,
+  type: 'index',
+  ...constraintDefinitionOptions('index', definition),
+}))
 
 const columnConstraints = (
   R.reduce((acc, column) => (
