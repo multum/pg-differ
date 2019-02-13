@@ -1,4 +1,5 @@
 const R = require('ramda')
+const chalk = require('chalk')
 const Sql = require('../sql')
 const utils = require('../utils')
 const parse = require('./parse')
@@ -39,16 +40,16 @@ const _throwError = (message) => {
 
 /**
  *
- * @param options
+ * @param {object} options
  * @returns {Model}
  */
 const Model = function (options) {
   let _dbColumns = null
   let _dbConstraints = null
 
-  const _client = options.client
   const _schema = _getSchema(options.schema)
   const _table = _schema.table
+  const { logger: _logger, client: _client } = options
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
   const _belongs = new Map()
 
@@ -341,10 +342,14 @@ const Model = function (options) {
       } else if (oldTypeGroup === 'character' && newTypeGroup === 'integer') {
         return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate} using (trim(${column.name})::integer);`)
       } else {
-        return column.force === true ? Sql.create(
-          'drop and add column',
-          `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
-          : null
+        return column.force === true
+          ? Sql.create(
+            'drop and add column',
+            `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
+          : _logger(
+            chalk.red('Warning'),
+            chalk.red(`To change the ${chalk.green(oldType)} type to ${chalk.green(type)} you need to set 'force: true'`),
+          )
       }
     } else if (key === 'default') {
       return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)

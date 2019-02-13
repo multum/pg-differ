@@ -68,8 +68,10 @@ module.exports = function (options) {
 
   const logger = (message, ...args) => {
     if (options.logging) {
-      options.logger(`\n----- Postgres Differ: ${message} -----\n`)
-      utils.notEmpty(args) && options.logger(...args, '\n')
+      options.logger(`\n\n----- Postgres Differ: ${message} -----`)
+      if (args.length) {
+        options.logger('\n', ...args)
+      }
     }
   }
 
@@ -81,6 +83,7 @@ module.exports = function (options) {
     const model = new Model({
       client: _client,
       schema,
+      logger,
     })
     const { table } = model.getSchema()
     _models.set(table, model)
