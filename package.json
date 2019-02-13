@@ -1,6 +1,6 @@
 {
   "name": "pg-differ",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Node.js module for easy synchronization of postgres tables with models (json-schemas). Migration alternative",
   "main": "src/index.js",
   "keywords": [
