@@ -10,7 +10,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
 
 ## Features
 
-  - Easy to use [model scheme structure](#model-scheme-structure)
+  - Easy to use [schema structure](#schema-structure)
   - Creating tables
   - Adding/changing columns
   - Force changing column types *(with `force: true`)*
@@ -19,7 +19,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
     - `UNIQUE`
     - `PRIMARY KEY`
   - `INDEX` support
-  - Dropping of unnecessary constraints/indexes *(those that are absent in the scheme)*
+  - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
   - Change logging
 
 ## Installation
@@ -33,7 +33,7 @@ npm i pg-differ
 ## Documentation
 
   - [Settings](#settings)
-  - [Model scheme structure](#model-scheme-structure)
+  - [Schema structure](#schema-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
     - [*foreignKey* params](#foreignkey-params)
@@ -98,10 +98,10 @@ const path = require('path')
 
 | Method | Argument | Description |
 | ------ | ------ | ------ |
-| **define** | [schema](#model-scheme-structure) | Model definition |
+| **define** | [schema](#schema-structure) | Model definition |
 | **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
 
-## Model scheme structure
+## Schema structure
 *\* parameters of the `differ.define` method or the `* .schema.json` file structure for `options.schemaFolder`*
 
 | Option | Type | Default | Required | Description |
