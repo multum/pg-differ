@@ -20,7 +20,7 @@ const ALIASES = {
 }
 
 const GROUPS = {
-  integer: [
+  INTEGER: [
     'bigint',
     'double precision',
     'integer',
@@ -40,14 +40,14 @@ const GROUPS = {
     'regtype',
     'smallint',
   ],
-  character: [
+  CHARACTER: [
     'character',
     'character varying',
     'name',
     'regclass',
     'text',
   ],
-  time: [
+  TIME: [
     'abstime',
     'date',
     'time without time zone',

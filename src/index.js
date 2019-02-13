@@ -66,12 +66,10 @@ module.exports = function (options) {
     }
   }
 
-  const logger = (message, ...args) => {
+  const logger = (title, ...args) => {
     if (options.logging) {
-      options.logger(`\n\n----- Postgres Differ: ${message} -----`)
-      if (args.length) {
-        options.logger('\n', ...args)
-      }
+      title && options.logger(`\n\n----- Postgres Differ: ${title} -----`)
+      args.length && options.logger('\n', ...args)
     }
   }
 

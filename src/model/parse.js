@@ -2,29 +2,21 @@ const R = require('ramda')
 const utils = require('../utils')
 const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
 
-exports.trimType = (type) => {
-  let values = type.match(/\(\w+\)|'(\w+|\d+)'/)
-  if (values) {
-    values = values[0]
-    type = type.replace(values, '')
-  }
-  return type.trim()
-}
+const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g
+
+exports.trimType = (type) =>
+  type.replace(regExpTypeOptions, '').trim()
 
 const normalizeType = (type) => {
-  let values = type.match(/\(\w+\)|'(\w+|\d+)'/)
-  if (values) {
-    values = values[0]
-    type = type.replace(values, '')
-  }
-  type = type.trim()
+  const values = type.match(regExpTypeOptions) || []
+  type = exports.trimType(type)
 
   // decode type alias
   const aliasDescription = TYPES.ALIASES[type]
   if (utils.isExist(aliasDescription)) {
     type = TYPES.ALIASES[type]
   }
-  return values ? `${type}${values}` : type
+  return values ? `${type}${values.join('')}` : type
 }
 
 exports.encodeConstraintType = (key) => {
