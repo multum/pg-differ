@@ -50,9 +50,9 @@ const decodeConstraintType = (key) => {
 }
 
 const _forceDefaults = {
-  unique: false,
-  primaryKey: false,
+  primaryKey: true,
   foreignKey: false,
+  unique: false,
 }
 
 exports.schema = (scheme) => {
