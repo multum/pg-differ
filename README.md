@@ -163,7 +163,7 @@ const path = require('path')
 | **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 
 
 ## In future
-  - [ ] Force sync tables(drop&create)
+  - [x] Force sync tables(drop&create) *v0.1.8*
   - [ ] Support `CHECK` constraint
 
 ## Contributing
