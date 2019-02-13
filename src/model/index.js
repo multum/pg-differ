@@ -257,8 +257,12 @@ const Model = function (options) {
 
   const _getTypeGroup = (type) => {
     type = parse.trimType(type)
-    return Object.entries(TYPES.GROUPS)
-      .find(([ name, group ]) => R.includes(type, group)) || []
+    const group = Object.entries(TYPES.GROUPS)
+      .find(([ name, group ]) => R.includes(type, group))
+    if (group) {
+      return group[0] // group name
+    }
+    return null
   }
 
   const _alterConstraint = ({ type, columns, references, onDelete, onUpdate, match }) => {
@@ -329,28 +333,33 @@ const Model = function (options) {
       }
     } else if (key === 'type' || key === 'collate') {
       const { oldType, type } = column.diff
-      const [ oldTypeGroup ] = _getTypeGroup(oldType)
-      const [ newTypeGroup ] = _getTypeGroup(type)
+      const oldTypeGroup = _getTypeGroup(oldType)
+      const newTypeGroup = _getTypeGroup(type)
+      const { INTEGER, CHARACTER } = TYPES.GROUPS
       const collate = column.collate ? ` collate ${column.collate}` : ''
-      if (
-        !oldType ||
-        (oldTypeGroup === 'integer' && newTypeGroup === 'integer') ||
-        (oldTypeGroup === 'character' && newTypeGroup === 'character') ||
-        (oldTypeGroup === 'integer' && newTypeGroup === 'character')
-      ) {
-        return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate};`)
-      } else if (oldTypeGroup === 'character' && newTypeGroup === 'integer') {
-        return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate} using (trim(${column.name})::integer);`)
-      } else {
-        return column.force === true
-          ? Sql.create(
-            'drop and add column',
-            `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
-          : _logger(
-            chalk.red('Warning'),
-            chalk.red(`To change the ${chalk.green(oldType)} type to ${chalk.green(type)} you need to set 'force: true'`),
-          )
+
+      // If not an array
+      if (type.indexOf(']') === -1) {
+        if (
+          !oldType ||
+          (oldTypeGroup === INTEGER && newTypeGroup === INTEGER) ||
+          (oldTypeGroup === CHARACTER && newTypeGroup === CHARACTER) ||
+          (oldTypeGroup === INTEGER && newTypeGroup === CHARACTER)
+        ) {
+          return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate};`)
+        } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
+          return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate} using (trim(${column.name})::integer);`)
+        }
       }
+
+      return column.force === true
+        ? Sql.create(
+          'drop and add column',
+          `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
+        : _logger(
+          null,
+          chalk.red(`To change the ${chalk.green(oldType)} type to ${chalk.green(type)} you need to set 'force: true'`),
+        )
     } else if (key === 'default') {
       return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)
     }
