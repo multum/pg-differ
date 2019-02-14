@@ -35,7 +35,7 @@ exports.encodeConstraintType = (key) => {
 }
 
 const _forceDefaults = {
-  primaryKey: true,
+  primaryKey: false,
   foreignKey: false,
   unique: false,
 }
@@ -73,7 +73,7 @@ exports.schema = (scheme) => {
       acc[index] = true
       return acc
     }, {}),
-  } : _forceDefaults
+  } : { ..._forceDefaults, primaryKey: true }
 
   return { ...scheme, columns, indexes, forceIndexes }
 }
