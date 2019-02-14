@@ -47,12 +47,9 @@ const Sql = function () {
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)
 
 Sql.uniqueQueries = R.ifElse(
-  utils.notEmpty,
-  R.pipe(
-    R.uniq,
-    R.join('\n'),
-  ),
+  R.isEmpty,
   R.always(null),
+  R.pipe(R.uniq, R.join('\n')),
 )
 
 module.exports = Sql

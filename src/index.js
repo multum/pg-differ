@@ -54,12 +54,19 @@ const _getSchemas = (pathFolder, placeholders) => (
  * @returns {Differ}
  */
 module.exports = function (options) {
-  options = { ..._defaultOptions, ...options }
-  const _client = new Client(options.dbConfig)
+  const {
+    schemaFolder,
+    placeholders,
+    logging,
+    force,
+    logger,
+    dbConfig,
+  } = { ..._defaultOptions, ...options }
+
+  const _client = new Client(dbConfig)
   const _models = new Map()
 
   const _defineModels = () => {
-    const { schemaFolder, placeholders } = options
     if (schemaFolder) {
       const schemas = _getSchemas(schemaFolder, placeholders)
       return schemas && utils.notEmpty(schemas)
@@ -68,10 +75,10 @@ module.exports = function (options) {
     }
   }
 
-  const logger = (title, ...args) => {
-    if (options.logging) {
-      title && options.logger(`\n\n----- Postgres Differ: ${title} -----`)
-      args.length && options.logger('\n', ...args)
+  const log = (title, ...args) => {
+    if (logging) {
+      title && logger(`\n----- Postgres Differ: ${title} -----\n`)
+      args.length && logger(...args, '\n')
     }
   }
 
@@ -80,12 +87,11 @@ module.exports = function (options) {
   }
 
   const define = (schema) => {
-    const { force } = options
     const model = new Model({
       client: _client,
       schema,
-      logger,
       force,
+      log,
     })
     const { table } = model.getSchema()
     _models.set(table, model)
@@ -135,29 +141,29 @@ module.exports = function (options) {
   }
 
   const sync = async () => {
-    logger(`Sync start`)
+    log(`Sync start`)
 
     const models = Array.from(_models.values())
 
     const syncQueries = Sql.uniqueQueries(await _getSyncSql(models))
     if (syncQueries) {
-      logger('Start sync tables with...', syncQueries)
+      log('Start sync tables with...', syncQueries)
       await _client.find(syncQueries)
-      logger('End sync tables')
+      log('End sync tables')
     }
 
     const constraintQueries = Sql.uniqueQueries(await _getConstraintsSql(models))
     if (constraintQueries) {
-      logger('Start sync table constraints with...', constraintQueries)
+      log('Start sync table constraints with...', constraintQueries)
       await _client.find(constraintQueries)
-      logger('End sync table constraints')
+      log('End sync table constraints')
     }
 
     if (!syncQueries && !constraintQueries) {
-      logger('Tables do not need synchronization')
+      log('Tables do not need synchronization')
     }
 
-    logger(`Sync end`)
+    log(`Sync end`)
     return _client.end()
   }
 

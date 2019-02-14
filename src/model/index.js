@@ -28,6 +28,8 @@ const _throwError = (message) => {
  * @property {string} table
  * @property {array} indexes
  * @property {array} columns
+ * @property {array} force
+ * @property {array} forceIndexes
  */
 
 /**
@@ -49,7 +51,7 @@ const Model = function (options) {
 
   const _schema = _getSchema(options.schema)
   const _table = _schema.table
-  const { logger: _logger, client: _client } = options
+  const { log: _log, client: _client } = options
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
   const _belongs = new Map()
 
@@ -345,7 +347,7 @@ const Model = function (options) {
         ? Sql.create(
           'drop and add column',
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
-        : _logger(
+        : _log(
           null,
           chalk.red(`To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} you need to set 'force: true' for '${column.name}' column`),
         )
