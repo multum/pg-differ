@@ -67,13 +67,15 @@ exports.schema = (scheme) => {
       : constraint
   ))
 
-  const forceIndexes = scheme.forceIndexes ? {
+  const forceIndexes = {
     ..._forceDefaults,
-    ...scheme.forceIndexes.reduce((acc, index) => {
-      acc[index] = true
-      return acc
-    }, {}),
-  } : { ..._forceDefaults, primaryKey: true }
+    ...scheme.forceIndexes
+      ? scheme.forceIndexes.reduce((acc, index) => {
+        acc[index] = true
+        return acc
+      }, {})
+      : { primaryKey: true },
+  }
 
   return { ...scheme, columns, indexes, forceIndexes }
 }
