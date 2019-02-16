@@ -1,5 +1,6 @@
 # postgres-differ
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)]() [![forthebadge](https://forthebadge.com/images/badges/makes-people-smile.svg)]()
+![](https://forthebadge.com/images/badges/built-with-love.svg)
+![](https://forthebadge.com/images/badges/makes-people-smile.svg)
 
 Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
 
@@ -33,6 +34,7 @@ npm i pg-differ
 ## Documentation
 
   - [Settings](#settings)
+  - [Methods](#methods)
   - [Schema structure](#schema-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
