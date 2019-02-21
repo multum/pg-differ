@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2018-present Andrey Vereshchak
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 const R = require('ramda')
 const utils = require('../utils')
 const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
@@ -35,7 +42,7 @@ exports.encodeConstraintType = (key) => {
 }
 
 const _forceDefaults = {
-  primaryKey: true,
+  primaryKey: false,
   foreignKey: false,
   unique: false,
 }
@@ -67,13 +74,15 @@ exports.schema = (scheme) => {
       : constraint
   ))
 
-  const forceIndexes = scheme.forceIndexes ? {
+  const forceIndexes = {
     ..._forceDefaults,
-    ...scheme.forceIndexes.reduce((acc, index) => {
-      acc[index] = true
-      return acc
-    }, {}),
-  } : _forceDefaults
+    ...scheme.forceIndexes
+      ? scheme.forceIndexes.reduce((acc, index) => {
+        acc[index] = true
+        return acc
+      }, {})
+      : { primaryKey: true },
+  }
 
   return { ...scheme, columns, indexes, forceIndexes }
 }

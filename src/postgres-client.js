@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2018-present Andrey Vereshchak
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 const { Client } = require('pg')
 
 /**
@@ -32,21 +39,16 @@ module.exports = function (options) {
     client = null
   }
 
-  const query = async (sql, params = [], queryOptions = options) => {
-    const { reconnecting } = queryOptions
+  const query = async (sql, params = []) => {
     !client && await connect()
-    const result = await client.query(sql, params)
-    if (reconnecting) {
-      end()
-    }
-    return result
+    return client.query(sql, params)
   }
 
-  const find = (sql, params = [], options) =>
-    query(sql, params, options).then((result) => result.rows)
+  const find = (sql, params = []) =>
+    query(sql, params).then((result) => result.rows)
 
-  const findOne = (sql, params = [], options) =>
-    query(sql, params, options).then((result) => result.rows[0])
+  const findOne = (sql, params = []) =>
+    query(sql, params).then((result) => result.rows[0])
 
   return Object.freeze({
     find,

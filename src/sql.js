@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2018-present Andrey Vereshchak
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 const R = require('ramda')
 const utils = require('./utils')
 
@@ -47,12 +54,9 @@ const Sql = function () {
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)
 
 Sql.uniqueQueries = R.ifElse(
-  utils.notEmpty,
-  R.pipe(
-    R.uniq,
-    R.join('\n'),
-  ),
+  R.isEmpty,
   R.always(null),
+  R.pipe(R.uniq, R.join('\n')),
 )
 
 module.exports = Sql
