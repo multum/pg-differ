@@ -1,5 +1,6 @@
 # postgres-differ
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)]() [![forthebadge](https://forthebadge.com/images/badges/makes-people-smile.svg)]()
+![](https://forthebadge.com/images/badges/built-with-love.svg)
+![](https://forthebadge.com/images/badges/makes-people-smile.svg)
 
 Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
 
@@ -33,6 +34,7 @@ npm i pg-differ
 ## Documentation
 
   - [Settings](#settings)
+  - [Methods](#methods)
   - [Schema structure](#schema-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
@@ -91,7 +93,7 @@ const path = require('path')
 | **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
-| **force** | Boolean | `false` | No | Force synchronization of tables (drop and create) | 
+| **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
 | **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
@@ -107,7 +109,7 @@ const path = require('path')
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
 | **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `'table_name'` |
-| **force** | Boolean | `false` | No | Force synchronization of table (drop and create). Priority over the constructor settings for the current table |
+| **force** | Boolean | `false` | No | Force sync of table (drop and create). Priority over the constructor settings for the current table |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
 | **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] | 
@@ -158,6 +160,7 @@ const path = require('path')
 | **&#8209;&#8209;connectionString** | **-c** | `null` | Yes | [Connection URI](https://node-postgres.com/features/connecting#connection-uri) | Connection URI to database |
 | **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | An string with names and their values to replace placeholders in `schemaFolder` files |
 | **&#8209;&#8209;logging** | **-l** | `true` | No |  | Option to enable logging in the console |
+| **&#8209;&#8209;force** | **-f** | `false` | No |  | Force sync of tables (drop and create) | 
 | **&#8209;&#8209;schemaFolder** | **-s** | `./schemas` | No |  | Path to the folder with * .schema.json files |
 | **&#8209;&#8209;version** | **-v** |  |  |  | Print out the installed version | 
 | **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 

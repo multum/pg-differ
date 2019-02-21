@@ -16,7 +16,7 @@ const argv = minimist(process.argv.slice(2), {
   default: {
     s: './schemas',
     l: true,
-    f: false
+    f: false,
   },
   boolean: [ 'version', 'help', 'logging' ],
 })
@@ -65,6 +65,7 @@ const differ = new Differ({
   schemaFolder: argv.schemaFolder,
   placeholders: getPlaceholders(),
   logging: argv.logging,
+  force: argv.force,
   dbConfig: {
     connectionString: argv.connectionString,
   },
