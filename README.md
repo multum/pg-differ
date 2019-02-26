@@ -128,11 +128,33 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **name** | String | `null` | Yes | Column name |
 | **type** | String | `null` | Yes | Type name (with alias support) |
+| **default** | String | `null` | No | Default value* |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No |  | 
 | **unique** | Boolean | `false` | No |  | 
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
+
+*\* default values examples:*
+```
+{
+  ...schema,
+  columns: [
+    {
+      type: 'character varying(255)',
+      default: '\"Default string\"'
+    },
+    {
+      type: 'bigint',
+      default: 10000
+    },
+    {
+      type: 'timestamp',
+      default: 'now()' // postgres function, lowercase only
+    }
+  ],
+}
+```
 
 ### foreignKey params
 
