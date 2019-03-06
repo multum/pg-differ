@@ -189,7 +189,7 @@ const path = require('path')
 
 ## In future
   - [x] Force sync tables(drop and create) *v0.1.8*
-  - [ ] Support for column renames
+  - [ ] Support rename column
   - [ ] Support `CHECK` constraint
 
 ## Contributing
