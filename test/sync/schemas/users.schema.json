@@ -38,5 +38,19 @@
       "name": "description",
       "type": "varchar(255)"
     }
+  ],
+  "seeds": [
+    {
+      "id": 1,
+      "description": "'some string'"
+    },
+    {
+      "id": 2,
+      "description": "'some string'"
+    },
+    {
+      "id": 3,
+      "description": "'some string'"
+    }
   ]
 }

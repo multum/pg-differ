@@ -61,9 +61,10 @@ exports.schema = (scheme) => {
       return { ...COLUMNS.DEFAULTS, ...column, type }
     })
 
+  const columnConstraints = _getConstraintsFromColumns(columns)
   let indexes = scheme.indexes
-    ? R.concat(scheme.indexes, columnConstraints(columns))
-    : columnConstraints(columns)
+    ? R.concat(scheme.indexes, columnConstraints)
+    : columnConstraints
 
   indexes = indexes.map((constraint) => (
     constraint.type === 'foreignKey'
@@ -173,7 +174,7 @@ exports.indexDefinitions = R.map(({ name, definition }) => ({
   ...constraintDefinitionOptions('index', definition),
 }))
 
-const columnConstraints = (
+const _getConstraintsFromColumns = (
   R.reduce((acc, column) => (
     R.pipe(
       R.pick(COLUMNS.CONSTRAINTS),

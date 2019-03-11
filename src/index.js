@@ -7,7 +7,8 @@
 
 const fs = require('fs')
 const path = require('path')
-const utils = require('./utils')
+const chalk = require('chalk')
+const R = require('ramda')
 
 const Sql = require('./sql')
 const Client = require('./postgres-client')
@@ -16,6 +17,7 @@ const Model = require('./model')
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
+  seedFolder: null,
   logger: console.info,
   dbConfig: null,
   force: false,
@@ -32,9 +34,9 @@ const _loadJSON = (path, placeholders) => {
   return JSON.parse(file)
 }
 
-const _getSchemas = (pathFolder, placeholders) => (
+const _getSchemas = ({ filePattern, pathFolder, placeholders }) => (
   fs.readdirSync(pathFolder)
-    .filter((file) => /^.*\.schema.json$/.test(file))
+    .filter((file) => filePattern.test(file))
     .map((file) => (
       _loadJSON(
         path.resolve(pathFolder, file),
@@ -63,6 +65,7 @@ const _getSchemas = (pathFolder, placeholders) => (
 module.exports = function (options) {
   const {
     schemaFolder,
+    seedFolder,
     placeholders,
     logging,
     force,
@@ -73,13 +76,40 @@ module.exports = function (options) {
   const _client = new Client(dbConfig)
   const _models = new Map()
 
-  const _defineModels = () => {
+  const _initModels = () => {
     if (schemaFolder) {
-      const schemas = _getSchemas(schemaFolder, placeholders)
-      return schemas && utils.notEmpty(schemas)
-        ? schemas.map(define)
-        : null
+      const schemas = _getSchemas({
+        placeholders,
+        pathFolder: schemaFolder,
+        filePattern: /^.*\.schema.json$/,
+      })
+      const localSeeds = _getSeeds()
+      schemas.map((schema) => {
+        const schemaSeeds = schema.seeds || []
+        const tableSeeds = localSeeds.get(schema.table) || []
+        define(schema).addSeeds([ ...schemaSeeds, ...tableSeeds ])
+      })
+      _installTableDependencies()
     }
+  }
+
+  const _getSeeds = () => {
+    const result = new Map()
+    if (seedFolder) {
+      const seeds = _getSchemas({
+        pathFolder: seedFolder,
+        placeholders,
+        filePattern: /^.*\.seed.json$/,
+      })
+      seeds.forEach(({ table, seeds }) => {
+        if (result.has(table)) {
+          result.add(table, [ ...result.get(table), ...seeds ])
+        } else {
+          result.add(table, seeds)
+        }
+      })
+    }
+    return result
   }
 
   const log = (title, ...args) => {
@@ -90,7 +120,7 @@ module.exports = function (options) {
   }
 
   const _setup = () => {
-    _defineModels()
+    _initModels()
   }
 
   const define = (schema) => {
@@ -100,10 +130,10 @@ module.exports = function (options) {
       force,
       log,
     })
-    const { table } = model.getSchema()
-    _models.set(table, model)
-    _installTableDependencies()
-    return model
+    _models.set(schema.table, model)
+    return {
+      addSeeds: model.addSeeds,
+    }
   }
 
   const _installTableDependencies = () => (
@@ -147,8 +177,13 @@ module.exports = function (options) {
     ]
   }
 
+  const _getSeedSql = R.pipe(
+    R.map((model) => model.getSeedSql().getLines()),
+    R.reduce(R.concat, []),
+  )
+
   const sync = async () => {
-    log(`Sync start`)
+    log(chalk.green('Sync start'))
 
     const models = Array.from(_models.values())
 
@@ -161,16 +196,23 @@ module.exports = function (options) {
 
     const constraintQueries = Sql.uniqueQueries(await _getConstraintsSql(models))
     if (constraintQueries) {
-      log('Start sync table constraints with...', constraintQueries)
+      log(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
       await _client.find(constraintQueries)
-      log('End sync table constraints')
+      log(`End sync table ${chalk.green('constraints')}`)
     }
 
-    if (!syncQueries && !constraintQueries) {
+    const seedQueries = Sql.uniqueQueries(_getSeedSql(models))
+    if (seedQueries) {
+      log(`Start sync table ${chalk.green('seeds')}`)
+      await _client.find(seedQueries)
+      log(`End sync table ${chalk.green('seeds')}`)
+    }
+
+    if (!syncQueries && !constraintQueries && !seedQueries) {
       log('Tables do not need synchronization')
     }
 
-    log(`Sync end`)
+    log(chalk.green('Sync end'))
     return _client.end()
   }
 

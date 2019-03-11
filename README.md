@@ -143,7 +143,7 @@ const path = require('path')
   columns: [
     {
       type: 'character varying(255)',
-      default: '\"Default string\"'
+      default: '\'Default string\''
     },
     {
       type: 'bigint',

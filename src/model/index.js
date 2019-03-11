@@ -8,6 +8,8 @@
 const R = require('ramda')
 const chalk = require('chalk')
 const Sql = require('../sql')
+const Seeds = require('../seeds')
+
 const utils = require('../utils')
 const parse = require('./parse')
 const validate = require('./validate')
@@ -45,6 +47,8 @@ const _throwError = (message) => {
  * @property {function} getSyncSql
  * @property {function} getSchema
  * @property {function} belongsTo
+ * @property {function} addSeeds
+ * @property {function} getSeedSql
  */
 
 /**
@@ -52,18 +56,23 @@ const _throwError = (message) => {
  * @param {object} options
  * @returns {Model}
  */
-const Model = function (options) {
+module.exports = function (options) {
   let _dbColumns = null
   let _dbConstraints = null
 
   const _schema = _getSchema(options.schema)
   const _table = _schema.table
-  const { log: _log, client: _client } = options
+  const { log, client } = options
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
-  const _belongs = new Map()
 
   const _forceIndexes = _schema.forceIndexes
+  const _primaryKey = _schema.indexes.find(R.propEq('type', 'primaryKey'))
   const _forceCreate = R.isNil(_schema.force) ? options.force : _schema.force
+
+  const _belongs = new Map()
+  const _seeds = new Seeds({
+    table: _table,
+  })
 
   /**
    * @returns {Schema}`
@@ -71,7 +80,7 @@ const Model = function (options) {
   const getSchema = () => _schema
 
   const _fetchColumns = async () => {
-    _dbColumns = await _client.find(`
+    _dbColumns = await client.find(`
     select
       pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
       ic.collation_name,
@@ -92,7 +101,7 @@ const Model = function (options) {
   }
 
   const _fetchConstraints = () => (
-    _client.find(`
+    client.find(`
     select
       conname as name,
       c.contype as type,
@@ -103,7 +112,7 @@ const Model = function (options) {
   )
 
   const _fetchIndexes = () => (
-    _client.find(`
+    client.find(`
     select
       indexname as name,
       indexdef as definition
@@ -159,7 +168,7 @@ const Model = function (options) {
       return _createTable(true)
     }
     try {
-      const { exist } = await _client.findOne(`select to_regclass('${_table}') as exist;`)
+      const { exist } = await client.findOne(`select to_regclass('${_table}') as exist;`)
       R.isNil(exist) && _throwError(`table '${_table}' does not exist`)
     } catch (error) {
       return _createTable()
@@ -365,7 +374,7 @@ const Model = function (options) {
         ? Sql.create(
           'drop and add column',
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
-        : _log(
+        : log(
           null,
           chalk.red(`To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} you need to set 'force: true' for '${column.name}' column`),
         )
@@ -375,15 +384,13 @@ const Model = function (options) {
     return null
   }
 
-  const _inPrimaryKey = (column) => {
-    const primaryKey = _schema.indexes.find(R.propEq('type', 'primaryKey'))
-    return column.primaryKey === true || (primaryKey && R.includes(column.name, primaryKey.columns))
-  }
+  const _inPrimaryKey = (column) => (
+    column.primaryKey === true || (_primaryKey && R.includes(column.name, _primaryKey.columns))
+  )
 
-  const _isPrimaryKey = (columns) => {
-    const primaryKey = _schema.indexes.find(R.propEq('type', 'primaryKey'))
-    return primaryKey && R.equals(columns, primaryKey.columns)
-  }
+  const _isPrimaryKey = (columns) => (
+    _primaryKey && R.equals(columns, _primaryKey.columns)
+  )
 
   const _getColumnDescription = (column) => {
     const chunks = [ `${column.name} ${column.type}` ]
@@ -443,12 +450,24 @@ const Model = function (options) {
     }, {})
   )
 
+  const addSeeds = (seeds) => _seeds.add(seeds)
+
   const getSyncConstraintSQL = async () => {
     await _fetchAllConstraints()
     return _getSyncConstraintSQL([ ..._schema.indexes, ..._getBelongConstraints() ])
   }
 
-  return Object.freeze({ getSyncSql, getSyncConstraintSQL, getSchema, belongsTo })
-}
+  const getSeedSql = () => {
+    const hasConstraints = _schema.indexes.some(({ type }) => (
+      [ 'unique', 'primaryKey' ].includes(type)
+    ))
+    if (hasConstraints) {
+      const inserts = _seeds.inserts()
+      return new Sql().add(inserts.map((insert) => Sql.create('insert seed', insert)))
+    } else {
+      log(null, chalk.red(`To use seeds, you need to set at least one constraint (primaryKey || unique)`))
+    }
+  }
 
-module.exports = Model
+  return Object.freeze({ getSyncSql, getSyncConstraintSQL, getSchema, belongsTo, addSeeds, getSeedSql })
+}
