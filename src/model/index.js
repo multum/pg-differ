@@ -255,12 +255,8 @@ const Model = function (options) {
 
   const _getTypeGroup = (type) => {
     type = parse.trimType(type)
-    const group = Object.entries(TYPES.GROUPS)
-      .find(([ name, group ]) => R.includes(type, group))
-    if (group) {
-      return group[0] // group name
-    }
-    return null
+    return Object.values(TYPES.GROUPS)
+      .find((group) => R.includes(type, group)) || null
   }
 
   const _alterConstraint = ({ type, columns, references, onDelete, onUpdate, match }) => {
@@ -333,11 +329,15 @@ const Model = function (options) {
       const { oldType, type } = column.diff
       const oldTypeGroup = _getTypeGroup(oldType)
       const newTypeGroup = _getTypeGroup(type)
-      const { INTEGER, CHARACTER } = TYPES.GROUPS
+      const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS
       const collate = column.collate ? ` collate ${column.collate}` : ''
 
       // If not an array
       if (type.indexOf(']') === -1) {
+        const alterColumnType = (using) => {
+          using = using ? ` using (${using})` : ''
+          return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate}${using};`)
+        }
         if (
           !oldType ||
           (oldTypeGroup === INTEGER && newTypeGroup === INTEGER) ||
@@ -346,7 +346,11 @@ const Model = function (options) {
         ) {
           return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate};`)
         } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
-          return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate} using (trim(${column.name})::integer);`)
+          return alterColumnType(`trim(${column.name})::integer`)
+        } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
+          return alterColumnType(`${column.name}::integer`)
+        } else if (oldTypeGroup === INTEGER && newTypeGroup === BOOLEAN) {
+          return alterColumnType(`case when ${column.name} = 0 then false else true end`)
         }
       }
 
