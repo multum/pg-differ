@@ -131,6 +131,7 @@ const path = require('path')
 | **default** | String | `null` | No | Default value* |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
+| **previousNames** | Array | `null` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No |  | 
 | **unique** | Boolean | `false` | No |  | 
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |

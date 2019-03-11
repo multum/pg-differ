@@ -61,6 +61,9 @@ const GROUPS = {
     'timestamp with time zone',
     'timestamp without time zone',
   ],
+  BOOLEAN: [
+    'boolean',
+  ],
 }
 
 module.exports = {

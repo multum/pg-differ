@@ -50,7 +50,7 @@ const _forceDefaults = {
 exports.schema = (scheme) => {
   const columns = scheme.columns
     .map((column) => {
-      column = R.pick(COLUMNS.ALL_PROPERTIES)(column)
+      column = R.pick(COLUMNS.ALL_PROPERTIES, column)
 
       if (column.primaryKey === true) {
         column.nullable = false

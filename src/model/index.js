@@ -170,7 +170,7 @@ const Model = function (options) {
 
   const _getColumnDiffs = R.pipe(
     R.map((column) => {
-      const dbColumn = utils.findByName(_dbColumns, column.name)
+      const dbColumn = utils.findByName(_dbColumns, column.name, column.previousNames)
       if (dbColumn) {
         const diff = _getColumnAttributeDiffs(column, dbColumn)
         return diff && utils.notEmpty(diff)
@@ -210,7 +210,11 @@ const Model = function (options) {
       columnsWithDiffs.forEach((column) => {
         const { diff } = column
         if (diff) {
-          Object.keys(diff).forEach((key) => {
+          let keys = Object.keys(diff)
+          if (diff.name) {
+            keys = [ 'name', ...R.without('name', keys) ]
+          }
+          keys.forEach((key) => {
             const alterQuery = _alterColumn(column, key)
             alterQuery && sql.add(alterQuery)
           })
@@ -308,7 +312,10 @@ const Model = function (options) {
   const _alterColumn = (column, key) => {
     const value = column.diff[key]
     const alterTable = `alter table ${_table}`
-    if (key === 'nullable') {
+    if (key === 'name') {
+      const { oldName, name } = column.diff
+      return Sql.create('rename column', `${alterTable} rename column ${oldName} to ${name};`)
+    } else if (key === 'nullable') {
       if (value === true && !_inPrimaryKey(column)) {
         const primaryKey = _findDbConstraintWhere({ type: 'primaryKey' })
         return [
@@ -344,7 +351,7 @@ const Model = function (options) {
           (oldTypeGroup === CHARACTER && newTypeGroup === CHARACTER) ||
           (oldTypeGroup === INTEGER && newTypeGroup === CHARACTER)
         ) {
-          return Sql.create('set type', `${alterTable} alter column ${column.name} type ${column.type}${collate};`)
+          return alterColumnType()
         } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
           return alterColumnType(`trim(${column.name})::integer`)
         } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
@@ -421,8 +428,15 @@ const Model = function (options) {
     Object.keys(R.pick(COLUMNS.ATTRS, column)).reduce((acc, key) => {
       if (dbColumn[key] !== column[key]) {
         acc[key] = column[key]
-        if (key === 'type') {
-          acc['oldType'] = dbColumn[key]
+        switch (key) {
+          case 'type': {
+            acc['oldType'] = dbColumn[key]
+            break
+          }
+          case 'name': {
+            acc['oldName'] = dbColumn[key]
+            break
+          }
         }
       }
       return acc
