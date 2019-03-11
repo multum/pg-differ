@@ -7,14 +7,14 @@
 
 const COLUMNS_ATTRS = [ 'name', 'nullable', 'default', 'type', 'collate' ]
 const COLUMN_CONSTRAINTS = [ 'unique', 'primaryKey', 'references' ]
-const ALL_PROPERTIES = [ ...COLUMNS_ATTRS, ...COLUMN_CONSTRAINTS, 'previousNames', 'force' ]
+const ALL_PROPERTIES = [ ...COLUMNS_ATTRS, ...COLUMN_CONSTRAINTS, 'formerNames', 'force' ]
 
 const DEFAULTS = {
   nullable: true,
   default: null,
   force: false,
   collate: null,
-  previousNames: null,
+  formerNames: null,
 }
 
 module.exports = {

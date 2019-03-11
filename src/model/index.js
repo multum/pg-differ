@@ -170,7 +170,7 @@ const Model = function (options) {
 
   const _getColumnDiffs = R.pipe(
     R.map((column) => {
-      const dbColumn = utils.findByName(_dbColumns, column.name, column.previousNames)
+      const dbColumn = utils.findByName(_dbColumns, column.name, column.formerNames)
       if (dbColumn) {
         const diff = _getColumnAttributeDiffs(column, dbColumn)
         return diff && utils.notEmpty(diff)

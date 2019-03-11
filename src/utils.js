@@ -11,11 +11,11 @@ exports.isExist = R.compose(R.not, R.isNil)
 
 exports.notEmpty = R.compose(R.not, R.isEmpty)
 
-exports.findByName = (array, name, previousNames) => R.find((el) => {
+exports.findByName = (array, name, formerNames) => R.find((el) => {
   if (el.name === name) {
     return true
-  } else if (previousNames) {
-    return R.includes(el.name, previousNames)
+  } else if (formerNames) {
+    return R.includes(el.name, formerNames)
   }
   return false
 }, array)

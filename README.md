@@ -131,9 +131,9 @@ const path = require('path')
 | **default** | String | `null` | No | Default value* |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
-| **primaryKey** | Boolean | `false` | No |  | 
-| **unique** | Boolean | `false` | No |  | 
-| **previousNames** | Array | `null` | No | Array of previous column names that is used to rename |
+| **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
+| **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
+| **formerNames** | Array | `null` | No | Array of previous column names that is used to rename |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
 
 *\* default values examples:*
