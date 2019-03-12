@@ -11,7 +11,14 @@ exports.isExist = R.compose(R.not, R.isNil)
 
 exports.notEmpty = R.compose(R.not, R.isEmpty)
 
-exports.findByName = (array, name) => R.find(R.propEq('name', name), array)
+exports.findByName = (array, name, formerNames) => R.find((el) => {
+  if (el.name === name) {
+    return true
+  } else if (formerNames) {
+    return R.includes(el.name, formerNames)
+  }
+  return false
+}, array)
 
 exports.filterByProp = R.curry((prop, props, array) => (
   R.filter(R.pipe(

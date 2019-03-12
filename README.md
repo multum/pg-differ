@@ -94,7 +94,7 @@ const path = require('path')
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
 | **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
-| **placeholders** | Object | `null` | No | An object with names and their values to replace placeholders in `schemaFolder` files | 
+| **placeholders** | Object | `null` | No | Object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
 
@@ -131,8 +131,9 @@ const path = require('path')
 | **default** | String | `null` | No | Default value* |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
-| **primaryKey** | Boolean | `false` | No |  | 
-| **unique** | Boolean | `false` | No |  | 
+| **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
+| **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
+| **formerNames** | Array | `null` | No | Array of previous column names that is used to rename |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
 
 *\* default values examples:*
@@ -142,7 +143,7 @@ const path = require('path')
   columns: [
     {
       type: 'character varying(255)',
-      default: '\"Default string\"'
+      default: '\'Default string\''
     },
     {
       type: 'bigint',
@@ -160,7 +161,7 @@ const path = require('path')
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
-| **match** | String | `'SIMPLE'` | No | An object with required parameters for the `type: 'foreignKey'` index |
+| **match** | String | `'SIMPLE'` | No | Object with required parameters for the `type: 'foreignKey'` index |
 | **onDelete** | String | `'NO ACTION'` | No | `CASCADE`&#124;`RESTRICT`&#124;`NO ACTION` |  
 | **onUpdate** | String | `'NO ACTION'` | No | `CASCADE`&#124;`RESTRICT`&#124;`NO ACTION` | 
 | **references** | Object | `null` | Yes | Object with foreign table parameters |  
@@ -171,7 +172,7 @@ const path = require('path')
 
 *\*`['primaryKey']` by default*
 
-`forceIndexes` - An array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
+`forceIndexes` - Array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
 
 ## CLI
 
@@ -180,7 +181,7 @@ const path = require('path')
 | Option | Alias | Default | Required | Example | Description |
 | -------- | ------ | ------ | ------ | ------ | ------ |
 | **&#8209;&#8209;connectionString** | **-c** | `null` | Yes | [Connection URI](https://node-postgres.com/features/connecting#connection-uri) | Connection URI to database |
-| **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | An string with names and their values to replace placeholders in `schemaFolder` files |
+| **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | String with names and their values to replace placeholders in `schemaFolder` files |
 | **&#8209;&#8209;logging** | **-l** | `true` | No |  | Option to enable logging in the console |
 | **&#8209;&#8209;force** | **-f** | `false` | No |  | Force sync of tables (drop and create) | 
 | **&#8209;&#8209;schemaFolder** | **-s** | `./schemas` | No |  | Path to the folder with * .schema.json files |
