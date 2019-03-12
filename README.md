@@ -36,6 +36,7 @@ npm i pg-differ
 
   - [Settings](#settings)
   - [Methods](#methods)
+  - [Model methods](#model-methods)
   - [Schema structure](#schema-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
@@ -53,7 +54,8 @@ const path = require('path')
 
  const differ = new Differ({
     dbConfig: {},
-    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'define' method to add model,
+    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
+    seedFolder: path.resolve(__dirname, 'seed'), // or/and use 'model.addSeeds' method,
     logging: true,
     logger: function(message){},
     placeholders: {
