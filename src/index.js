@@ -208,10 +208,7 @@ module.exports = function (options) {
       log(`Start sync table ${chalk.green('seeds')}`)
       const result = await _client.query(seedQueries)
       const insertCount = result.reduce((acc, insert) => acc + insert.rowCount, 0)
-      if (insertCount) {
-        log(`Seeds were inserted: ${chalk.green(insertCount)}`)
-      }
-      log(`End sync table ${chalk.green('seeds')}`)
+      log(`Seeds were inserted: ${chalk.green(insertCount)}`)
     }
 
     if (!syncQueries && !constraintQueries && !seedQueries) {
