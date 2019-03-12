@@ -115,7 +115,7 @@ const path = require('path')
 | Method | Argument | Returns | Description |
 | ------ | ------ | ------ | ------ |
 | **define** | [schema](#schema-structure) | Model object | Model definition |
-| **sync** | null | Promise<null> | Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
+| **sync** | null | Promise\<null\> | Synchronization of previously defined models and their seeds |
 
 ## Model methods
 
@@ -154,7 +154,7 @@ const path = require('path')
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
 | **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
-| **formerNames** | Array | `null` | No | Array of previous column names that is used to rename |
+| **formerNames** | Array[String] | `null` | No | Array of previous column names that is used to rename |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
 
 *\* default values examples:*
