@@ -26,7 +26,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
 
 ## Installation
 
-*\* postgres-differ requires [Node.js](https://nodejs.org/) v8+*
+*\* pg-differ requires: [Node.js](https://nodejs.org/) v8 or more; [PostgreSQL Core](https://www.postgresql.org/download/) v9.2 or more, 9.5+ if using seeds*
  
 ```bash
 npm i pg-differ
@@ -214,9 +214,9 @@ Suggestions for introducing new features, bug reports, and any other suggestions
 
 Good pull requests, such as patches, improvements, and new features, are a fantastic help. They should remain focused in scope and avoid containing unrelated commits.
 
-Please **ask first** if somebody else is already working on this or the core developers think your feature is in-scope for postgres-differ. Generally always have a related issue with discussions for whatever you are including.
+Please **ask first** if somebody else is already working on this or the core developers think your feature is in-scope for pg-differ. Generally always have a related issue with discussions for whatever you are including.
 
 Please also provide a **test plan**, i.e. specify how you verified that your addition works.
 
 ## License
-postgres-differ is open source software [licensed as MIT](LICENSE).
+pg-differ is open source software [licensed as MIT](LICENSE).
