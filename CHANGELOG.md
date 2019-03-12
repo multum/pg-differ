@@ -1,3 +1,9 @@
+## 1.0.1
+
+#### Bug Fix
+ * Fix logging. Tab correction
+ * Added seedFolder option in CLI
+
 ## 1.0.0
 
 #### Enhancement
