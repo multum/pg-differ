@@ -7,6 +7,7 @@ const pkg = require('../package.json')
 const argv = minimist(process.argv.slice(2), {
   alias: {
     s: 'schemaFolder',
+    sd: 'schemaFolder',
     v: 'version',
     c: 'connectionString',
     p: 'placeholders',
@@ -15,6 +16,7 @@ const argv = minimist(process.argv.slice(2), {
   },
   default: {
     s: './schemas',
+    sd: './seeds',
     l: true,
     f: false,
   },
@@ -30,6 +32,7 @@ const logOptions = () => {
   console.error(`Usage: pg-differ [options]
   --connectionString,-c     Connection URI to database
   --schemaFolder,-s         Path to the folder with * .schema.json files. Default value is './schemas'
+  --seedFolder,-sd          Path to the folder with * .seed.json files. Default value is './seeds'
   --placeholders,-p         An string with names and their values to replace placeholders in 'schemaFolder' files
   --logging,-l              Option to enable logging in the console
   --force,-f                Force synchronization of table (drop and create)
@@ -63,6 +66,7 @@ const getPlaceholders = () => (
 
 const differ = new Differ({
   schemaFolder: argv.schemaFolder,
+  seedFolder: argv.seedFolder,
   placeholders: getPlaceholders(),
   logging: argv.logging,
   force: argv.force,

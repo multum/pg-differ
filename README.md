@@ -82,6 +82,16 @@ const path = require('path')
             nullable: false,
             primaryKey: true
        },
+        {
+            name: 'some_column',
+            type: 'character varying(255)',
+        },
+     ],
+     seeds: [
+       {
+            id: 1,
+            some_column: 'string value'
+       },
      ]
  })
  
@@ -195,7 +205,8 @@ const path = require('path')
 | **&#8209;&#8209;placeholders** | **-p** | `null` | No | `schema:s_name, user:u_name` | String with names and their values to replace placeholders in `schemaFolder` files |
 | **&#8209;&#8209;logging** | **-l** | `true` | No |  | Option to enable logging in the console |
 | **&#8209;&#8209;force** | **-f** | `false` | No |  | Force sync of tables (drop and create) | 
-| **&#8209;&#8209;schemaFolder** | **-s** | `./schemas` | No |  | Path to the folder with *.schema.json files |
+| **&#8209;&#8209;schemaFolder** | **-s** | `./schemas` | No |  | Path to the folder with * .schema.json files |
+| **&#8209;&#8209;seedFolder** | **-sd** | `./seeds` | No |  | Path to the folder with * .seed.json files |
 | **&#8209;&#8209;version** | **-v** |  |  |  | Print out the installed version | 
 | **&#8209;&#8209;help** | **-h** |  |  |  | Show this help | 
 

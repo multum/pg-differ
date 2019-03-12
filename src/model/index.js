@@ -276,28 +276,26 @@ module.exports = function (options) {
     const constraintType = parse.encodeConstraintType(type)
 
     const addConstraint = Sql.create(`add ${type}`)
-
+    columns = columns.join(',')
     switch (type) {
       case 'index':
-        return Sql.create(`create ${type}`, `create ${constraintType} on ${_table} (${columns.join(',')});`)
+        return Sql.create(`create ${type}`, `create ${constraintType} on ${_table} (${columns});`)
 
       case 'primaryKey':
-        return addConstraint(`${alterTable} add ${constraintType} (${columns.join(',')});`)
+        return addConstraint(`${alterTable} add ${constraintType} (${columns});`)
 
       case 'unique':
         return [
           _forceIndexes.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
-          addConstraint(`${alterTable} add ${constraintType} (${columns.join(',')});`),
+          addConstraint(`${alterTable} add ${constraintType} (${columns});`),
         ]
 
-      case 'foreignKey':
-        match = match ? ` match ${match}` : ''
-        return addConstraint(`
-        ${alterTable}
-        add ${constraintType} (${columns.join(',')})
-        references ${references.table} (${references.columns.join(',')})${match}
-        on update ${onUpdate} on delete ${onDelete};
-        `)
+      case 'foreignKey': {
+        match = match ? ` match ${match}` : null
+        references = `references ${references.table} (${references.columns.join(',')})`
+        const events = `on update ${onUpdate} on delete ${onDelete}`
+        return addConstraint(`${alterTable} add ${constraintType} (${columns}) ${references}${match} ${events};`)
+      }
 
       default:
         return null
@@ -423,10 +421,10 @@ module.exports = function (options) {
     const sql = new Sql()
     const columns = _schema.columns
       .map(_getColumnDescription)
-      .join(',\n')
+      .join(',\n\t')
     return sql.add([
       force ? Sql.create('drop table', `drop table if exists ${_table} cascade;`) : null,
-      Sql.create('create table', `create table ${_table} (\n${columns}\n);`),
+      Sql.create('create table', `create table ${_table} (\n\t${columns}\n);`),
     ])
   }
 
