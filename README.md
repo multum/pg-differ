@@ -20,6 +20,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
     - `UNIQUE`
     - `PRIMARY KEY`
   - `INDEX` support
+  - Seed support
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
   - Change logging
 
@@ -92,16 +93,23 @@ const path = require('path')
 | **dbConfig** | Object | null | Yes | Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic) |
 | **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
+| **seedFolder** | String | null | No | Path to the folder with `* .seeds.json` files for automatic seed definitions. Equivalent to function calls `differ.define ({... schemaObject}).addSeeds([...seeds])`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
 | **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
 | **placeholders** | Object | `null` | No | Object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
 
-| Method | Argument | Description |
-| ------ | ------ | ------ |
-| **define** | [schema](#schema-structure) | Model definition |
-| **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
+| Method | Argument | Description | Returns |
+| ------ | ------ | ------ | ------ |
+| **define** | [schema](#schema-structure) | Model definition | Model object |
+| **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" | Promise<null> |
+
+## Model methods
+
+| Method | Argument | Description | Returns |
+| ------ | ------ | ------ | ------ |
+| **addSeeds** | Array[Object] | Seed definitions | `null` |
 
 ## Schema structure
 *\* parameters of the `differ.define` method or the `* .schema.json` file structure for `options.schemaFolder`*
@@ -190,8 +198,8 @@ const path = require('path')
 
 ## In future
   - [x] Force sync tables(drop and create) *v0.1.8*
-  - [ ] Support rename column
-  - [ ] Support seeds
+  - [x] Support rename column *v1.0.0*
+  - [x] Support seeds *v1.0.0*
   - [ ] Support `CHECK` constraint
 
 ## Contributing
