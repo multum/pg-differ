@@ -99,13 +99,13 @@ module.exports = function (options) {
       const seeds = _getSchemas({
         pathFolder: seedFolder,
         placeholders,
-        filePattern: /^.*\.seed.json$/,
+        filePattern: /^.*\.seeds.json$/,
       })
       seeds.forEach(({ table, seeds }) => {
         if (result.has(table)) {
-          result.add(table, [ ...result.get(table), ...seeds ])
+          result.set(table, [ ...result.get(table), ...seeds ])
         } else {
-          result.add(table, seeds)
+          result.set(table, seeds)
         }
       })
     }
@@ -148,14 +148,16 @@ module.exports = function (options) {
     })
   )
 
-  const _getSyncSql = async (models) => {
-    const sql = await Promise.all(
+  const _getSyncSql = (models) => (
+    Promise.all(
       models.map((model) => model.getSyncSql()),
+    ).then(
+      R.pipe(
+        R.map((sql) => sql.getLines()),
+        R.unnest,
+      ),
     )
-    return sql
-      .filter(Boolean)
-      .reduce((acc, sql) => acc.concat(sql.getLines()), [])
-  }
+  )
 
   const _getConstraintsSql = async (models) => {
     let dropForeignKey = []
@@ -179,7 +181,7 @@ module.exports = function (options) {
 
   const _getSeedSql = R.pipe(
     R.map((model) => model.getSeedSql().getLines()),
-    R.reduce(R.concat, []),
+    R.unnest,
   )
 
   const sync = async () => {
@@ -187,24 +189,28 @@ module.exports = function (options) {
 
     const models = Array.from(_models.values())
 
-    const syncQueries = Sql.uniqueQueries(await _getSyncSql(models))
+    const syncQueries = Sql.joinUniqueQueries(await _getSyncSql(models))
     if (syncQueries) {
       log('Start sync tables with...', syncQueries)
       await _client.find(syncQueries)
       log('End sync tables')
     }
 
-    const constraintQueries = Sql.uniqueQueries(await _getConstraintsSql(models))
+    const constraintQueries = Sql.joinUniqueQueries(await _getConstraintsSql(models))
     if (constraintQueries) {
       log(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
       await _client.find(constraintQueries)
       log(`End sync table ${chalk.green('constraints')}`)
     }
 
-    const seedQueries = Sql.uniqueQueries(_getSeedSql(models))
+    const seedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
     if (seedQueries) {
       log(`Start sync table ${chalk.green('seeds')}`)
-      await _client.find(seedQueries)
+      const result = await _client.query(seedQueries)
+      const insertCount = result.reduce((acc, insert) => acc + insert.rowCount, 0)
+      if (insertCount) {
+        log(`Seeds were inserted: ${chalk.green(insertCount)}`)
+      }
       log(`End sync table ${chalk.green('seeds')}`)
     }
 

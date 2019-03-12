@@ -21,10 +21,9 @@ const utils = require('./utils')
  * @constructor
  */
 const Sql = function () {
+  let methods = null
   const lines = new Set()
   const store = []
-
-  let methods = null
 
   const add = (sql) => {
     if (R.is(Array, sql)) {
@@ -45,15 +44,12 @@ const Sql = function () {
     utils.filterByProp('operation', R.__, store),
     R.map(R.prop('value')),
   )
-
-  methods = Object.freeze({ add, getLines, getOperations, getSize })
-
-  return methods
+  return (methods = Object.freeze({ add, getLines, getOperations, getSize }))
 }
 
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)
 
-Sql.uniqueQueries = R.ifElse(
+Sql.joinUniqueQueries = R.ifElse(
   R.isEmpty,
   R.always(null),
   R.pipe(R.uniq, R.join('\n')),

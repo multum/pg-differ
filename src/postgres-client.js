@@ -12,6 +12,7 @@ const { Client } = require('pg')
  * @property {function} find
  * @property {function} findOne
  * @property {function} end
+ * @property {function} query
  */
 
 /**

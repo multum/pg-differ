@@ -6,6 +6,7 @@ const config = {
   dbConfig,
   logging: true,
   schemaFolder: path.resolve(__dirname, 'schemas'),
+  seedFolder: path.resolve(__dirname, 'seeds'),
 }
 
 describe('sync', () =>

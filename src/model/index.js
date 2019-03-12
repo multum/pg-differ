@@ -8,7 +8,7 @@
 const R = require('ramda')
 const chalk = require('chalk')
 const Sql = require('../sql')
-const Seeds = require('../seeds')
+const Seeds = require('./seeds')
 
 const utils = require('../utils')
 const parse = require('./parse')
@@ -214,8 +214,8 @@ module.exports = function (options) {
   )
 
   const _getSyncColumnSQL = (columnsWithDiffs) => {
+    const sql = new Sql()
     if (utils.notEmpty(columnsWithDiffs)) {
-      const sql = new Sql()
       columnsWithDiffs.forEach((column) => {
         const { diff } = column
         if (diff) {
@@ -231,10 +231,8 @@ module.exports = function (options) {
           sql.add(_addColumn(column))
         }
       })
-      return (sql.getSize() && sql) || null
-    } else {
-      return null
     }
+    return sql
   }
 
   const _getSyncConstraintSQL = (constraints) => {
@@ -251,6 +249,7 @@ module.exports = function (options) {
         }
       })
     }
+
     return sql.add(_dropConstraints(excludeDrop))
   }
 
