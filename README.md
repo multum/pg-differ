@@ -20,12 +20,13 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
     - `UNIQUE`
     - `PRIMARY KEY`
   - `INDEX` support
+  - Seed support
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
   - Change logging
 
 ## Installation
 
-*\* postgres-differ requires [Node.js](https://nodejs.org/) v8+*
+*\* pg-differ requires: [Node.js](https://nodejs.org/) v8 or more; [PostgreSQL Core](https://www.postgresql.org/download/) v9.2 or more, 9.5+ if using seeds*
  
 ```bash
 npm i pg-differ
@@ -35,6 +36,7 @@ npm i pg-differ
 
   - [Settings](#settings)
   - [Methods](#methods)
+  - [Model methods](#model-methods)
   - [Schema structure](#schema-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
@@ -52,7 +54,8 @@ const path = require('path')
 
  const differ = new Differ({
     dbConfig: {},
-    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'define' method to add model,
+    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
+    seedFolder: path.resolve(__dirname, 'seed'), // or/and use 'model.addSeeds' method,
     logging: true,
     logger: function(message){},
     placeholders: {
@@ -92,16 +95,23 @@ const path = require('path')
 | **dbConfig** | Object | null | Yes | Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic) |
 | **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
+| **seedFolder** | String | null | No | Path to the folder with `* .seeds.json` files for automatic seed definitions. Equivalent to function calls `differ.define ({... schemaObject}).addSeeds([...seeds])`  |
 | **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
 | **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
 | **placeholders** | Object | `null` | No | Object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
 
-| Method | Argument | Description |
-| ------ | ------ | ------ |
-| **define** | [schema](#schema-structure) | Model definition |
-| **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
+| Method | Argument | Description | Returns |
+| ------ | ------ | ------ | ------ |
+| **define** | [schema](#schema-structure) | Model definition | Model object |
+| **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" | Promise<null> |
+
+## Model methods
+
+| Method | Argument | Description | Returns |
+| ------ | ------ | ------ | ------ |
+| **addSeeds** | Array[Object] | Seed definitions | `null` |
 
 ## Schema structure
 *\* parameters of the `differ.define` method or the `* .schema.json` file structure for `options.schemaFolder`*
@@ -190,8 +200,8 @@ const path = require('path')
 
 ## In future
   - [x] Force sync tables(drop and create) *v0.1.8*
-  - [ ] Support rename column
-  - [ ] Support seeds
+  - [x] Support rename column *v1.0.0*
+  - [x] Support seeds *v1.0.0*
   - [ ] Support `CHECK` constraint
 
 ## Contributing
@@ -204,9 +214,9 @@ Suggestions for introducing new features, bug reports, and any other suggestions
 
 Good pull requests, such as patches, improvements, and new features, are a fantastic help. They should remain focused in scope and avoid containing unrelated commits.
 
-Please **ask first** if somebody else is already working on this or the core developers think your feature is in-scope for postgres-differ. Generally always have a related issue with discussions for whatever you are including.
+Please **ask first** if somebody else is already working on this or the core developers think your feature is in-scope for pg-differ. Generally always have a related issue with discussions for whatever you are including.
 
 Please also provide a **test plan**, i.e. specify how you verified that your addition works.
 
 ## License
-postgres-differ is open source software [licensed as MIT](LICENSE).
+pg-differ is open source software [licensed as MIT](LICENSE).
