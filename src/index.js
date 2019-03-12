@@ -136,8 +136,7 @@ module.exports = function (options) {
   const log = (title, message) => {
     if (logging) {
       const lines = [
-        title && `\n----- Postgres Differ: ${title} -----`,
-        message && `\n`,
+        title && `----- Postgres Differ: ${title} -----`,
         message && `\n${message}`,
       ].filter(Boolean)
       logger(lines.join(''))
