@@ -76,21 +76,42 @@ module.exports = function (options) {
   const _client = new Client(dbConfig)
   const _models = new Map()
 
-  const _initModels = () => {
+  const _getDatabaseVersion = async () => {
+    let { version } = await _client.findOne('select version()')
+    version = version.match(/[0-9]{1,}.[0-9]{1,}/)
+    return version ? Number(version[0]) : null
+  }
+
+  const _setup = async () => {
     if (schemaFolder) {
       const schemas = _getSchemas({
         placeholders,
         pathFolder: schemaFolder,
         filePattern: /^.*\.schema.json$/,
       })
-      const localSeeds = _getSeeds()
-      schemas.map((schema) => {
-        const schemaSeeds = schema.seeds || []
-        const tableSeeds = localSeeds.get(schema.table) || []
-        define(schema).addSeeds([ ...schemaSeeds, ...tableSeeds ])
-      })
+      schemas.map(define)
       _installTableDependencies()
+      if (await _supportSeeds()) {
+        _initSeeds()
+      } else {
+        log(chalk.yellow(`Warning: For Seeds need a PostgreSQL server v9.5 or more`))
+      }
     }
+  }
+
+  const _supportSeeds = async () => {
+    const version = await _getDatabaseVersion()
+    return version >= 9.5
+  }
+
+  const _initSeeds = () => {
+    const localSeeds = _getSeeds()
+    _models.forEach((model) => {
+      const schema = model.getSchema()
+      const tableSeeds = localSeeds.get(schema.table) || []
+      const schemaSeeds = schema.seeds || []
+      model.addSeeds([ ...schemaSeeds, ...tableSeeds ])
+    })
   }
 
   const _getSeeds = () => {
@@ -117,10 +138,6 @@ module.exports = function (options) {
       title && logger(`\n----- Postgres Differ: ${title} -----\n`)
       args.length && logger(...args, '\n')
     }
-  }
-
-  const _setup = () => {
-    _initModels()
   }
 
   const define = (schema) => {
@@ -203,15 +220,17 @@ module.exports = function (options) {
       log(`End sync table ${chalk.green('constraints')}`)
     }
 
-    const seedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
-    if (seedQueries) {
-      log(`Start sync table ${chalk.green('seeds')}`)
-      const result = await _client.query(seedQueries)
-      const insertCount = result.reduce((acc, insert) => acc + insert.rowCount, 0)
-      log(`Seeds were inserted: ${chalk.green(insertCount)}`)
+    if (await _supportSeeds()) {
+      const seedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
+      if (seedQueries) {
+        log(`Start sync table ${chalk.green('seeds')}`)
+        const result = await _client.query(seedQueries)
+        const insertCount = result.reduce((acc, insert) => acc + insert.rowCount, 0)
+        log(`Seeds were inserted: ${chalk.green(insertCount)}`)
+      }
     }
 
-    if (!syncQueries && !constraintQueries && !seedQueries) {
+    if (!syncQueries && !constraintQueries) {
       log('Tables do not need synchronization')
     }
 
