@@ -26,7 +26,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
 
 ## Installation
 
-*\* pg-differ requires: [Node.js](https://nodejs.org/) v8 or more; [PostgreSQL Core](https://www.postgresql.org/download/) v9.2 or more, 9.5+ if using seeds*
+*\* pg-differ requires: [Node.js](https://nodejs.org/) **v8** or more; [PostgreSQL Core](https://www.postgresql.org/download/) **v9.2 or more, 9.5+ if using seeds***
  
 ```bash
 npm i pg-differ
@@ -104,27 +104,27 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **dbConfig** | Object | null | Yes | Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic) |
 | **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
-| **schemaFolder** | String | null | No | Path to the folder with `* .schema.json` files for automatic model definitions. Equivalent to function calls `differ.define ({... schemaObject})`  |
-| **seedFolder** | String | null | No | Path to the folder with `* .seeds.json` files for automatic seed definitions. Equivalent to function calls `differ.define ({... schemaObject}).addSeeds([...seeds])`  |
-| **logger** | Function | `console.info` | No | Callback of the format `function (message) {}` for displaying a message about changes | 
+| **schemaFolder** | String | null | No | Path to the folder with `*.schema.json` files for automatic model definitions. Equivalent to function calls `differ.define(schemaObject)`  |
+| **seedFolder** | String | null | No | Path to the folder with `*.seeds.json` files for automatic seed definitions. Equivalent to function calls `differ.define(...).addSeeds(seeds)`  |
+| **logger** | Function | `console.info` | No | Callback of the format `function(message) {}` for displaying a message about changes | 
 | **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
 | **placeholders** | Object | `null` | No | Object with names and their values to replace placeholders in `schemaFolder` files | 
 
 ## Methods
 
-| Method | Argument | Description | Returns |
+| Method | Argument | Returns | Description |
 | ------ | ------ | ------ | ------ |
-| **define** | [schema](#schema-structure) | Model definition | Model object |
-| **sync** | null |  Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" | Promise<null> |
+| **define** | [schema](#schema-structure) | Model object | Model definition |
+| **sync** | null | Promise<null> | Synchronization of models from `options.schemaFolder` and models, which are added using the method "define" |
 
 ## Model methods
 
-| Method | Argument | Description | Returns |
+| Method | Argument | Returns | Description |
 | ------ | ------ | ------ | ------ |
-| **addSeeds** | Array[Object] | Seed definitions | `null` |
+| **addSeeds** | Array[Object] | `null` | Seed definitions |
 
 ## Schema structure
-*\* parameters of the `differ.define` method or the `* .schema.json` file structure for `options.schemaFolder`*
+*\* parameters of the `differ.define` method or the `*.schema.json` file structure for `options.schemaFolder`*
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
@@ -132,7 +132,8 @@ const path = require('path')
 | **force** | Boolean | `false` | No | Force sync of table (drop and create). Priority over the constructor settings for the current table |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
-| **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] | 
+| **seeds** | Array[Object] | `null` | No | Array of objects(key - column name, value - column value) | 
+| **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] |
 
 ### indexes
 
