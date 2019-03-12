@@ -133,10 +133,13 @@ module.exports = function (options) {
     return result
   }
 
-  const log = (title, ...args) => {
+  const log = (title, message) => {
     if (logging) {
-      title && logger(`\n----- Postgres Differ: ${title} -----\n`)
-      args.length && logger(...args, '\n')
+      const lines = [
+        title && `----- Postgres Differ: ${title} -----`,
+        message && `\n${message}`,
+      ].filter(Boolean)
+      logger(lines.join(''))
     }
   }
 
