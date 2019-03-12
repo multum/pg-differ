@@ -424,7 +424,7 @@ module.exports = function (options) {
       .join(',\n\t')
     return sql.add([
       force ? Sql.create('drop table', `drop table if exists ${_table} cascade;`) : null,
-      Sql.create('create table', `create table ${_table} (\n${columns}\n);`),
+      Sql.create('create table', `create table ${_table} (\n\t${columns}\n);`),
     ])
   }
 
