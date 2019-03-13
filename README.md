@@ -14,19 +14,19 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
   - Easy to use [schema structure](#schema-structure)
   - Creating tables
   - Adding/changing columns
-  - Force changing column types *(with `force: true`)*
   - Constraint support: 
     - `FOREIGN KEY`
     - `UNIQUE`
     - `PRIMARY KEY`
   - `INDEX` support
   - Seed support
+  - Force changing column types *(with `force: true`)*
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
   - Change logging
 
 ## Installation
 
-*\* pg-differ requires: [Node.js](https://nodejs.org/) **v8** or more; [PostgreSQL Core](https://www.postgresql.org/download/) **v9.2 or more, 9.5+ if using seeds***
+*\* pg-differ requires: **[Node.js](https://nodejs.org/)** **v8** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v9.2** or more, **9.5+** if using **seeds***
  
 ```bash
 npm i pg-differ
@@ -55,7 +55,7 @@ const path = require('path')
  const differ = new Differ({
     dbConfig: {},
     schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
-    seedFolder: path.resolve(__dirname, 'seed'), // or/and use 'model.addSeeds' method,
+    seedFolder: path.resolve(__dirname, 'seeds'), // or/and use 'model.addSeeds' method,
     logging: true,
     logger: function(message){},
     placeholders: {
@@ -132,7 +132,7 @@ const path = require('path')
 | **force** | Boolean | `false` | No | Force sync of table (drop and create). Priority over the constructor settings for the current table |
 | **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
-| **seeds** | Array[Object] | `null` | No | Array of objects(key - column name, value - column value) | 
+| **seeds** | Array[Object] | `null` | No | Array of objects. Key - column name, value - column value | 
 | **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] |
 
 ### indexes
