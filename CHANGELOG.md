@@ -1,3 +1,9 @@
+## 1.0.2
+
+#### Enhancement
+ * Added declaration file index.d.ts ([#20](https://github.com/av-dev/postgres-differ/pull/20))
+ * Concatenated the logger arguments into one ([#19](https://github.com/av-dev/postgres-differ/pull/19))
+ 
 ## 1.0.1
 
 #### Bug Fix
