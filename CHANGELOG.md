@@ -1,3 +1,8 @@
+## 1.0.3
+
+#### Bug Fix
+ * Fix error with npm files
+ 
 ## 1.0.2
 
 #### Enhancement
