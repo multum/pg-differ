@@ -121,7 +121,7 @@ const path = require('path')
 
 | Method | Argument | Returns | Description |
 | ------ | ------ | ------ | ------ |
-| **addSeeds** | Array[Object] | `null` | Seed definitions |
+| **addSeeds** | Array\<Object\> | `null` | Seed definitions |
 
 ## Schema structure
 *\* parameters of the `differ.define` method or the `*.schema.json` file structure for `options.schemaFolder`*
@@ -130,17 +130,17 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **table** | String | `null` | Yes | The name of the format table is `'schema_name.table_name'` or `'table_name'` |
 | **force** | Boolean | `false` | No | Force sync of table (drop and create). Priority over the constructor settings for the current table |
-| **indexes** | Array[Object] | `null` | No | Array of objects with parameters of table indexes |
-| **columns** | Array[Object] | `null` | Yes | Array of objects with table column parameters |
-| **seeds** | Array[Object] | `null` | No | Array of objects. Key - column name, value - column value | 
-| **forceIndexes** | Array[String] | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] |
+| **indexes** | Array\<Object\> | `null` | No | Array of objects with parameters of table indexes |
+| **columns** | Array\<Object\> | `null` | Yes | Array of objects with table column parameters |
+| **seeds** | Array\<Object\> | `null` | No | Array of objects. Key - column name, value - column value | 
+| **forceIndexes** | Array\<String\> | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] |
 
 ### indexes
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
 | **type** | String | `null` | Yes | `index`&#124;`foreignKey`&#124;`primaryKey`&#124;`unique` |
-| **columns** | Array[String] | `null` | Yes | List of column names |
+| **columns** | Array\<String\> | `null` | Yes | List of column names |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for `type: 'foreignKey'` |
 
 ### columns
@@ -149,12 +149,12 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **name** | String | `null` | Yes | Column name |
 | **type** | String | `null` | Yes | Type name (with alias support) |
-| **default** | String | `null` | No | Default value* |
+| **default** | String &#124; Number | `null` | No | Default value* |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
 | **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
-| **formerNames** | Array[String] | `null` | No | Array of previous column names that is used to rename |
+| **formerNames** | Array\<String\> | `null` | No | Array of previous column names that is used to rename |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
 
 *\* default values examples:*
@@ -187,7 +187,7 @@ const path = require('path')
 | **onUpdate** | String | `'NO ACTION'` | No | `CASCADE`&#124;`RESTRICT`&#124;`NO ACTION` | 
 | **references** | Object | `null` | Yes | Object with foreign table parameters |  
 | references.**table** | String | `null` | Yes | Foreign table name |   
-| references.**columns** | Array[String] | `null` | Yes | Foreign table column names |  
+| references.**columns** | Array\<String\> | `null` | Yes | Foreign table column names |  
 
 ### forceIndexes
 
