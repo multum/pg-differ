@@ -32,30 +32,6 @@ const _throwError = (message) => {
   throw new Error(message)
 }
 
-/**
- * @typedef {object} Schema
- * @property {string} table
- * @property {array} indexes
- * @property {array} columns
- * @property {array} force
- * @property {array} forceIndexes
- */
-
-/**
- * @typedef {object} Model
- * @property {function} getSyncConstraintSQL
- * @property {function} getSyncSql
- * @property {function} getSchema
- * @property {function} belongsTo
- * @property {function} addSeeds
- * @property {function} getSeedSql
- */
-
-/**
- *
- * @param {object} options
- * @returns {Model}
- */
 module.exports = function (options) {
   let _dbColumns = null
   let _dbConstraints = null
@@ -74,9 +50,6 @@ module.exports = function (options) {
     table: _table,
   })
 
-  /**
-   * @returns {Schema}`
-   */
   const getSchema = () => _schema
 
   const _fetchColumns = async () => {

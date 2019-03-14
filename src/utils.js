@@ -6,6 +6,7 @@
  */
 
 const R = require('ramda')
+const fs = require('fs')
 
 exports.isExist = R.compose(R.not, R.isNil)
 
@@ -26,3 +27,14 @@ exports.filterByProp = R.curry((prop, props, array) => (
     R.includes(R.__, props),
   ), array)
 ))
+
+exports.loadJSON = (path, placeholders) => {
+  let file = fs.readFileSync(path, 'utf-8')
+  if (placeholders) {
+    Object.entries(placeholders).forEach(([ name, value ]) => {
+      const regExp = `\\$\{${name}\\}`
+      file = file.replace(new RegExp(regExp, 'g'), value)
+    })
+  }
+  return JSON.parse(file)
+}
