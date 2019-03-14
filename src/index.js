@@ -9,6 +9,7 @@ const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
 const R = require('ramda')
+const utils = require('./utils')
 
 const Sql = require('./sql')
 const Client = require('./postgres-client')
@@ -23,46 +24,19 @@ const _defaultOptions = {
   force: false,
 }
 
-const _loadJSON = (path, placeholders) => {
-  let file = fs.readFileSync(path, 'utf-8')
-  if (placeholders) {
-    Object.entries(placeholders).forEach(([ name, value ]) => {
-      const regExp = `\\$\{${name}\\}`
-      file = file.replace(new RegExp(regExp, 'g'), value)
-    })
-  }
-  return JSON.parse(file)
-}
-
 const _getSchemas = ({ filePattern, pathFolder, placeholders }) => (
   fs.readdirSync(pathFolder)
     .filter((file) => filePattern.test(file))
     .map((file) => (
-      _loadJSON(
+      utils.loadJSON(
         path.resolve(pathFolder, file),
         placeholders,
       )
     ))
 )
 
-/**
- * @typedef {object} Differ
- * @property {function} sync
- * @property {function} define
- */
-
-/**
- *
- * @param {object} options
- * @param {object} options.dbConfig
- * @param {string=} options.schemaFolder
- * @param {object=} options.placeholders
- * @param {boolean=} options.logging
- * @param {function=} options.logger
- * @param {boolean=} options.force
- * @returns {Differ}
- */
-module.exports = function (options) {
+module.exports = function Differ (options) {
+  options = { ..._defaultOptions, ...options }
   const {
     schemaFolder,
     seedFolder,
@@ -71,14 +45,14 @@ module.exports = function (options) {
     force,
     logger,
     dbConfig,
-  } = { ..._defaultOptions, ...options }
+  } = options
 
   const _client = new Client(dbConfig)
   const _models = new Map()
 
   const _getDatabaseVersion = async () => {
     let { version } = await _client.findOne('select version()')
-    version = version.match(/[0-9]{1,}.[0-9]{1,}/)
+    version = version.match(/[0-9]+.[0-9]+/)
     return version ? Number(version[0]) : null
   }
 
@@ -135,11 +109,9 @@ module.exports = function (options) {
 
   const log = (title, message) => {
     if (logging) {
-      const lines = [
-        title && `----- Postgres Differ: ${title} -----`,
-        message && `\n${message}`,
-      ].filter(Boolean)
-      logger(lines.join(''))
+      title = title && `----- Postgres Differ: ${title} -----`
+      const string = [ title, message ].filter(utils.isExist).join('\n')
+      logger(string)
     }
   }
 

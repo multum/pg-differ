@@ -3,6 +3,11 @@
   "version": "1.0.1",
   "description": "Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration",
   "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "src/index.js",
+    "types/index.d.ts"
+  ],
   "keywords": [
     "postgres",
     "node.js"
@@ -24,15 +29,15 @@
   "author": "Andrey Vereshchak",
   "license": "MIT",
   "dependencies": {
-    "ajv": "^6.9.1",
+    "ajv": "^6.10.0",
     "chalk": "^2.4.2",
     "minimist": "^1.2.0",
-    "pg": "^7.8.1",
+    "pg": "^7.8.2",
     "ramda": "^0.26.1"
   },
   "devDependencies": {
     "concurrently": "^4.1.0",
-    "eslint": "^5.13.0",
+    "eslint": "^5.15.1",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-node": "^8.0.0",
