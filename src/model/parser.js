@@ -14,7 +14,7 @@ const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g
 exports.trimType = (type) =>
   type.replace(regExpTypeOptions, '').trim()
 
-const normalizeType = (type) => {
+exports.normalizeType = (type) => {
   const values = type.match(regExpTypeOptions) || []
   type = exports.trimType(type)
 
@@ -25,6 +25,10 @@ const normalizeType = (type) => {
   }
   return values ? `${type}${values.join('')}` : type
 }
+
+exports.normalizeValue = (target) => (
+  utils.isObject(target) ? `'${JSON.stringify(target)}'::json` : target
+)
 
 exports.encodeConstraintType = (key) => {
   switch (key) {
@@ -50,15 +54,23 @@ const _forceDefaults = {
 exports.schema = (scheme) => {
   const columns = scheme.columns
     .map((column) => {
-      column = R.pick(COLUMNS.ALL_PROPERTIES, column)
+      column = {
+        ...COLUMNS.DEFAULTS,
+        ...R.pick(COLUMNS.ALL_PROPERTIES, column),
+      }
 
       if (column.primaryKey === true) {
         column.nullable = false
       }
 
-      const type = normalizeType(column['type'])
+      const type = exports.normalizeType(column['type'])
+      const defaultValue = exports.normalizeValue(column.default)
 
-      return { ...COLUMNS.DEFAULTS, ...column, type }
+      return {
+        ...column,
+        type,
+        default: defaultValue,
+      }
     })
 
   const columnConstraints = _getConstraintsFromColumns(columns)

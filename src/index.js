@@ -19,7 +19,6 @@ const _defaultOptions = {
   logging: false,
   schemaFolder: null,
   seedFolder: null,
-  logger: console.info,
   dbConfig: null,
   force: false,
 }
@@ -41,18 +40,28 @@ module.exports = function Differ (options) {
     schemaFolder,
     seedFolder,
     placeholders,
-    logging,
     force,
-    logger,
     dbConfig,
   } = options
+
+  let logging
+
+  if (options.logging) {
+    if (typeof options.logging === 'function') {
+      logging = options.logging
+    } else {
+      logging = console.info
+    }
+  } else {
+    logging = false
+  }
 
   const _client = new Client(dbConfig)
   const _models = new Map()
 
   const _getDatabaseVersion = async () => {
-    let { version } = await _client.findOne('select version()')
-    version = version.match(/[0-9]+.[0-9]+/)
+    const { rows: [ row ] } = await _client.query('select version()')
+    const version = row.version.match(/[0-9]+.[0-9]+/)
     return version ? Number(version[0]) : null
   }
 
@@ -111,7 +120,7 @@ module.exports = function Differ (options) {
     if (logging) {
       title = title && `----- Postgres Differ: ${title} -----`
       const string = [ title, message ].filter(utils.isExist).join('\n')
-      logger(string)
+      logging(string)
     }
   }
 
@@ -159,8 +168,8 @@ module.exports = function Differ (options) {
     const constraintsSql = await Promise.all(models.map((model) => model.getSyncConstraintSQL()))
 
     constraintsSql.forEach((sql) => {
-      dropForeignKey = [ ...dropForeignKey, ...sql.getOperations([ 'drop foreignKey' ]) ]
-      dropConstraints = [ ...dropConstraints, ...sql.getOperations([ 'drop primaryKey', 'drop unique' ]) ]
+      dropForeignKey = [ ...dropForeignKey, ...sql.getLines([ 'drop foreignKey' ]) ]
+      dropConstraints = [ ...dropConstraints, ...sql.getLines([ 'drop primaryKey', 'drop unique' ]) ]
       allOperations = [ ...allOperations, ...sql.getLines() ]
     })
 
@@ -184,14 +193,14 @@ module.exports = function Differ (options) {
     const syncQueries = Sql.joinUniqueQueries(await _getSyncSql(models))
     if (syncQueries) {
       log('Start sync tables with...', syncQueries)
-      await _client.find(syncQueries)
+      await _client.query(syncQueries)
       log('End sync tables')
     }
 
     const constraintQueries = Sql.joinUniqueQueries(await _getConstraintsSql(models))
     if (constraintQueries) {
       log(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
-      await _client.find(constraintQueries)
+      await _client.query(constraintQueries)
       log(`End sync table ${chalk.green('constraints')}`)
     }
 
@@ -206,7 +215,7 @@ module.exports = function Differ (options) {
     }
 
     if (!syncQueries && !constraintQueries) {
-      log('Tables do not need synchronization')
+      log('Tables do not need structure synchronization')
     }
 
     log(chalk.green('Sync end'))

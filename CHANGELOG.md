@@ -1,3 +1,42 @@
+## 1.1.0
+
+#### Enhancement
+ * Added object/array syntax support for fields of type JSON ([#23](https://github.com/av-dev/postgres-differ/issues/23))
+ * Refactoring the postgres query manager
+ * Removed unnecessary parameter 'logger'
+
+#### Migrating from 1.0.3 to 1.1.0
+
+```javascript
+new Differ({
+    ...options,
+    
+    // v1.0.3
+    // logging: true,
+    // logger: function(message){} 
+    
+    // v1.1.0
+    logging: function(message){},
+ }).define({
+  ...options,
+  columns: [
+    {
+      'name': 'column_name',
+      'type': 'json',
+      
+      // v1.0.3
+      // 'default': '\'{"1": "...", "2": "..."}\'',
+      
+      // v1.1.0
+      'default': {
+        1: '...',
+        2: '...'
+      }
+    }
+  ]
+ })
+```
+
 ## 1.0.3
 
 #### Bug Fix

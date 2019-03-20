@@ -26,7 +26,7 @@ describe('sync', () => {
     })
 
     differ.define({
-      table: 'users',
+      table: 'children',
       columns: [
         {
           'name': 'id',

@@ -9,8 +9,6 @@ const { Client } = require('pg')
 
 /**
  * @typedef {Object} PostgresClient
- * @property {function} find
- * @property {function} findOne
  * @property {function} end
  * @property {function} query
  */
@@ -45,15 +43,7 @@ module.exports = function (options) {
     return client.query(sql, params)
   }
 
-  const find = (sql, params = []) =>
-    query(sql, params).then((result) => result.rows)
-
-  const findOne = (sql, params = []) =>
-    query(sql, params).then((result) => result.rows[0])
-
   return Object.freeze({
-    find,
-    findOne,
     end,
     query,
   })

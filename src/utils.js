@@ -10,6 +10,8 @@ const fs = require('fs')
 
 exports.isExist = R.compose(R.not, R.isNil)
 
+exports.isObject = (target) => [ '[object Object]', '[object Array]' ].includes(Object.prototype.toString.call(target))
+
 exports.notEmpty = R.compose(R.not, R.isEmpty)
 
 exports.findByName = (array, name, formerNames) => R.find((el) => {
@@ -20,13 +22,6 @@ exports.findByName = (array, name, formerNames) => R.find((el) => {
   }
   return false
 }, array)
-
-exports.filterByProp = R.curry((prop, props, array) => (
-  R.filter(R.pipe(
-    R.prop(prop),
-    R.includes(R.__, props),
-  ), array)
-))
 
 exports.loadJSON = (path, placeholders) => {
   let file = fs.readFileSync(path, 'utf-8')

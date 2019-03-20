@@ -57,7 +57,6 @@ const path = require('path')
     schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
     seedFolder: path.resolve(__dirname, 'seeds'), // or/and use 'model.addSeeds' method,
     logging: true,
-    logger: function(message){},
     placeholders: {
       schema: 'schema_name'
     }
@@ -103,10 +102,9 @@ const path = require('path')
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
 | **dbConfig** | Object | null | Yes | Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic) |
-| **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `*.schema.json` files for automatic model definitions. Equivalent to function calls `differ.define(schemaObject)`  |
 | **seedFolder** | String | null | No | Path to the folder with `*.seeds.json` files for automatic seed definitions. Equivalent to function calls `differ.define(...).addSeeds(seeds)`  |
-| **logger** | Function | `console.info` | No | Callback of the format `function(message) {}` for displaying a message about changes | 
+| **logging** | Boolean &#124; Function | `console.info` | No | Option to enable logging in the console or callback of the format `function(message) {}` for displaying a message about changes | 
 | **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
 | **placeholders** | Object | `null` | No | Object with names and their values to replace placeholders in `schemaFolder` files | 
 
@@ -133,7 +131,7 @@ const path = require('path')
 | **indexes** | Array\<Object\> | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array\<Object\> | `null` | Yes | Array of objects with table column parameters |
 | **seeds** | Array\<Object\> | `null` | No | Array of objects. Key - column name, value - column value | 
-| **forceIndexes** | Array\<String\> | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] |
+| **forceIndexes** | Array\<String\> | `['primaryKey']` | No | [description](#forceindexes) |
 
 ### indexes
 
@@ -149,34 +147,13 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **name** | String | `null` | Yes | Column name |
 | **type** | String | `null` | Yes | Type name (with alias support) |
-| **default** | String &#124; Number | `null` | No | Default value* |
+| **default** | [value definitions](#column-value-definitions) | `null` | No | Default value |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
 | **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
 | **formerNames** | Array\<String\> | `null` | No | Array of previous column names that is used to rename |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
-
-*\* default values examples:*
-```
-{
-  ...schema,
-  columns: [
-    {
-      type: 'character varying(255)',
-      default: '\'Default string\''
-    },
-    {
-      type: 'bigint',
-      default: 10000
-    },
-    {
-      type: 'timestamp',
-      default: 'now()' // postgres function, lowercase only
-    }
-  ],
-}
-```
 
 ### foreignKey params
 
@@ -191,9 +168,17 @@ const path = require('path')
 
 ### forceIndexes
 
-*\*`['primaryKey']` by default*
-
 `forceIndexes` - Array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
+
+### Column value definitions
+
+Values for the `default` value of the column or the values of the `seed` rows should be the following:
+
+* string types - `'\'Default string\''`
+* number types - `10000`
+* json types - `[...]` or `{...}`
+* sql functions - `'now()'`
+
 
 ## CLI
 

@@ -6,14 +6,12 @@
  */
 
 const R = require('ramda')
-const utils = require('./utils')
 
 /**
  * @typedef {Object} Sql
  * @property {function} add
  * @property {function} getSize
  * @property {function} getLines
- * @property {function} getOperations
  */
 
 /**
@@ -38,13 +36,21 @@ const Sql = function () {
 
   const getSize = () => lines.size
 
-  const getLines = () => [ ...lines ]
-
-  const getOperations = R.pipe(
-    utils.filterByProp('operation', R.__, store),
-    R.map(R.prop('value')),
+  const getLines = (operations) => (
+    operations ? getOperations(operations) : [ ...lines ]
   )
-  return (methods = Object.freeze({ add, getLines, getOperations, getSize }))
+
+  const getOperations = (names) => {
+    const filtered = store.filter(
+      R.pipe(
+        R.prop('operation'),
+        R.includes(R.__, names),
+      ),
+    )
+    return R.map(R.prop('value'), filtered)
+  }
+
+  return (methods = Object.freeze({ add, getLines, getSize }))
 }
 
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)

@@ -11,13 +11,13 @@ const Sql = require('../sql')
 const Seeds = require('./seeds')
 
 const utils = require('../utils')
-const parse = require('./parse')
+const parser = require('./parser')
 const validate = require('./validate')
 const { COLUMNS, TYPES } = require('../constants')
 
 const _getSchema = R.pipe(
   validate.schema,
-  parse.schema,
+  parser.schema,
 )
 
 const _parseTableName = (name) => {
@@ -53,7 +53,7 @@ module.exports = function (options) {
   const getSchema = () => _schema
 
   const _fetchColumns = async () => {
-    _dbColumns = await client.find(`
+    _dbColumns = await client.query(`
     select
       pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
       ic.collation_name,
@@ -69,23 +69,23 @@ module.exports = function (options) {
       and n.nspname = ic.table_schema
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
-  `).then(parse.dbColumns)
+  `).then(R.prop('rows')).then(parser.dbColumns)
     return _dbColumns
   }
 
   const _fetchConstraints = () => (
-    client.find(`
+    client.query(`
     select
       conname as name,
       c.contype as type,
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
       where c.conrelid = '${_table}'::regclass order by 1
-      `).then(parse.constraintDefinitions)
+      `).then(R.prop('rows')).then(parser.constraintDefinitions)
   )
 
   const _fetchIndexes = () => (
-    client.find(`
+    client.query(`
     select
       indexname as name,
       indexdef as definition
@@ -93,7 +93,7 @@ module.exports = function (options) {
       where schemaname = '${_schemaName}'
         and tablename = '${_tableName}'
         and indexname not in (select conname from pg_catalog.pg_constraint)
-      `).then(parse.indexDefinitions)
+      `).then(R.prop('rows')).then(parser.indexDefinitions)
   )
 
   /**
@@ -141,8 +141,8 @@ module.exports = function (options) {
       return _createTable(true)
     }
     try {
-      const { exist } = await client.findOne(`select to_regclass('${_table}') as exist;`)
-      R.isNil(exist) && _throwError(`table '${_table}' does not exist`)
+      const { rows: [ row ] } = await client.query(`select to_regclass('${_table}') as exist;`)
+      R.isNil(row.exist) && _throwError(`table '${_table}' does not exist`)
     } catch (error) {
       return _createTable()
     }
@@ -239,14 +239,14 @@ module.exports = function (options) {
   )
 
   const _getTypeGroup = (type) => {
-    type = parse.trimType(type)
+    type = parser.trimType(type)
     return Object.values(TYPES.GROUPS)
       .find((group) => R.includes(type, group)) || null
   }
 
   const _alterConstraint = ({ type, columns, references, onDelete, onUpdate, match }) => {
     const alterTable = `alter table ${_table}`
-    const constraintType = parse.encodeConstraintType(type)
+    const constraintType = parser.encodeConstraintType(type)
 
     const addConstraint = Sql.create(`add ${type}`)
     columns = columns.join(',')
