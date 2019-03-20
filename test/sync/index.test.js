@@ -1,7 +1,7 @@
 const Differ = require('../..')
 const path = require('path')
 const dbConfig = require('../pg.config')
-const logging = true
+const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('sync', () => {
   it('sync schemas and seeds', async function () {
