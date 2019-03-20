@@ -8,16 +8,18 @@
 #### Migrating from 1.0.3 to 1.1.0
 
 ```javascript
-new Differ({
-    ...options,
+const differ = new Differ({
+  ...options,
     
-    // v1.0.3
-    // logging: true,
-    // logger: function(message){} 
+  // v1.0.3
+  // logging: true,
+  // logger: function(message){} 
     
-    // v1.1.0
-    logging: function(message){},
- }).define({
+  // v1.1.0
+  logging: function(message){},
+})
+ 
+differ.define({
   ...options,
   columns: [
     {
@@ -34,7 +36,7 @@ new Differ({
       }
     }
   ]
- })
+})
 ```
 
 ## 1.0.3
