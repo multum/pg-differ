@@ -11,6 +11,8 @@
  * @property {function} inserts
  */
 
+const parser = require('./parser')
+
 /**
  *
  * @param {object} options
@@ -30,6 +32,7 @@ module.exports = function (options) {
     const keys = []
     const values = []
     Object.entries(seed).forEach(([ key, value ]) => {
+      value = parser.normalizeValue(value)
       keys.push(key)
       values.push(value)
     })

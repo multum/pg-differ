@@ -30,12 +30,20 @@
       "type": "bigint"
     },
     {
+      "name": "body",
+      "type": "json",
+      "default": {
+        "2": "some value",
+        "1": "some value"
+      }
+    },
+    {
       "name": "description",
       "type": "varchar(255)"
     },
     {
-      "name": "date_create",
-      "type": "bigint"
+      "name": "created",
+      "type": "timestamp"
     }
   ]
 }

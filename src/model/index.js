@@ -11,13 +11,13 @@ const Sql = require('../sql')
 const Seeds = require('./seeds')
 
 const utils = require('../utils')
-const parse = require('./parse')
+const parser = require('./parser')
 const validate = require('./validate')
 const { COLUMNS, TYPES } = require('../constants')
 
 const _getSchema = R.pipe(
   validate.schema,
-  parse.schema,
+  parser.schema,
 )
 
 const _parseTableName = (name) => {
@@ -69,7 +69,7 @@ module.exports = function (options) {
       and n.nspname = ic.table_schema
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
-  `).then(parse.dbColumns)
+  `).then(parser.dbColumns)
     return _dbColumns
   }
 
@@ -81,7 +81,7 @@ module.exports = function (options) {
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
       where c.conrelid = '${_table}'::regclass order by 1
-      `).then(parse.constraintDefinitions)
+      `).then(parser.constraintDefinitions)
   )
 
   const _fetchIndexes = () => (
@@ -93,7 +93,7 @@ module.exports = function (options) {
       where schemaname = '${_schemaName}'
         and tablename = '${_tableName}'
         and indexname not in (select conname from pg_catalog.pg_constraint)
-      `).then(parse.indexDefinitions)
+      `).then(parser.indexDefinitions)
   )
 
   /**
@@ -239,14 +239,14 @@ module.exports = function (options) {
   )
 
   const _getTypeGroup = (type) => {
-    type = parse.trimType(type)
+    type = parser.trimType(type)
     return Object.values(TYPES.GROUPS)
       .find((group) => R.includes(type, group)) || null
   }
 
   const _alterConstraint = ({ type, columns, references, onDelete, onUpdate, match }) => {
     const alterTable = `alter table ${_table}`
-    const constraintType = parse.encodeConstraintType(type)
+    const constraintType = parser.encodeConstraintType(type)
 
     const addConstraint = Sql.create(`add ${type}`)
     columns = columns.join(',')
