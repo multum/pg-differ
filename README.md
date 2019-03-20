@@ -133,7 +133,7 @@ const path = require('path')
 | **indexes** | Array\<Object\> | `null` | No | Array of objects with parameters of table indexes |
 | **columns** | Array\<Object\> | `null` | Yes | Array of objects with table column parameters |
 | **seeds** | Array\<Object\> | `null` | No | Array of objects. Key - column name, value - column value | 
-| **forceIndexes** | Array\<String\> | `['primaryKey']` | No | [`primaryKey`&#124;`index`&#124;`foreignKey`&#124;`unique`] |
+| **forceIndexes** | Array\<String\> | `['primaryKey']` | No | [description](#forceindexes) |
 
 ### indexes
 
@@ -149,34 +149,13 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **name** | String | `null` | Yes | Column name |
 | **type** | String | `null` | Yes | Type name (with alias support) |
-| **default** | String &#124; Number | `null` | No | Default value* |
+| **default** | [value definitions](#column-value-definitions) | `null` | No | Default value |
 | **nullable** | Boolean | `true` | No | In the case of `nullable === false`, it will set the constraint `NOT NULL` |
 | **force** | Boolean | `false` | No | Deleting column values in case of impossible conversion of values to a new type |
 | **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
 | **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
 | **formerNames** | Array\<String\> | `null` | No | Array of previous column names that is used to rename |
 | [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
-
-*\* default values examples:*
-```
-{
-  ...schema,
-  columns: [
-    {
-      type: 'character varying(255)',
-      default: '\'Default string\''
-    },
-    {
-      type: 'bigint',
-      default: 10000
-    },
-    {
-      type: 'timestamp',
-      default: 'now()' // postgres function, lowercase only
-    }
-  ],
-}
-```
 
 ### foreignKey params
 
@@ -191,9 +170,17 @@ const path = require('path')
 
 ### forceIndexes
 
-*\*`['primaryKey']` by default*
-
 `forceIndexes` - Array with a list of types [`index` |`foreignKey` | `unique` | `primaryKey`], which are deleted from the database if they are not defined in the model schema
+
+### Column value definitions
+
+Values for the `default` value of the column or the values of the `seed` rows should be the following:
+
+* string types - `'\'Default string\''`
+* number types - `10000`
+* json types - `[...]` or `{...}`
+* sql functions - `'now()'`
+
 
 ## CLI
 

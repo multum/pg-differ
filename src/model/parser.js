@@ -27,7 +27,7 @@ exports.normalizeType = (type) => {
 }
 
 exports.normalizeValue = (target) => (
-  utils.isObject(target) ? `'${JSON.stringify(target)}'` : target
+  utils.isObject(target) ? `'${JSON.stringify(target)}'::json` : target
 )
 
 exports.encodeConstraintType = (key) => {
