@@ -9,8 +9,7 @@ interface DifferOptions {
     dbConfig: object,
     schemaFolder?: string,
     seedFolder?: string,
-    logger?: Function,
-    logging?: boolean,
+    logging?: boolean | Function,
     force?: boolean,
     placeholders?: { [key: string]: string; },
 }
@@ -31,7 +30,9 @@ interface ReferenceOptions {
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
-declare type IndexType= 'primaryKey' | 'index' | 'foreignKey' | 'unique'
+declare type IndexType = 'primaryKey' | 'index' | 'foreignKey' | 'unique'
+
+declare type ColumnValueType = string | number | Array<any> | Object
 
 interface ForeignOptions {
     match?: string,
@@ -43,11 +44,11 @@ interface ForeignOptions {
 interface ColumnOptions extends ForeignOptions {
     name: string,
     type: string,
-    default?: string | number,
     nullable?: boolean,
     force?: boolean,
     primaryKey?: boolean,
     unique?: boolean,
+    default?: ColumnValueType,
     formerNames?: Array<string>,
 }
 

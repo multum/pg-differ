@@ -53,7 +53,7 @@ module.exports = function (options) {
   const getSchema = () => _schema
 
   const _fetchColumns = async () => {
-    _dbColumns = await client.find(`
+    _dbColumns = await client.query(`
     select
       pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
       ic.collation_name,
@@ -69,23 +69,23 @@ module.exports = function (options) {
       and n.nspname = ic.table_schema
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
-  `).then(parser.dbColumns)
+  `).then(R.prop('rows')).then(parser.dbColumns)
     return _dbColumns
   }
 
   const _fetchConstraints = () => (
-    client.find(`
+    client.query(`
     select
       conname as name,
       c.contype as type,
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
       where c.conrelid = '${_table}'::regclass order by 1
-      `).then(parser.constraintDefinitions)
+      `).then(R.prop('rows')).then(parser.constraintDefinitions)
   )
 
   const _fetchIndexes = () => (
-    client.find(`
+    client.query(`
     select
       indexname as name,
       indexdef as definition
@@ -93,7 +93,7 @@ module.exports = function (options) {
       where schemaname = '${_schemaName}'
         and tablename = '${_tableName}'
         and indexname not in (select conname from pg_catalog.pg_constraint)
-      `).then(parser.indexDefinitions)
+      `).then(R.prop('rows')).then(parser.indexDefinitions)
   )
 
   /**
@@ -141,8 +141,8 @@ module.exports = function (options) {
       return _createTable(true)
     }
     try {
-      const { exist } = await client.findOne(`select to_regclass('${_table}') as exist;`)
-      R.isNil(exist) && _throwError(`table '${_table}' does not exist`)
+      const { rows: [ row ] } = await client.query(`select to_regclass('${_table}') as exist;`)
+      R.isNil(row.exist) && _throwError(`table '${_table}' does not exist`)
     } catch (error) {
       return _createTable()
     }

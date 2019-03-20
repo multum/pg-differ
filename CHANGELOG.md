@@ -1,3 +1,9 @@
+## 1.1.0
+
+#### Enhancement
+ * Added object/array syntax support for fields of type JSON ([#23](https://github.com/av-dev/postgres-differ/issues/23))
+ * Concatenated the logger arguments into one ([#19](https://github.com/av-dev/postgres-differ/pull/19))
+ 
 ## 1.0.2
 
 #### Enhancement

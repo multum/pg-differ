@@ -57,7 +57,6 @@ const path = require('path')
     schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
     seedFolder: path.resolve(__dirname, 'seeds'), // or/and use 'model.addSeeds' method,
     logging: true,
-    logger: function(message){},
     placeholders: {
       schema: 'schema_name'
     }
@@ -103,10 +102,9 @@ const path = require('path')
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
 | **dbConfig** | Object | null | Yes | Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic) |
-| **logging** | Boolean | `false` | No | Option to enable logging in the console (or output a message to the arguments of the `options.logger` function) |
 | **schemaFolder** | String | null | No | Path to the folder with `*.schema.json` files for automatic model definitions. Equivalent to function calls `differ.define(schemaObject)`  |
 | **seedFolder** | String | null | No | Path to the folder with `*.seeds.json` files for automatic seed definitions. Equivalent to function calls `differ.define(...).addSeeds(seeds)`  |
-| **logger** | Function | `console.info` | No | Callback of the format `function(message) {}` for displaying a message about changes | 
+| **logging** | Boolean &#124; Function | `console.info` | No | Option to enable logging in the console or callback of the format `function(message) {}` for displaying a message about changes | 
 | **force** | Boolean | `false` | No | Force sync of tables (drop and create) | 
 | **placeholders** | Object | `null` | No | Object with names and their values to replace placeholders in `schemaFolder` files | 
 
