@@ -62,7 +62,7 @@ const path = require('path')
     }
  })
  
- differ.define({
+ const model = differ.define({
      table: 'schema_name.table_name',
      indexes: [
        {
@@ -81,18 +81,28 @@ const path = require('path')
             nullable: false,
             primaryKey: true
        },
-        {
-            name: 'some_column',
-            type: 'character varying(255)',
-        },
+       {
+            name: 'description',
+            type: 'character varying(255)'
+       },
+       {
+            name: 'body',
+            type: 'json',
+       }
      ],
      seeds: [
-       {
-            id: 1,
-            some_column: 'string value'
-       },
+       { id: 1, description: "'first seed'", body: { ... } },
+       { id: 2, description: "'second seed'" body: { ... } },
+       { id: 3, description: "'third seed'" body: { ... } }
      ]
  })
+ 
+ // ...
+ 
+ model.addSeeds([
+    { id: 4, description: "'fourth seed'", body: { ... } },
+    { id: 5, description: "'fifth seed'" body: { ... } },
+ ])
  
  differ.sync()
 ```
