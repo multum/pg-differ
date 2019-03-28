@@ -89,11 +89,9 @@ module.exports = function Differ (options) {
 
   const _initSeeds = () => {
     const localSeeds = _getSeeds()
-    _models.forEach((model) => {
-      const schema = model.getSchema()
-      const tableSeeds = localSeeds.get(schema.table) || []
-      const schemaSeeds = schema.seeds || []
-      model.addSeeds([ ...schemaSeeds, ...tableSeeds ])
+    localSeeds.forEach((seeds, table) => {
+      const model = _models.get(table)
+      model && model.addSeeds(seeds)
     })
   }
 
