@@ -1,3 +1,9 @@
+## 1.1.1
+
+#### Bug Fix
+ * Fixed a bug that caused the 'seeds' parameter to be ignored in the 'differ.define' method
+ * Fixed a bug that occurred when counting inserted seeds
+ 
 ## 1.1.0
 
 #### Enhancement
