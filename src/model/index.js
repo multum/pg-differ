@@ -46,9 +46,14 @@ module.exports = function (options) {
   const _forceCreate = R.isNil(_schema.force) ? options.force : _schema.force
 
   const _belongs = new Map()
+
   const _seeds = new Seeds({
     table: _table,
   })
+
+  if (_schema.seeds) {
+    _seeds.add(_schema.seeds)
+  }
 
   const getSchema = () => _schema
 
@@ -420,7 +425,7 @@ module.exports = function (options) {
     }, {})
   )
 
-  const addSeeds = (seeds) => _seeds.add(seeds)
+  const addSeeds = _seeds.add
 
   const getSyncConstraintSQL = async () => {
     await _fetchAllConstraints()
