@@ -34,6 +34,12 @@ const _getSchemas = ({ filePattern, pathFolder, placeholders }) => (
     ))
 )
 
+const _calculateSuccessfulInsets = R.ifElse(
+  R.is(Array),
+  R.reduce((acc, insert) => acc + insert.rowCount, 0),
+  R.prop('rowCount'),
+)
+
 module.exports = function Differ (options) {
   options = { ..._defaultOptions, ...options }
   const {
@@ -206,8 +212,7 @@ module.exports = function Differ (options) {
       const seedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
       if (seedQueries) {
         log(`Start sync table ${chalk.green('seeds')}`)
-        const result = await _client.query(seedQueries)
-        const insertCount = result.reduce((acc, insert) => acc + insert.rowCount, 0)
+        const insertCount = _calculateSuccessfulInsets(await _client.query(seedQueries))
         log(`Seeds were inserted: ${chalk.green(insertCount)}`)
       }
     }
