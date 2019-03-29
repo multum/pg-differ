@@ -136,26 +136,24 @@ module.exports = function Differ (options) {
       log,
     })
     _models.set(schema.table, model)
-    return {
-      addSeeds: model.addSeeds,
-    }
+    return model
   }
 
   const _installTableDependencies = () => (
     _models.forEach((model) => {
-      const { indexes } = model.getSchema()
+      const { indexes } = model._getSchema()
       indexes.forEach(({ type, references }) => {
         if (type === 'foreignKey' && _models.has(references.table)) {
           const ref = _models.get(references.table)
-          ref.belongsTo(model)
+          ref._belongsTo(model)
         }
       })
     })
   )
 
-  const _getSyncSql = (models) => (
+  const _getSqlColumnDifferences = (models) => (
     Promise.all(
-      models.map((model) => model.getSyncSql()),
+      models.map((model) => model._getSqlColumnDifferences()),
     ).then(
       R.pipe(
         R.map((sql) => sql.getLines()),
@@ -164,12 +162,12 @@ module.exports = function Differ (options) {
     )
   )
 
-  const _getConstraintsSql = async (models) => {
+  const _getSqlConstraintDifferences = async (models) => {
     let dropForeignKey = []
     let dropConstraints = []
     let allOperations = []
 
-    const constraintsSql = await Promise.all(models.map((model) => model.getSyncConstraintSQL()))
+    const constraintsSql = await Promise.all(models.map((model) => model._getSqlConstraintDifferences()))
 
     constraintsSql.forEach((sql) => {
       dropForeignKey = [ ...dropForeignKey, ...sql.getLines([ 'drop foreignKey' ]) ]
@@ -185,7 +183,7 @@ module.exports = function Differ (options) {
   }
 
   const _getSeedSql = R.pipe(
-    R.map((model) => model.getSeedSql().getLines()),
+    R.map((model) => model._getSqlInsertSeeds().getLines()),
     R.unnest,
   )
 
@@ -194,14 +192,14 @@ module.exports = function Differ (options) {
 
     const models = Array.from(_models.values())
 
-    const syncQueries = Sql.joinUniqueQueries(await _getSyncSql(models))
+    const syncQueries = Sql.joinUniqueQueries(await _getSqlColumnDifferences(models))
     if (syncQueries) {
       log('Start sync tables with...', syncQueries)
       await _client.query(syncQueries)
       log('End sync tables')
     }
 
-    const constraintQueries = Sql.joinUniqueQueries(await _getConstraintsSql(models))
+    const constraintQueries = Sql.joinUniqueQueries(await _getSqlConstraintDifferences(models))
     if (constraintQueries) {
       log(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
       await _client.query(constraintQueries)
@@ -225,10 +223,13 @@ module.exports = function Differ (options) {
     return _client.end()
   }
 
+  const getModel = (name) => _models.get(name)
+
   _setup()
 
   return Object.freeze({
     sync,
     define,
+    getModel,
   })
 }

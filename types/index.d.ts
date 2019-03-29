@@ -5,6 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+
+interface SQL {
+    add(line: Array<Object> | Object): this,
+
+    getLines(): Array<string>,
+
+    getSize(): number
+}
+
 interface DifferOptions {
     dbConfig: object,
     schemaFolder?: string,
@@ -58,11 +67,25 @@ interface IndexOptions extends ForeignOptions {
 }
 
 interface Model {
-    addSeeds(seeds: Array<Object>)
+    // public methods
+    addSeeds(seeds: Array<Object>): null
+
+    // private methods
+    _getSqlColumnDifferences(): Promise<SQL>
+
+    _getSqlConstraintDifferences(): Promise<SQL>
+
+    _getSchema(): Object
+
+    _belongsTo(model: Model): null
+
+    _getSqlInsertSeeds(): SQL
 }
 
 declare class Differ {
     constructor(options: DifferOptions);
+
+    getModel(name: string): Model | undefined
 
     define(schema: ModelOptions): Model
 

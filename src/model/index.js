@@ -15,7 +15,7 @@ const parser = require('./parser')
 const validate = require('./validate')
 const { COLUMNS, TYPES } = require('../constants')
 
-const _getSchema = R.pipe(
+const _parseSchema = R.pipe(
   validate.schema,
   parser.schema,
 )
@@ -36,7 +36,7 @@ module.exports = function (options) {
   let _dbColumns = null
   let _dbConstraints = null
 
-  const _schema = _getSchema(options.schema)
+  const _schema = _parseSchema(options.schema)
   const _table = _schema.table
   const { log, client } = options
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
@@ -55,7 +55,7 @@ module.exports = function (options) {
     _seeds.add(_schema.seeds)
   }
 
-  const getSchema = () => _schema
+  const _getSchema = () => _schema
 
   const _fetchColumns = async () => {
     _dbColumns = await client.query(`
@@ -122,15 +122,15 @@ module.exports = function (options) {
     ])
   )
 
-  const belongsTo = (model) => {
-    const { table } = model.getSchema()
+  const _belongsTo = (model) => {
+    const { table } = model._getSchema()
     _belongs.has(table) || _belongs.set(table, model)
   }
 
   const _getBelongConstraints = () => (
     [ ..._belongs.values() ]
       .reduce((acc, model) => {
-        const { indexes } = model.getSchema()
+        const { indexes } = model._getSchema()
         indexes.forEach((constraint) => {
           const { type, references } = constraint
           if (type === 'foreignKey' && !_isPrimaryKey(references.columns)) {
@@ -141,7 +141,7 @@ module.exports = function (options) {
       }, [])
   )
 
-  const getSyncSql = async () => {
+  const _getSqlColumnDifferences = async () => {
     if (_forceCreate) {
       return _createTable(true)
     }
@@ -152,7 +152,7 @@ module.exports = function (options) {
       return _createTable()
     }
     await _fetchStructure()
-    return _syncColumnsSQL(_schema.columns)
+    return _syncColumnsSql(_schema.columns)
   }
 
   const _getColumnDiffs = R.pipe(
@@ -191,7 +191,7 @@ module.exports = function (options) {
     )
   )
 
-  const _getSyncColumnSQL = (columnsWithDiffs) => {
+  const _getSyncColumnSql = (columnsWithDiffs) => {
     const sql = new Sql()
     if (utils.notEmpty(columnsWithDiffs)) {
       columnsWithDiffs.forEach((column) => {
@@ -213,7 +213,9 @@ module.exports = function (options) {
     return sql
   }
 
-  const _getSyncConstraintSQL = (constraints) => {
+  const _getSqlConstraintDifferences = async () => {
+    await _fetchAllConstraints()
+    const constraints = [ ..._schema.indexes, ..._getBelongConstraints() ]
     const sql = new Sql()
     const excludeDrop = []
 
@@ -231,9 +233,9 @@ module.exports = function (options) {
     return sql.add(_dropConstraints(excludeDrop))
   }
 
-  const _syncColumnsSQL = R.pipe(
+  const _syncColumnsSql = R.pipe(
     _getColumnDiffs,
-    _getSyncColumnSQL,
+    _getSyncColumnSql,
   )
 
   const _addColumn = (column) => (
@@ -427,12 +429,7 @@ module.exports = function (options) {
 
   const addSeeds = _seeds.add
 
-  const getSyncConstraintSQL = async () => {
-    await _fetchAllConstraints()
-    return _getSyncConstraintSQL([ ..._schema.indexes, ..._getBelongConstraints() ])
-  }
-
-  const getSeedSql = () => {
+  const _getSqlInsertSeeds = () => {
     const hasConstraints = _schema.indexes.some(({ type }) => (
       [ 'unique', 'primaryKey' ].includes(type)
     ))
@@ -444,5 +441,12 @@ module.exports = function (options) {
     }
   }
 
-  return Object.freeze({ getSyncSql, getSyncConstraintSQL, getSchema, belongsTo, addSeeds, getSeedSql })
+  return Object.freeze({
+    _getSqlColumnDifferences,
+    _getSqlConstraintDifferences,
+    _getSchema,
+    _belongsTo,
+    addSeeds,
+    _getSqlInsertSeeds,
+  })
 }
