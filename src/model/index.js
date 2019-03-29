@@ -141,7 +141,7 @@ module.exports = function (options) {
       }, [])
   )
 
-  const _getSqlColumnDifferences = async () => {
+  const _getSqlCreateOrAlterTable = async () => {
     if (_forceCreate) {
       return _createTable(true)
     }
@@ -152,10 +152,10 @@ module.exports = function (options) {
       return _createTable()
     }
     await _fetchStructure()
-    return _syncColumnsSql(_schema.columns)
+    return _getSQLColumnChanges()
   }
 
-  const _getColumnDiffs = R.pipe(
+  const _getColumnDifferences = R.pipe(
     R.map((column) => {
       const dbColumn = utils.findByName(_dbColumns, column.name, column.formerNames)
       if (dbColumn) {
@@ -191,10 +191,11 @@ module.exports = function (options) {
     )
   )
 
-  const _getSyncColumnSql = (columnsWithDiffs) => {
+  const _getSQLColumnChanges = () => {
+    const differences = _getColumnDifferences(_schema.columns)
     const sql = new Sql()
-    if (utils.notEmpty(columnsWithDiffs)) {
-      columnsWithDiffs.forEach((column) => {
+    if (utils.notEmpty(differences)) {
+      differences.forEach((column) => {
         const { diff } = column
         if (diff) {
           let keys = Object.keys(diff)
@@ -213,7 +214,7 @@ module.exports = function (options) {
     return sql
   }
 
-  const _getSqlConstraintDifferences = async () => {
+  const _getSqlConstraintChanges = async () => {
     await _fetchAllConstraints()
     const constraints = [ ..._schema.indexes, ..._getBelongConstraints() ]
     const sql = new Sql()
@@ -232,11 +233,6 @@ module.exports = function (options) {
 
     return sql.add(_dropConstraints(excludeDrop))
   }
-
-  const _syncColumnsSql = R.pipe(
-    _getColumnDiffs,
-    _getSyncColumnSql,
-  )
 
   const _addColumn = (column) => (
     Sql.create(
@@ -442,8 +438,8 @@ module.exports = function (options) {
   }
 
   return Object.freeze({
-    _getSqlColumnDifferences,
-    _getSqlConstraintDifferences,
+    _getSqlCreateOrAlterTable,
+    _getSqlConstraintChanges,
     _getSchema,
     _belongsTo,
     addSeeds,

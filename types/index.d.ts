@@ -71,9 +71,9 @@ interface Model {
     addSeeds(seeds: Array<Object>): null
 
     // private methods
-    _getSqlColumnDifferences(): Promise<SQL>
+    _getSqlCreateOrAlterTable(): Promise<SQL>
 
-    _getSqlConstraintDifferences(): Promise<SQL>
+    _getSqlConstraintChanges(): Promise<SQL>
 
     _getSchema(): Object
 
