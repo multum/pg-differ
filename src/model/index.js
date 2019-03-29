@@ -192,8 +192,8 @@ module.exports = function (options) {
   )
 
   const _getSQLColumnChanges = () => {
-    const differences = _getColumnDifferences(_schema.columns)
     const sql = new Sql()
+    const differences = _getColumnDifferences(_schema.columns)
     if (utils.notEmpty(differences)) {
       differences.forEach((column) => {
         const { diff } = column
@@ -440,9 +440,9 @@ module.exports = function (options) {
   return Object.freeze({
     _getSqlCreateOrAlterTable,
     _getSqlConstraintChanges,
+    _getSqlInsertSeeds,
     _getSchema,
     _belongsTo,
     addSeeds,
-    _getSqlInsertSeeds,
   })
 }

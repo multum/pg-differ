@@ -122,8 +122,9 @@ const path = require('path')
 
 | Method | Argument | Returns | Description |
 | ------ | ------ | ------ | ------ |
-| **define** | [schema](#schema-structure) | Model object | Model definition |
-| **sync** | null | Promise\<null\> | Synchronization of previously defined models and their seeds |
+| **getModel** | String | Model &#124; `undefined` | Getting a defined model by table name |
+| **define** | [schema](#schema-structure) | Model | Model definition |
+| **sync** |  | Promise\<null\> | Synchronization of previously defined models and their seeds |
 
 ## Model methods
 
