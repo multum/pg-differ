@@ -29,10 +29,6 @@ const _parseTableName = (name) => {
   }
 }
 
-const _throwError = (message) => {
-  throw new Error(message)
-}
-
 module.exports = function (options) {
   const { client, force, schema, logging } = options
 
@@ -146,14 +142,22 @@ module.exports = function (options) {
     if (_forceCreate) {
       return _createTable(true)
     }
-    try {
-      const { rows: [ row ] } = await client.query(`select to_regclass('${_table}') as exist;`)
-      R.isNil(row.exist) && _throwError(`table '${_table}' does not exist`)
-    } catch (error) {
+    const {
+      rows: [
+        { exists },
+      ],
+    } = await client.query(`
+      select exists (
+        select 1 from pg_tables
+          where schemaname = '${_schemaName}'
+          and tablename = '${_tableName}'
+      )`)
+    if (exists) {
+      await _fetchStructure()
+      return _getSQLColumnChanges()
+    } else {
       return _createTable()
     }
-    await _fetchStructure()
-    return _getSQLColumnChanges()
   }
 
   const _getColumnDifferences = R.pipe(
