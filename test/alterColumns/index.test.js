@@ -8,7 +8,7 @@ describe('alter columns', () => {
 
     const differ = new Differ({
       dbConfig,
-      logging,
+      logging: logging && console.info,
     })
 
     differ.define({
@@ -25,8 +25,8 @@ describe('alter columns', () => {
     differ.define({
       table: 'users',
       columns: [
-        { name: 'id', type: 'bigint', primaryKey: true },
-        { name: 'age', type: 'bigint' },
+        { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
+        { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
       ],
     })
 

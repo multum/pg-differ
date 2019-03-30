@@ -1,5 +1,5 @@
 {
-  "table": "blogs",
+  "table": "${schema}.blogs",
   "forceIndexes": [
     "index"
   ],

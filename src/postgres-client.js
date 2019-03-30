@@ -6,6 +6,7 @@
  */
 
 const { Client } = require('pg')
+const _timeoutRetry = 5 // seconds
 
 /**
  * @typedef {Object} PostgresClient
@@ -30,7 +31,10 @@ module.exports = function (options) {
 
   const retry = (error) => {
     console.error(error)
-    setTimeout(_connect, 10 * 1000)
+    console.info(`Reconnection will be in ${_timeoutRetry} seconds.`)
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(_connect()), _timeoutRetry * 1000)
+    })
   }
 
   const end = () => {
