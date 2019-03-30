@@ -9,6 +9,7 @@ const R = require('ramda')
 const chalk = require('chalk')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
+const Logger = require('../logger')
 
 const utils = require('../utils')
 const parser = require('./parser')
@@ -33,23 +34,26 @@ const _throwError = (message) => {
 }
 
 module.exports = function (options) {
+  const { client, force, schema, logging } = options
+
   let _dbColumns = null
   let _dbConstraints = null
 
-  const _schema = _parseSchema(options.schema)
+  const _schema = _parseSchema(schema)
   const _table = _schema.table
-  const { log, client } = options
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
 
   const _forceIndexes = _schema.forceIndexes
   const _primaryKey = _schema.indexes.find(R.propEq('type', 'primaryKey'))
-  const _forceCreate = R.isNil(_schema.force) ? options.force : _schema.force
+  const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
   const _belongs = new Map()
 
   const _seeds = new Seeds({
     table: _table,
   })
+
+  const logger = new Logger({ prefix: `pg-differ('${_table}')`, callback: logging })
 
   if (_schema.seeds) {
     _seeds.add(_schema.seeds)
@@ -116,10 +120,7 @@ module.exports = function (options) {
    *  Database column and constraint structure
    */
   const _fetchStructure = () => (
-    Promise.all([
-      _fetchColumns(),
-      _fetchConstraints(),
-    ])
+    Promise.all([ _fetchColumns(), _fetchAllConstraints() ])
   )
 
   const _belongsTo = (model) => {
@@ -133,7 +134,7 @@ module.exports = function (options) {
         const { indexes } = model._getSchema()
         indexes.forEach((constraint) => {
           const { type, references } = constraint
-          if (type === 'foreignKey' && !_isPrimaryKey(references.columns)) {
+          if (type === 'foreignKey' && !_shouldBePrimaryKey(references.columns)) {
             acc.push({ type: 'unique', columns: references.columns })
           }
         })
@@ -181,14 +182,11 @@ module.exports = function (options) {
     }
   }
 
-  const _dropConstraints = (exclude = []) => (
-    _getDropConstraintQueries(
-      // must be drop
-      _dbConstraints.filter(({ name, type }) => (
-        !exclude.includes(name) &&
-        _forceIndexes[type]
-      )),
-    )
+  const _getDropConstraintQueries = (exclude = []) => (
+    // must be drop
+    _dbConstraints
+      .filter(({ name, type }) => !exclude.includes(name) && _forceIndexes[type])
+      .map(_dropConstraint)
   )
 
   const _getSQLColumnChanges = () => {
@@ -231,7 +229,7 @@ module.exports = function (options) {
       })
     }
 
-    return sql.add(_dropConstraints(excludeDrop))
+    return sql.add(_getDropConstraintQueries(excludeDrop))
   }
 
   const _addColumn = (column) => (
@@ -247,7 +245,8 @@ module.exports = function (options) {
       .find((group) => R.includes(type, group)) || null
   }
 
-  const _alterConstraint = ({ type, columns, references, onDelete, onUpdate, match }) => {
+  const _alterConstraint = (constraint) => {
+    let { type, columns, references, onDelete, onUpdate, match } = constraint
     const alterTable = `alter table ${_table}`
     const constraintType = parser.encodeConstraintType(type)
 
@@ -261,7 +260,7 @@ module.exports = function (options) {
         return addConstraint(`${alterTable} add ${constraintType} (${columns});`)
 
       case 'unique':
-        return [
+        return !_shouldBePrimaryKey(constraint.columns) && [
           _forceIndexes.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
           addConstraint(`${alterTable} add ${constraintType} (${columns});`),
         ]
@@ -277,10 +276,6 @@ module.exports = function (options) {
         return null
     }
   }
-
-  const _getDropConstraintQueries = (constraints) => (
-    constraints.map(_dropConstraint).filter(Boolean)
-  )
 
   const _dropConstraint = (constraint) => {
     const alterTable = `alter table ${_table}`
@@ -298,13 +293,32 @@ module.exports = function (options) {
       const { oldName, name } = column.diff
       return Sql.create('rename column', `${alterTable} rename column ${oldName} to ${name};`)
     } else if (key === 'nullable') {
-      if (value === true && !_inPrimaryKey(column)) {
-        const primaryKey = _findDbConstraintWhere({ type: 'primaryKey' })
-        return [
-          primaryKey ? _dropConstraint(primaryKey) : null,
-          Sql.create('drop not null', `${alterTable} alter column ${column.name} drop not null;`),
-        ]
-      } else if (value === false) {
+      if (value === true) {
+        if (_shouldBePrimaryKey(column.name)) {
+          logger.error(
+            `Error setting '${column.name}.nullable = true'\n` +
+            `${column.name} is primaryKey`,
+          )
+        } else {
+          let dropPrimaryKey = null
+          const primaryKey = _findDbConstraintWhere({ type: 'primaryKey' })
+          if (primaryKey && R.includes(column.name, primaryKey.columns)) {
+            if (_forceIndexes.primaryKey) {
+              dropPrimaryKey = _dropConstraint(primaryKey)
+            } else {
+              logger.error(
+                `Error setting '${column.name}.nullable = true'\n` +
+                `You need to add 'primaryKey' to 'forceIndexes'`,
+              )
+              return null
+            }
+          }
+          return [
+            dropPrimaryKey,
+            Sql.create('drop not null', `${alterTable} alter column ${column.name} drop not null;`),
+          ]
+        }
+      } else {
         const setValues = column.default ? Sql.create(
           'set values by defaults',
           `update ${_table} set ${column.name} = ${column.default} where ${column.name} is null;`,
@@ -347,9 +361,9 @@ module.exports = function (options) {
         ? Sql.create(
           'drop and add column',
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
-        : log(
-          null,
-          chalk.red(`To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} you need to set 'force: true' for '${column.name}' column`),
+        : logger.error(
+          `To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} ` +
+          `you need to set 'force: true' for '${column.name}' column`,
         )
     } else if (key === 'default') {
       return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)
@@ -357,13 +371,13 @@ module.exports = function (options) {
     return null
   }
 
-  const _inPrimaryKey = (column) => (
-    column.primaryKey === true || (_primaryKey && R.includes(column.name, _primaryKey.columns))
-  )
-
-  const _isPrimaryKey = (columns) => (
-    _primaryKey && R.equals(columns, _primaryKey.columns)
-  )
+  const _shouldBePrimaryKey = (names) => {
+    if (_primaryKey) {
+      return R.is(Array)
+        ? R.equals(names, _primaryKey.columns)
+        : R.includes(names, _primaryKey.columns)
+    }
+  }
 
   const _getColumnDescription = (column) => {
     const chunks = [ `${column.name} ${column.type}` ]
@@ -376,7 +390,7 @@ module.exports = function (options) {
       chunks.push(`default ${column.default}`)
     }
 
-    if (column.nullable && !_inPrimaryKey(column)) {
+    if (column.nullable && !_shouldBePrimaryKey(column.name)) {
       chunks.push('null')
     } else {
       chunks.push('not null')
@@ -433,7 +447,8 @@ module.exports = function (options) {
       const inserts = _seeds.inserts()
       return new Sql().add(inserts.map((insert) => Sql.create('insert seed', insert)))
     } else {
-      log(null, chalk.red(`To use seeds, you need to set at least one constraint (primaryKey || unique)`))
+      logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
+      return null
     }
   }
 
