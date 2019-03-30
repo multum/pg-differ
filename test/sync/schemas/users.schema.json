@@ -33,12 +33,15 @@
     },
     {
       "name": "parent",
-      "type": "integer",
-      "unique": true
+      "type": "integer"
     },
     {
       "name": "code",
       "type": "varchar(255)"
+    },
+    {
+      "name": "busy",
+      "type": "bool"
     },
     {
       "name": "description",

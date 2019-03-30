@@ -17,9 +17,9 @@ describe('alter columns', () => {
       columns: [
         { name: 'id', type: 'smallint', primaryKey: true },
         { name: 'age', type: 'varchar(255)' },
+        { name: 'busy', type: 'smallint', 'default': 1 },
       ],
     })
-
     await differ.sync()
 
     differ.define({
@@ -27,9 +27,9 @@ describe('alter columns', () => {
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
+        { name: 'busy', type: 'bool' },
       ],
     })
-
     await differ.sync()
   })
 })

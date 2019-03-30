@@ -81,7 +81,7 @@ module.exports = function Differ (options) {
         pathFolder: schemaFolder,
         filePattern: /^.*\.schema.json$/,
       })
-      schemas.map(define)
+      schemas.map(_define)
       _installTableDependencies()
       if (await _supportSeeds()) {
         _initSeeds()
@@ -122,8 +122,7 @@ module.exports = function Differ (options) {
     }
     return result
   }
-
-  const define = (schema) => {
+  const _define = (schema) => {
     const model = new Model({
       client: _client,
       schema,
@@ -131,6 +130,11 @@ module.exports = function Differ (options) {
       logging,
     })
     _models.set(schema.table, model)
+  }
+
+  const define = (schema) => {
+    const model = _define(schema)
+    _installTableDependencies()
     return model
   }
 
@@ -160,6 +164,7 @@ module.exports = function Differ (options) {
   const _getSqlConstraintChanges = async (models) => {
     let dropForeignKey = []
     let dropConstraints = []
+    let deleteRows = []
     let setUnique = []
     let allOperations = []
 
@@ -168,6 +173,7 @@ module.exports = function Differ (options) {
     lines.forEach((sql) => {
       dropForeignKey = [ ...dropForeignKey, ...sql.getLines([ 'drop foreignKey' ]) ]
       dropConstraints = [ ...dropConstraints, ...sql.getLines([ 'drop primaryKey', 'drop unique' ]) ]
+      deleteRows = [ ...deleteRows, ...sql.getLines([ 'delete rows' ]) ]
       setUnique = [ ...setUnique, ...sql.getLines([ 'add unique' ]) ]
       allOperations = [ ...allOperations, ...sql.getLines() ]
     })
@@ -175,6 +181,7 @@ module.exports = function Differ (options) {
     return [
       ...dropForeignKey,
       ...dropConstraints,
+      ...deleteRows,
       ...setUnique,
       ...allOperations,
     ]
