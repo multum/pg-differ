@@ -3,5 +3,12 @@ node_js:
   - "8"
   - "9"
   - "10"
+install:
+  - npm install
+  - npm install codecov nyc
+
 env:
   - TEST_LOGGING=true
+script:
+  - nyc npm test
+  - codecov
