@@ -13,9 +13,29 @@ describe('sync', () => {
       schemaFolder: path.resolve(__dirname, 'schemas'),
       seedFolder: path.resolve(__dirname, 'seeds'),
       placeholders: {
-        schema: 'public'
-      }
+        schema: 'public',
+      },
     })
+
+    await differ.sync()
+
+    differ.define({
+      table: 'blogs',
+      forceIndexes: [
+        'unique',
+        'foreignKey',
+        'index',
+        'primaryKey',
+      ],
+      columns: [
+        {
+          'name': 'id',
+          'type': 'bigint',
+          'nullable': true,
+        },
+      ],
+    })
+
     await differ.sync()
   })
 

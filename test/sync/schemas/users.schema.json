@@ -6,6 +6,12 @@
   ],
   "indexes": [
     {
+      "type": "index",
+      "columns": [
+        "parent"
+      ]
+    },
+    {
       "type": "unique",
       "columns": [
         "id",
