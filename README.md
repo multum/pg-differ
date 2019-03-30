@@ -7,6 +7,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
 ![](https://travis-ci.com/av-dev/postgres-differ.svg?branch=master)
 ![](https://img.shields.io/npm/l/pg-differ.svg)
 ![](https://img.shields.io/npm/v/pg-differ.svg)
+![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg)
 
 
 ## Features

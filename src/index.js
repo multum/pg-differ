@@ -12,6 +12,7 @@ const R = require('ramda')
 const utils = require('./utils')
 
 const Sql = require('./sql')
+const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
 
@@ -62,6 +63,8 @@ module.exports = function Differ (options) {
     logging = false
   }
 
+  const logger = new Logger({ prefix: 'pg-differ', callback: logging })
+
   const _client = new Client(dbConfig)
   const _models = new Map()
 
@@ -83,7 +86,7 @@ module.exports = function Differ (options) {
       if (await _supportSeeds()) {
         _initSeeds()
       } else {
-        log(chalk.yellow(`Warning: For Seeds need a PostgreSQL server v9.5 or more`))
+        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
       }
     }
   }
@@ -120,20 +123,12 @@ module.exports = function Differ (options) {
     return result
   }
 
-  const log = (title, message) => {
-    if (logging) {
-      title = title && `----- Postgres Differ: ${title} -----`
-      const string = [ title, message ].filter(utils.isExist).join('\n')
-      logging(string)
-    }
-  }
-
   const define = (schema) => {
     const model = new Model({
       client: _client,
       schema,
       force,
-      log,
+      logging,
     })
     _models.set(schema.table, model)
     return model
@@ -165,6 +160,7 @@ module.exports = function Differ (options) {
   const _getSqlConstraintChanges = async (models) => {
     let dropForeignKey = []
     let dropConstraints = []
+    let setUnique = []
     let allOperations = []
 
     const lines = await Promise.all(models.map((model) => model._getSqlConstraintChanges()))
@@ -172,55 +168,61 @@ module.exports = function Differ (options) {
     lines.forEach((sql) => {
       dropForeignKey = [ ...dropForeignKey, ...sql.getLines([ 'drop foreignKey' ]) ]
       dropConstraints = [ ...dropConstraints, ...sql.getLines([ 'drop primaryKey', 'drop unique' ]) ]
+      setUnique = [ ...setUnique, ...sql.getLines([ 'add unique' ]) ]
       allOperations = [ ...allOperations, ...sql.getLines() ]
     })
 
     return [
       ...dropForeignKey,
       ...dropConstraints,
+      ...setUnique,
       ...allOperations,
     ]
   }
 
   const _getSeedSql = R.pipe(
-    R.map((model) => model._getSqlInsertSeeds().getLines()),
+    R.map((model) => {
+      const sql = model._getSqlInsertSeeds()
+      return sql && sql.getLines()
+    }),
+    R.filter(Boolean),
     R.unnest,
   )
 
   const sync = async () => {
-    log(chalk.green('Sync start'))
+    logger.info(chalk.green('Sync start'), null)
 
     const models = Array.from(_models.values())
 
     const createOrAlterQueries = Sql.joinUniqueQueries(await _getSqlCreateOrAlterTable(models))
     if (createOrAlterQueries) {
-      log('Start sync tables with...', createOrAlterQueries)
+      logger.info('Start sync tables with...', createOrAlterQueries)
       await _client.query(createOrAlterQueries)
-      log('End sync tables')
+      logger.info('End sync tables', null)
     }
 
     const constraintQueries = Sql.joinUniqueQueries(await _getSqlConstraintChanges(models))
     if (constraintQueries) {
-      log(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
+      logger.info(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
       await _client.query(constraintQueries)
-      log(`End sync table ${chalk.green('constraints')}`)
+      logger.info(`End sync table ${chalk.green('constraints')}`, null)
     }
 
     let insertSeedCount = 0
     if (await _supportSeeds()) {
       const insertSeedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
       if (insertSeedQueries) {
-        log(`Start sync table ${chalk.green('seeds')}`)
+        logger.info(`Start sync table ${chalk.green('seeds')}`, null)
         insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
-        log(`Seeds were inserted: ${chalk.green(insertSeedCount)}`)
+        logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
       }
     }
 
     if (!createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
-      log('Tables do not need structure synchronization')
+      logger.info('Tables do not need structure synchronization', null)
     }
 
-    log(chalk.green('Sync end'))
+    logger.info(chalk.green('Sync end'), null)
     return _client.end()
   }
 

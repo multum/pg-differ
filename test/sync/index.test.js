@@ -12,6 +12,9 @@ describe('sync', () => {
       logging,
       schemaFolder: path.resolve(__dirname, 'schemas'),
       seedFolder: path.resolve(__dirname, 'seeds'),
+      placeholders: {
+        schema: 'public'
+      }
     })
     await differ.sync()
   })
