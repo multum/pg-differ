@@ -1,6 +1,6 @@
 const Differ = require('../..')
 const dbConfig = require('../pg.config')
-const logging = Boolean(process.env.TEST_LOGGING) || true
+const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
   it('alter columns', async function () {

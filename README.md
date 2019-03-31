@@ -92,17 +92,17 @@ const path = require('path')
        }
      ],
      seeds: [
-       { id: 1, description: "'first seed'", body: { ... } },
-       { id: 2, description: "'second seed'" body: { ... } },
-       { id: 3, description: "'third seed'" body: { ... } }
+       { id: 1, description: 'first seed', body: { ... } },
+       { id: 2, description: 'second seed', body: { ... } },
+       { id: 3, description: 'third seed', body: { ... } }
      ]
  })
  
  // ...
  
  model.addSeeds([
-    { id: 4, description: "'fourth seed'", body: { ... } },
-    { id: 5, description: "'fifth seed'" body: { ... } },
+    { id: 4, description: 'fourth seed', body: { ... } },
+    { id: 5, description: 'fifth seed', body: { ... } },
  ])
  
  differ.sync()
@@ -186,10 +186,10 @@ const path = require('path')
 
 Values for the `default` value of the column or the values of the `seed` rows should be the following:
 
-* string types - `'\'Default string\''`
+* string types - `'Default string'`
 * number types - `10000`
 * json types - `[...]` or `{...}`
-* sql functions - `'now()'`
+* sql functions - `'now()::sql'`
 
 
 ## CLI

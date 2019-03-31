@@ -37,8 +37,9 @@ exports.normalizeValue = (target) => {
     case 'number' :
       return target
     case 'string': {
-      if (target.match(/::(sql|json|jsonb)$/)) {
-        return target
+      const regExp = /::(sql|json|jsonb)$/
+      if (target.match(regExp)) {
+        return target.replace(regExp, '')
       } else {
         return `'${target}'`
       }
