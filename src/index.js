@@ -144,31 +144,17 @@ module.exports = function Differ (options) {
     )
   )
 
-  const _getSqlConstraintChanges = async (models) => {
-    let dropForeignKey = []
-    let dropConstraints = []
-    let deleteRows = []
-    let setUnique = []
-    let allOperations = []
-
-    const lines = await Promise.all(models.map((model) => model._getSqlConstraintChanges()))
-
-    lines.forEach((sql) => {
-      dropForeignKey = [ ...dropForeignKey, ...sql.getLines([ 'drop foreignKey' ]) ]
-      dropConstraints = [ ...dropConstraints, ...sql.getLines([ 'drop primaryKey', 'drop unique' ]) ]
-      deleteRows = [ ...deleteRows, ...sql.getLines([ 'delete rows' ]) ]
-      setUnique = [ ...setUnique, ...sql.getLines([ 'add unique' ]) ]
-      allOperations = [ ...allOperations, ...sql.getLines() ]
-    })
-
-    return [
-      ...dropForeignKey,
-      ...dropConstraints,
-      ...deleteRows,
-      ...setUnique,
-      ...allOperations,
-    ]
-  }
+  const _getSqlConstraintChanges = async (models) => (
+    R.pipe(
+      R.map((sql) => sql.getStore()),
+      R.unnest,
+      utils.sortByList(
+        R.prop('operation'),
+        [ 'drop foreignKey', 'drop primaryKey', 'drop unique', 'delete rows', 'add unique' ],
+      ),
+      R.map(R.prop('value')),
+    )(await Promise.all(models.map((model) => model._getSqlConstraintChanges())))
+  )
 
   const _getSeedSql = R.pipe(
     R.map((model) => {
