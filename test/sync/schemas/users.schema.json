@@ -29,7 +29,7 @@
     {
       "name": "age",
       "type": "bigint",
-      "default": "18"
+      "default": 18
     },
     {
       "name": "parent",
@@ -45,37 +45,38 @@
     },
     {
       "name": "description",
-      "type": "varchar(255)"
+      "type": "varchar(255)",
+      "unique": true
     }
   ],
   "seeds": [
     {
       "id": 1,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 2,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 3,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 4,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 5,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 6,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 7,
-      "description": "'some string'"
+      "description": "some string"
     }
   ]
 }

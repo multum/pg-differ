@@ -1,9 +1,9 @@
 const Differ = require('../..')
 const dbConfig = require('../pg.config')
-const logging = Boolean(process.env.TEST_LOGGING)
+const logging = Boolean(process.env.TEST_LOGGING) || true
 
 describe('alter columns', () => {
-  it('sync schemas and seeds', async function () {
+  it('alter columns', async function () {
     this.timeout(20000)
 
     const differ = new Differ({
@@ -13,21 +13,24 @@ describe('alter columns', () => {
 
     differ.define({
       table: 'users',
-      force: true,
+      indexes: [
+        { type: 'index', columns: [ 'parent' ] },
+      ],
       columns: [
         { name: 'id', type: 'smallint', primaryKey: true },
-        { name: 'age', type: 'varchar(255)' },
-        { name: 'busy', type: 'smallint', 'default': 1 },
+        { name: 'age', type: 'varchar(255)', collate: 'en_US.UTF-8' },
+        { name: 'busy', type: 'varchar(255)', 'default': '1' },
       ],
     })
     await differ.sync()
 
     differ.define({
       table: 'users',
+      forceIndexes: [ 'index' ],
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
-        { name: 'busy', type: 'bool' },
+        { name: 'busy', type: 'bool', 'default': true },
       ],
     })
     await differ.sync()

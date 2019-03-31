@@ -43,8 +43,6 @@ module.exports = function (options) {
   const _primaryKey = _schema.indexes.find(R.propEq('type', 'primaryKey'))
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
-  const _belongs = new Map()
-
   const _seeds = new Seeds({
     table: _table,
   })
@@ -119,25 +117,6 @@ module.exports = function (options) {
     Promise.all([ _fetchColumns(), _fetchAllConstraints() ])
   )
 
-  const _belongsTo = (model) => {
-    const { table } = model._getSchema()
-    _belongs.has(table) || _belongs.set(table, model)
-  }
-
-  const _getBelongConstraints = () => (
-    [ ..._belongs.values() ]
-      .reduce((acc, model) => {
-        const { indexes } = model._getSchema()
-        indexes.forEach((constraint) => {
-          const { type, references } = constraint
-          if (type === 'foreignKey' && !_shouldBePrimaryKey(references.columns)) {
-            acc.push({ type: 'unique', columns: references.columns })
-          }
-        })
-        return acc
-      }, [])
-  )
-
   const _getSqlCreateOrAlterTable = async () => {
     if (_forceCreate) {
       return _createTable(true)
@@ -200,10 +179,7 @@ module.exports = function (options) {
       differences.forEach((column) => {
         const { diff } = column
         if (diff) {
-          let keys = Object.keys(diff)
-          if (diff.name) {
-            keys = [ 'name', ...R.without('name', keys) ]
-          }
+          const keys = utils.sortByList(COLUMNS.ATTRS, Object.keys(diff))
           keys.forEach((key) => {
             const alterQuery = _alterColumn(column, key)
             alterQuery && sql.add(alterQuery)
@@ -218,7 +194,7 @@ module.exports = function (options) {
 
   const _getSqlConstraintChanges = async () => {
     await _fetchAllConstraints()
-    const constraints = [ ..._schema.indexes, ..._getBelongConstraints() ]
+    const constraints = _schema.indexes
     const sql = new Sql()
     const excludeDrop = []
 
@@ -242,12 +218,6 @@ module.exports = function (options) {
       `alter table ${_table} add column ${_getColumnDescription(column)};`,
     )
   )
-
-  const _getTypeGroup = (type) => {
-    type = parser.trimType(type)
-    return Object.values(TYPES.GROUPS)
-      .find((group) => R.includes(type, group)) || null
-  }
 
   const _alterConstraint = (constraint) => {
     let { type, columns, references, onDelete, onUpdate, match } = constraint
@@ -334,10 +304,10 @@ module.exports = function (options) {
       }
     } else if (key === 'type' || key === 'collate') {
       const { oldType, type } = column.diff
-      const oldTypeGroup = _getTypeGroup(oldType)
-      const newTypeGroup = _getTypeGroup(type)
+      const oldTypeGroup = parser.getTypeGroup(oldType)
+      const newTypeGroup = parser.getTypeGroup(type)
       const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS
-      const collate = column.collate ? ` collate ${column.collate}` : ''
+      const collate = column.collate ? ` collate "${column.collate}"` : ''
 
       // If not an array
       if (type.indexOf(']') === -1) {
@@ -423,8 +393,8 @@ module.exports = function (options) {
   }
 
   const _getColumnAttributeDiffs = (column, dbColumn) => (
-    Object.keys(R.pick(COLUMNS.ATTRS, column)).reduce((acc, key) => {
-      if (dbColumn[key] !== column[key]) {
+    COLUMNS.ATTRS.reduce((acc, key) => {
+      if (utils.isExist(column[key]) && dbColumn[key] !== column[key]) {
         acc[key] = column[key]
         switch (key) {
           case 'type': {
@@ -461,7 +431,6 @@ module.exports = function (options) {
     _getSqlConstraintChanges,
     _getSqlInsertSeeds,
     _getSchema,
-    _belongsTo,
     addSeeds,
   })
 }

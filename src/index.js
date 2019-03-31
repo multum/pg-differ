@@ -81,8 +81,7 @@ module.exports = function Differ (options) {
         pathFolder: schemaFolder,
         filePattern: /^.*\.schema.json$/,
       })
-      schemas.map(_define)
-      _installTableDependencies()
+      schemas.map(define)
       if (await _supportSeeds()) {
         _initSeeds()
       } else {
@@ -122,7 +121,8 @@ module.exports = function Differ (options) {
     }
     return result
   }
-  const _define = (schema) => {
+
+  const define = (schema) => {
     const model = new Model({
       client: _client,
       schema,
@@ -130,25 +130,8 @@ module.exports = function Differ (options) {
       logging,
     })
     _models.set(schema.table, model)
-  }
-
-  const define = (schema) => {
-    const model = _define(schema)
-    _installTableDependencies()
     return model
   }
-
-  const _installTableDependencies = () => (
-    _models.forEach((model) => {
-      const { indexes } = model._getSchema()
-      indexes.forEach(({ type, references }) => {
-        if (type === 'foreignKey' && _models.has(references.table)) {
-          const ref = _models.get(references.table)
-          ref._belongsTo(model)
-        }
-      })
-    })
-  )
 
   const _getSqlCreateOrAlterTable = (models) => (
     Promise.all(
