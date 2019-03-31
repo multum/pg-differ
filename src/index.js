@@ -82,7 +82,6 @@ module.exports = function Differ (options) {
         filePattern: /^.*\.schema.json$/,
       })
       schemas.map(define)
-      _installTableDependencies()
       if (await _supportSeeds()) {
         _initSeeds()
       } else {
@@ -134,18 +133,6 @@ module.exports = function Differ (options) {
     return model
   }
 
-  const _installTableDependencies = () => (
-    _models.forEach((model) => {
-      const { indexes } = model._getSchema()
-      indexes.forEach(({ type, references }) => {
-        if (type === 'foreignKey' && _models.has(references.table)) {
-          const ref = _models.get(references.table)
-          ref._belongsTo(model)
-        }
-      })
-    })
-  )
-
   const _getSqlCreateOrAlterTable = (models) => (
     Promise.all(
       models.map((model) => model._getSqlCreateOrAlterTable()),
@@ -160,6 +147,7 @@ module.exports = function Differ (options) {
   const _getSqlConstraintChanges = async (models) => {
     let dropForeignKey = []
     let dropConstraints = []
+    let deleteRows = []
     let setUnique = []
     let allOperations = []
 
@@ -168,6 +156,7 @@ module.exports = function Differ (options) {
     lines.forEach((sql) => {
       dropForeignKey = [ ...dropForeignKey, ...sql.getLines([ 'drop foreignKey' ]) ]
       dropConstraints = [ ...dropConstraints, ...sql.getLines([ 'drop primaryKey', 'drop unique' ]) ]
+      deleteRows = [ ...deleteRows, ...sql.getLines([ 'delete rows' ]) ]
       setUnique = [ ...setUnique, ...sql.getLines([ 'add unique' ]) ]
       allOperations = [ ...allOperations, ...sql.getLines() ]
     })
@@ -175,6 +164,7 @@ module.exports = function Differ (options) {
     return [
       ...dropForeignKey,
       ...dropConstraints,
+      ...deleteRows,
       ...setUnique,
       ...allOperations,
     ]

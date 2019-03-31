@@ -3,7 +3,7 @@ const dbConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
-  it('sync schemas and seeds', async function () {
+  it('alter columns', async function () {
     this.timeout(20000)
 
     const differ = new Differ({
@@ -13,23 +13,26 @@ describe('alter columns', () => {
 
     differ.define({
       table: 'users',
-      force: true,
+      indexes: [
+        { type: 'index', columns: [ 'age' ] },
+      ],
       columns: [
         { name: 'id', type: 'smallint', primaryKey: true },
-        { name: 'age', type: 'varchar(255)' },
+        { name: 'age', type: 'varchar(255)', collate: 'de_DE' },
+        { name: 'busy', type: 'varchar(255)', 'default': '1' },
       ],
     })
-
     await differ.sync()
 
     differ.define({
       table: 'users',
+      forceIndexes: [ 'index' ],
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
+        { name: 'busy', type: 'bool', 'default': true },
       ],
     })
-
     await differ.sync()
   })
 })

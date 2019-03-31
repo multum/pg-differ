@@ -3,11 +3,11 @@
   "seeds": [
     {
       "id": 8,
-      "description": "'some string'"
+      "description": "some string"
     },
     {
       "id": 9,
-      "description": "'some string'"
+      "description": "some string"
     }
   ]
 }

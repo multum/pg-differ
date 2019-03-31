@@ -33,3 +33,7 @@ exports.loadJSON = (path, placeholders) => {
   }
   return JSON.parse(file)
 }
+
+exports.sortByList = (orderList, array) => (
+  array.sort((a, b) => orderList.indexOf(a) - orderList.indexOf(b))
+)

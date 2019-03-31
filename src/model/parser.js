@@ -9,6 +9,12 @@ const R = require('ramda')
 const utils = require('../utils')
 const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
 
+exports.getTypeGroup = (type) => {
+  type = exports.trimType(type)
+  return Object.values(TYPES.GROUPS)
+    .find((group) => R.includes(type, group)) || null
+}
+
 const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g
 
 exports.trimType = (type) =>
@@ -26,9 +32,23 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.normalizeValue = (target) => (
-  utils.isObject(target) ? `'${JSON.stringify(target)}'::json` : target
-)
+exports.normalizeValue = (target) => {
+  switch (typeof target) {
+    case 'number' :
+      return target
+    case 'string': {
+      const regExp = /::(sql|json|jsonb)$/
+      if (target.match(regExp)) {
+        return target.replace(regExp, '')
+      } else {
+        return `'${target}'`
+      }
+    }
+    default: {
+      return utils.isObject(target) ? `'${JSON.stringify(target)}'::json` : target
+    }
+  }
+}
 
 exports.encodeConstraintType = (key) => {
   switch (key) {
@@ -100,13 +120,26 @@ exports.schema = (scheme) => {
   return { ...scheme, columns, indexes, forceIndexes }
 }
 
-exports.dbColumns = R.map((column) => ({
-  name: column['column_name'],
-  nullable: column['is_nullable'] === 'YES',
-  default: column['column_default'],
-  type: column['data_type'],
-  collate: column['collation_name'],
-}))
+exports.dbColumns = R.map((column) => {
+  let {
+    column_name: name,
+    is_nullable: nullable,
+    data_type: type,
+    column_default: defaultValue,
+    collation_name: collate,
+  } = column
+  defaultValue = exports.getTypeGroup(type) === TYPES.GROUPS.INTEGER
+    ? parseInt(defaultValue)
+    : defaultValue
+  defaultValue = exports.normalizeValue(defaultValue)
+  return {
+    name,
+    nullable: nullable === 'YES',
+    default: defaultValue,
+    type: type,
+    collate: collate,
+  }
+})
 
 const constraintDefinitionOptions = (type, definition) => {
   switch (type) {

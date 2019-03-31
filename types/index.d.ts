@@ -77,8 +77,6 @@ interface Model {
 
     _getSchema(): Object
 
-    _belongsTo(model: Model): null
-
     _getSqlInsertSeeds(): SQL
 }
 
