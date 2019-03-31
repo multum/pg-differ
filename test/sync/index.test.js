@@ -51,7 +51,7 @@ describe('sync', () => {
         {
           'name': 'age',
           'type': 'bigint',
-          'default': '18',
+          'default': 18,
         },
         {
           'name': 'parent',
