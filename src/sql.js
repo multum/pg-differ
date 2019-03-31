@@ -34,23 +34,11 @@ const Sql = function () {
     return _methods
   }
 
-  const getStore = () => _store
+  const getStore = () => [ ..._store ]
 
   const getSize = () => _lines.size
 
-  const getLines = (operations) => (
-    operations ? _getOperations(operations) : [ ..._lines ]
-  )
-
-  const _getOperations = (names) => {
-    const filtered = _store.filter(
-      R.pipe(
-        R.prop('operation'),
-        R.includes(R.__, names),
-      ),
-    )
-    return R.map(R.prop('value'), filtered)
-  }
+  const getLines = () => [ ..._lines ]
 
   return (_methods = Object.freeze({ add, getLines, getSize, getStore }))
 }
