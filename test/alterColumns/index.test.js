@@ -14,7 +14,7 @@ describe('alter columns', () => {
     differ.define({
       table: 'users',
       indexes: [
-        { type: 'index', columns: [ 'parent' ] },
+        { type: 'index', columns: [ 'age' ] },
       ],
       columns: [
         { name: 'id', type: 'smallint', primaryKey: true },
