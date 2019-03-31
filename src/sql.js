@@ -19,29 +19,31 @@ const R = require('ramda')
  * @constructor
  */
 const Sql = function () {
-  let methods = null
-  const lines = new Set()
-  const store = []
+  let _methods = null
+  const _lines = new Set()
+  const _store = []
 
   const add = (sql) => {
     if (R.is(Array, sql)) {
       sql.forEach(add)
     } else if (R.is(Object, sql)) {
-      if (lines.add(sql.value)) {
-        store.push(sql)
+      if (_lines.add(sql.value)) {
+        _store.push(sql)
       }
     }
-    return methods
+    return _methods
   }
 
-  const getSize = () => lines.size
+  const getStore = () => _store
+
+  const getSize = () => _lines.size
 
   const getLines = (operations) => (
-    operations ? getOperations(operations) : [ ...lines ]
+    operations ? _getOperations(operations) : [ ..._lines ]
   )
 
-  const getOperations = (names) => {
-    const filtered = store.filter(
+  const _getOperations = (names) => {
+    const filtered = _store.filter(
       R.pipe(
         R.prop('operation'),
         R.includes(R.__, names),
@@ -50,7 +52,7 @@ const Sql = function () {
     return R.map(R.prop('value'), filtered)
   }
 
-  return (methods = Object.freeze({ add, getLines, getSize }))
+  return (_methods = Object.freeze({ add, getLines, getSize, getStore }))
 }
 
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)

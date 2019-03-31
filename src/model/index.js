@@ -179,7 +179,7 @@ module.exports = function (options) {
       differences.forEach((column) => {
         const { diff } = column
         if (diff) {
-          const keys = utils.sortByList(COLUMNS.ATTRS, Object.keys(diff))
+          const keys = utils.sortByList(null, COLUMNS.ATTRS, Object.keys(diff))
           keys.forEach((key) => {
             const alterQuery = _alterColumn(column, key)
             alterQuery && sql.add(alterQuery)
