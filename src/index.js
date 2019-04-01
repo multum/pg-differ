@@ -16,6 +16,8 @@ const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
 
+const { ORDER_OF_OPERATIONS } = require('./constants/constraints')
+
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
@@ -63,7 +65,7 @@ module.exports = function Differ (options) {
     logging = false
   }
 
-  const logger = new Logger({ prefix: 'pg-differ', callback: logging })
+  const logger = new Logger({ prefix: 'Postgres Differ', callback: logging })
 
   const _client = new Client(dbConfig)
   const _models = new Map()
@@ -144,16 +146,20 @@ module.exports = function Differ (options) {
     )
   )
 
-  const _getSqlConstraintChanges = async (models) => (
-    R.pipe(
-      R.map((sql) => sql.getStore()),
-      R.unnest,
-      utils.sortByList(
-        R.prop('operation'),
-        [ 'drop foreignKey', 'drop primaryKey', 'drop unique', 'delete rows', 'add unique' ],
+  const _getSqlConstraintChanges = R.pipe(
+    R.map((model) => model._getSqlConstraintChanges()),
+    (promises) => Promise.all(promises),
+    R.then(
+      R.pipe(
+        R.map((sql) => sql.getStore()),
+        R.unnest,
+        utils.sortByList(
+          R.prop('operation'),
+          ORDER_OF_OPERATIONS,
+        ),
+        R.map(R.prop('value')),
       ),
-      R.map(R.prop('value')),
-    )(await Promise.all(models.map((model) => model._getSqlConstraintChanges())))
+    ),
   )
 
   const _getSeedSql = R.pipe(

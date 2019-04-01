@@ -5,16 +5,23 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-module.exports = {
-  FOREIGN_KEY_DEFAULTS: {
-    onUpdate: 'NO ACTION',
-    onDelete: 'NO ACTION',
-    match: 'SIMPLE',
-  },
-  TYPES: {
-    PRIMARY_KEY: 'PRIMARY KEY',
-    UNIQUE: 'UNIQUE',
-    FOREIGN_KEY: 'FOREIGN KEY',
-    INDEX: 'INDEX',
-  },
+exports.FOREIGN_KEY_DEFAULTS = {
+  onUpdate: 'NO ACTION',
+  onDelete: 'NO ACTION',
+  match: 'SIMPLE',
 }
+
+exports.TYPES = {
+  PRIMARY_KEY: 'PRIMARY KEY',
+  UNIQUE: 'UNIQUE',
+  FOREIGN_KEY: 'FOREIGN KEY',
+  INDEX: 'INDEX',
+}
+
+exports.ORDER_OF_OPERATIONS = [
+  'drop foreignKey',
+  'drop primaryKey',
+  'drop unique',
+  'delete rows',
+  'add unique',
+]

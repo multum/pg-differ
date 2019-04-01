@@ -47,7 +47,7 @@ module.exports = function (options) {
     table: _table,
   })
 
-  const logger = new Logger({ prefix: `pg-differ('${_table}')`, callback: logging })
+  const logger = new Logger({ prefix: `Postgres Differ('${_table}')`, callback: logging })
 
   if (_schema.seeds) {
     _seeds.add(_schema.seeds)
