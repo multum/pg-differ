@@ -32,12 +32,28 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
+exports.defaultValueInformationSchema = (target) => {
+  switch (typeof target) {
+    case 'string': {
+      const regExp = /::((?![')]).)*$/
+      if (target.match(regExp)) {
+        return target.replace(regExp, '')
+      } else {
+        return target
+      }
+    }
+    default: {
+      return target
+    }
+  }
+}
+
 exports.normalizeValue = (target) => {
   switch (typeof target) {
     case 'number' :
       return target
     case 'string': {
-      const regExp = /::(sql|json|jsonb)$/
+      const regExp = /::sql$/
       if (target.match(regExp)) {
         return target.replace(regExp, '')
       } else {
@@ -45,7 +61,7 @@ exports.normalizeValue = (target) => {
       }
     }
     default: {
-      return utils.isObject(target) ? `'${JSON.stringify(target)}'::json` : target
+      return utils.isObject(target) ? `'${JSON.stringify(target)}'` : target
     }
   }
 }
@@ -121,21 +137,17 @@ exports.schema = (scheme) => {
 }
 
 exports.dbColumns = R.map((column) => {
-  let {
+  const {
     column_name: name,
     is_nullable: nullable,
     data_type: type,
     column_default: defaultValue,
     collation_name: collate,
   } = column
-  defaultValue = exports.getTypeGroup(type) === TYPES.GROUPS.INTEGER
-    ? parseInt(defaultValue)
-    : defaultValue
-  defaultValue = exports.normalizeValue(defaultValue)
   return {
     name,
     nullable: nullable === 'YES',
-    default: defaultValue,
+    default: exports.defaultValueInformationSchema(defaultValue),
     type: type,
     collate: collate,
   }

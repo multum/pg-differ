@@ -394,15 +394,20 @@ module.exports = function (options) {
 
   const _getColumnAttributeDiffs = (column, dbColumn) => (
     COLUMNS.ATTRS.reduce((acc, key) => {
-      if (utils.isExist(column[key]) && dbColumn[key] !== column[key]) {
-        acc[key] = column[key]
+      const dbValue = dbColumn[key]
+      const schemaValue = column[key]
+      if (
+        utils.isExist(schemaValue) &&
+        String(dbValue) !== String(schemaValue)
+      ) {
+        acc[key] = schemaValue
         switch (key) {
           case 'type': {
-            acc['oldType'] = dbColumn[key]
+            acc['oldType'] = dbValue
             break
           }
           case 'name': {
-            acc['oldName'] = dbColumn[key]
+            acc['oldName'] = dbValue
             break
           }
         }
