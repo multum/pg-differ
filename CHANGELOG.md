@@ -5,7 +5,6 @@
 * added special syntax `::sql` for defining SQL in values and default values
 * removed auto-add of unique restriction for adding foreignKey
 * added `differ.getModel` method to get the model object
-* removed auto-add of unique restriction for adding foreignKey
 
 #### Bug Fix
 
