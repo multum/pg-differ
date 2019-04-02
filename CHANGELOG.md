@@ -1,3 +1,40 @@
+## 1.2.0
+
+#### Enhancement
+
+* added special syntax `::sql` for defining SQL in values and default values
+* removed auto-add of unique restriction for adding foreignKey
+* added `differ.getModel` method to get the model object
+* removed auto-add of unique restriction for adding foreignKey
+
+#### Bug Fix
+
+* fixed the error that occurred when checking the existence of a table in PostgreSQL 9.2
+* fixed incorrect comparison of `column.default` values
+* changed model object returned by 'differ.define' method. Now the link to the model is always the same.
+
+#### Internal
+
+* increased test coverage. Now it is *96%* 🔥
+* code optimized
+* renamed Model functions
+* removed unnecessary methods
+* added codecov reports
+* improved logging
+
+#### Migrating from 1.1.1 to 1.2.0
+
+Column value definitions (column.default and seed values)
+```javascript
+// v1.1.1
+'\'Default string\''   // string types
+'now()'                // sql functions
+
+// v1.2.0
+'Default string'       // string types
+'now()::sql'           // sql functions 
+```
+ 
 ## 1.1.1
 
 #### Bug Fix
