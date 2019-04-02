@@ -15,7 +15,7 @@
 
 #### Internal
 
-* increased test coverage. Now it is *96%* 🔥
+* increased test coverage. Now it is ***96%***
 * code optimized
 * renamed Model functions
 * removed unnecessary methods
