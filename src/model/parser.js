@@ -10,9 +10,11 @@ const utils = require('../utils')
 const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
 
 exports.getTypeGroup = (type) => {
-  type = exports.trimType(type)
-  return Object.values(TYPES.GROUPS)
-    .find((group) => R.includes(type, group)) || null
+  if (type) {
+    type = exports.trimType(type)
+    return Object.values(TYPES.GROUPS)
+      .find((group) => R.includes(type, group)) || null
+  }
 }
 
 const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g
@@ -66,20 +68,14 @@ exports.normalizeValue = (target) => {
   }
 }
 
-exports.encodeConstraintType = (key) => {
-  switch (key) {
-    case 'primaryKey':
-      return CONSTRAINTS.TYPES.PRIMARY_KEY
-    case 'unique':
-      return CONSTRAINTS.TYPES.UNIQUE
-    case 'foreignKey':
-      return CONSTRAINTS.TYPES.FOREIGN_KEY
-    case 'index':
-      return CONSTRAINTS.TYPES.INDEX
-    default:
-      return null
-  }
+const _encodeConstraintTypes = {
+  'primaryKey': CONSTRAINTS.TYPES.PRIMARY_KEY,
+  'unique': CONSTRAINTS.TYPES.UNIQUE,
+  'foreignKey': CONSTRAINTS.TYPES.FOREIGN_KEY,
+  'index': CONSTRAINTS.TYPES.INDEX,
 }
+
+exports.encodeConstraintType = (key) => _encodeConstraintTypes[key] || null
 
 const _forceDefaults = {
   primaryKey: false,
