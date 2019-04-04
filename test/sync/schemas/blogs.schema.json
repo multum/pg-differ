@@ -4,6 +4,9 @@
     "index",
     "foreignKey"
   ],
+  "sequence": {
+    "column": "id"
+  },
   "indexes": [
     {
       "type": "foreignKey",

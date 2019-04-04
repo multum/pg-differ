@@ -9,6 +9,7 @@ const R = require('ramda')
 const chalk = require('chalk')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
+const Sequence = require('../sequence')
 const Logger = require('../logger')
 
 const utils = require('../utils')
@@ -34,6 +35,7 @@ module.exports = function (options) {
 
   let _dbColumns = null
   let _dbConstraints = null
+  let _sequence = null
 
   const _schema = _parseSchema(schema)
   const _table = _schema.table
@@ -51,6 +53,19 @@ module.exports = function (options) {
 
   if (_schema.seeds) {
     _seeds.add(_schema.seeds)
+  }
+
+  if (_schema.sequence) {
+    _sequence = new Sequence({
+      client,
+      tableName: _tableName,
+      schemaName: _schemaName,
+      sequence: schema.sequence,
+    })
+    const sequenceColumn = _schema.columns.find(R.propEq('name', _sequence.getColumnName()))
+    if (sequenceColumn && R.isNil(sequenceColumn.default)) {
+      sequenceColumn.default = _sequence.getSqlIncrement()
+    }
   }
 
   const _getSchema = () => _schema
@@ -72,7 +87,7 @@ module.exports = function (options) {
       and n.nspname = ic.table_schema
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
-  `).then(R.prop('rows')).then(parser.dbColumns)
+  `).then(R.prop('rows')).then(parser.dbColumns(_schemaName))
     return _dbColumns
   }
 
@@ -382,11 +397,10 @@ module.exports = function (options) {
   }
 
   const _createTable = (force) => {
-    const sql = new Sql()
     const columns = _schema.columns
       .map(_getColumnDescription)
       .join(',\n\t')
-    return sql.add([
+    return new Sql([
       force ? Sql.create('drop table', `drop table if exists ${_table} cascade;`) : null,
       Sql.create('create table', `create table ${_table} (\n\t${columns}\n);`),
     ])
@@ -424,17 +438,22 @@ module.exports = function (options) {
     ))
     if (hasConstraints) {
       const inserts = _seeds.inserts()
-      return new Sql().add(inserts.map((insert) => Sql.create('insert seed', insert)))
+      return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
     } else {
       logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
       return null
     }
   }
 
+  const _getSqlSequenceChanges = () => (
+    _sequence && _sequence.getChanges()
+  )
+
   return Object.freeze({
     _getSqlCreateOrAlterTable,
     _getSqlConstraintChanges,
     _getSqlInsertSeeds,
+    _getSqlSequenceChanges,
     _getSchema,
     addSeeds,
   })

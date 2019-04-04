@@ -1,7 +1,7 @@
 const Differ = require('../..')
 const path = require('path')
 const dbConfig = require('../pg.config')
-const logging = Boolean(process.env.TEST_LOGGING)
+const logging = true
 
 describe('sync', () => {
   const differ = new Differ({

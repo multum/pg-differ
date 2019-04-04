@@ -34,9 +34,12 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.defaultValueInformationSchema = (target) => {
+exports.defaultValueInformationSchema = (target, schemaName) => {
   switch (typeof target) {
     case 'string': {
+      // adding the current scheme in case of its absence
+      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `${schemaName}.`)
+      //
       const regExp = /::((?![')]).)*$/
       if (target.match(regExp)) {
         return target.replace(regExp, '')
@@ -132,22 +135,24 @@ exports.schema = (scheme) => {
   return { ...scheme, columns, indexes, forceIndexes }
 }
 
-exports.dbColumns = R.map((column) => {
-  const {
-    column_name: name,
-    is_nullable: nullable,
-    data_type: type,
-    column_default: defaultValue,
-    collation_name: collate,
-  } = column
-  return {
-    name,
-    nullable: nullable === 'YES',
-    default: exports.defaultValueInformationSchema(defaultValue),
-    type: type,
-    collate: collate,
-  }
-})
+exports.dbColumns = R.curry((schemaName, columns) => (
+  columns.map((column) => {
+    const {
+      column_name: name,
+      is_nullable: nullable,
+      data_type: type,
+      column_default: defaultValue,
+      collation_name: collate,
+    } = column
+    return {
+      name,
+      nullable: nullable === 'YES',
+      default: exports.defaultValueInformationSchema(defaultValue, schemaName),
+      type: type,
+      collate: collate,
+    }
+  })
+))
 
 const constraintDefinitionOptions = (type, definition) => {
   switch (type) {

@@ -171,10 +171,23 @@ module.exports = function Differ (options) {
     R.unnest,
   )
 
+  const _getSqlSequenceChanges = R.pipe(
+    R.map((model) => model._getSqlSequenceChanges()),
+    (promises) => Promise.all(promises),
+    R.then(R.map((sql) => sql && sql.getLines())),
+  )
+
   const sync = async () => {
     logger.info(chalk.green('Sync start'), null)
 
     const models = Array.from(_models.values())
+
+    const sequenceChanges = Sql.joinUniqueQueries(await _getSqlSequenceChanges(models))
+    if (sequenceChanges) {
+      logger.info('Start sync sequences with...', sequenceChanges)
+      await _client.query(sequenceChanges)
+      logger.info('End sync sequences', null)
+    }
 
     const createOrAlterQueries = Sql.joinUniqueQueries(await _getSqlCreateOrAlterTable(models))
     if (createOrAlterQueries) {
@@ -200,7 +213,7 @@ module.exports = function Differ (options) {
       }
     }
 
-    if (!createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
+    if (!sequenceChanges && !createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
       logger.info('Tables do not need structure synchronization', null)
     }
 
