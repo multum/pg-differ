@@ -88,7 +88,7 @@ module.exports = function (options) {
       and n.nspname = ic.table_schema
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
-  `).then(R.prop('rows')).then(parser.dbColumns)
+  `).then(R.prop('rows')).then(parser.dbColumns(_schemaName))
     return _dbColumns
   }
 

@@ -34,11 +34,11 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.defaultValueInformationSchema = (target) => {
+exports.defaultValueInformationSchema = (target, currentSchema) => {
   switch (typeof target) {
     case 'string': {
       // adding the current scheme in case of its absence
-      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `public.`)
+      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
       //
       const regExp = /::((?![')]).)*$/
       if (target.match(regExp)) {
@@ -148,7 +148,7 @@ exports.schema = (scheme) => {
   return { ...scheme, columns, indexes, forceIndexes }
 }
 
-exports.dbColumns = R.curry((columns) => (
+exports.dbColumns = R.curry((currentSchema, columns) => (
   columns.map((column) => {
     const {
       column_name: name,
@@ -160,7 +160,7 @@ exports.dbColumns = R.curry((columns) => (
     return {
       name,
       nullable: nullable === 'YES',
-      default: exports.defaultValueInformationSchema(defaultValue),
+      default: exports.defaultValueInformationSchema(defaultValue, currentSchema),
       type: type,
       collate: collate,
     }
