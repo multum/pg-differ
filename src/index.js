@@ -181,8 +181,9 @@ module.exports = function Differ (options) {
     const sql = Sql.joinUniqueQueries(await promise)
     if (sql) {
       logger.info(`Start sync ${chalk.green(entity)} with...`, sql)
-      await _client.query(sql)
+      const result = await _client.query(sql)
       logger.info(`End sync ${chalk.green(entity)}`, null)
+      return result
     } else {
       return null
     }
@@ -199,7 +200,7 @@ module.exports = function Differ (options) {
     let insertSeedCount = 0
 
     if (await _supportSeeds()) {
-      const insertSeedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
+      const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
       if (insertSeedQueries) {
         logger.info(`Start sync table ${chalk.green('seeds')}`, null)
         insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))

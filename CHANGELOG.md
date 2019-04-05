@@ -10,7 +10,7 @@
 
 * fixed the error that occurred when checking the existence of a table in PostgreSQL 9.2
 * fixed incorrect comparison of `column.default` values
-* changed model object returned by 'differ.define' method. Now the link to the model is always the same.
+* changed model object returned by 'differ.define' method. Now the link to the model is always the same
 
 #### Internal
 

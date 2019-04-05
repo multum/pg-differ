@@ -30,7 +30,7 @@ module.exports = function (options) {
   } = options
 
   sequence = { ...DEFAULTS, ...sequence }
-  const _sequenceName = `${name}_sequence`
+  const _sequenceName = `${name}_seq`
 
   const _fetchStructure = () => (
     client.query(

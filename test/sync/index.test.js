@@ -30,6 +30,11 @@ describe('sync', () => {
           'name': 'id',
           'type': 'bigint',
           'nullable': true,
+          'autoIncrement': { 'start': 1 },
+        },
+        {
+          'name': 'deleted',
+          'type': 'bool',
         },
       ],
     })

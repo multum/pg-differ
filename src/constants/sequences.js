@@ -6,7 +6,9 @@
  */
 
 const DEFAULTS = {
+  start: 1,
   increment: 1,
+  cycle: false,
   max: '9223372036854775807',
   min: 1,
 }

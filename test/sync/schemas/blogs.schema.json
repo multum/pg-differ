@@ -24,11 +24,7 @@
     {
       "name": "id",
       "type": "bigint",
-      "primaryKey": true
-    },
-    {
-      "name": "maker",
-      "type": "bigint",
+      "primaryKey": true,
       "autoIncrement": {
         "min": 1,
         "max": 10000,
@@ -36,6 +32,10 @@
         "start": 100,
         "cycle": true
       }
+    },
+    {
+      "name": "maker",
+      "type": "bigint"
     },
     {
       "name": "body",
@@ -50,8 +50,17 @@
       "type": "varchar(255)"
     },
     {
+      "name": "description",
+      "type": "varchar(255)"
+    },
+    {
+      "name": "deleted",
+      "type": "smallint"
+    },
+    {
       "name": "created",
-      "type": "timestamp"
+      "type": "timestamp",
+      "default": "now()::sql"
     }
   ]
 }

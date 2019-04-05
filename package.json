@@ -13,6 +13,7 @@
   },
   "scripts": {
     "test": "mocha test/**/*.test.js",
+    "test::log": "cross-env TEST_LOGGING=true npm test",
     "eslint": "eslint --max-warnings=0 **/*.js"
   },
   "repository": {
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "concurrently": "^4.1.0",
+    "cross-env": "^5.2.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.16.0",
