@@ -8,8 +8,10 @@
 const COLUMNS = require('./columns')
 const TYPES = require('./types')
 const CONSTRAINTS = require('./constraints')
+const SEQUENCES = require('./sequences')
 module.exports = {
   COLUMNS,
   TYPES,
   CONSTRAINTS,
+  SEQUENCES,
 }

@@ -4,9 +4,6 @@
     "index",
     "foreignKey"
   ],
-  "sequence": {
-    "column": "id"
-  },
   "indexes": [
     {
       "type": "foreignKey",
@@ -31,7 +28,14 @@
     },
     {
       "name": "maker",
-      "type": "bigint"
+      "type": "bigint",
+      "autoIncrement": {
+        "min": 1,
+        "max": 10000,
+        "increment": 2,
+        "start": 100,
+        "cycle": true
+      }
     },
     {
       "name": "body",

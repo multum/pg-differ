@@ -7,7 +7,7 @@
 
 const R = require('ramda')
 const utils = require('../utils')
-const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
+const { TYPES, COLUMNS, CONSTRAINTS, SEQUENCES } = require('../constants')
 
 exports.getTypeGroup = (type) => {
   if (type) {
@@ -34,11 +34,11 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.defaultValueInformationSchema = (target, schemaName) => {
+exports.defaultValueInformationSchema = (target) => {
   switch (typeof target) {
     case 'string': {
       // adding the current scheme in case of its absence
-      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `${schemaName}.`)
+      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `public.`)
       //
       const regExp = /::((?![')]).)*$/
       if (target.match(regExp)) {
@@ -51,6 +51,17 @@ exports.defaultValueInformationSchema = (target, schemaName) => {
       return target
     }
   }
+}
+exports.normalizeAutoIncrement = (target) => {
+  if (R.is(Object, target)) {
+    return {
+      ...SEQUENCES.DEFAULTS,
+      ...target,
+    }
+  } else if (target) {
+    return { ...SEQUENCES.DEFAULTS }
+  }
+  return target
 }
 
 exports.normalizeValue = (target) => {
@@ -100,10 +111,12 @@ exports.schema = (scheme) => {
 
       const type = exports.normalizeType(column['type'])
       const defaultValue = exports.normalizeValue(column.default)
+      const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement)
 
       return {
         ...column,
         type,
+        autoIncrement,
         default: defaultValue,
       }
     })
@@ -135,7 +148,7 @@ exports.schema = (scheme) => {
   return { ...scheme, columns, indexes, forceIndexes }
 }
 
-exports.dbColumns = R.curry((schemaName, columns) => (
+exports.dbColumns = R.curry((columns) => (
   columns.map((column) => {
     const {
       column_name: name,
@@ -147,7 +160,7 @@ exports.dbColumns = R.curry((schemaName, columns) => (
     return {
       name,
       nullable: nullable === 'YES',
-      default: exports.defaultValueInformationSchema(defaultValue, schemaName),
+      default: exports.defaultValueInformationSchema(defaultValue),
       type: type,
       collate: collate,
     }

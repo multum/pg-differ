@@ -35,7 +35,7 @@ module.exports = function (options) {
 
   let _dbColumns = null
   let _dbConstraints = null
-  let _sequence = null
+  let _sequences = null
 
   const _schema = _parseSchema(schema)
   const _table = _schema.table
@@ -55,17 +55,18 @@ module.exports = function (options) {
     _seeds.add(_schema.seeds)
   }
 
-  if (_schema.sequence) {
-    _sequence = new Sequence({
-      client,
-      tableName: _tableName,
-      schemaName: _schemaName,
-      sequence: schema.sequence,
+  const sequenceColumns = _schema.columns.filter(R.prop('autoIncrement'))
+  if (sequenceColumns.length) {
+    _sequences = sequenceColumns.map((column) => {
+      const sequence = new Sequence({
+        client,
+        name: `${_tableName}_${column.name}`,
+        schema: _schemaName,
+        sequence: column.autoIncrement,
+      })
+      column.default = sequence.getSqlIncrement()
+      return sequence
     })
-    const sequenceColumn = _schema.columns.find(R.propEq('name', _sequence.getColumnName()))
-    if (sequenceColumn && R.isNil(sequenceColumn.default)) {
-      sequenceColumn.default = _sequence.getSqlIncrement()
-    }
   }
 
   const _getSchema = () => _schema
@@ -87,7 +88,7 @@ module.exports = function (options) {
       and n.nspname = ic.table_schema
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
-  `).then(R.prop('rows')).then(parser.dbColumns(_schemaName))
+  `).then(R.prop('rows')).then(parser.dbColumns)
     return _dbColumns
   }
 
@@ -355,7 +356,11 @@ module.exports = function (options) {
           `you need to set 'force: true' for '${column.name}' column`,
         )
     } else if (key === 'default') {
-      return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)
+      if (utils.isExist(value)) {
+        return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)
+      } else {
+        return Sql.create('set default', `${alterTable} alter column ${column.name} drop default;`)
+      }
     }
     return null
   }
@@ -410,10 +415,7 @@ module.exports = function (options) {
     COLUMNS.ATTRS.reduce((acc, key) => {
       const dbValue = dbColumn[key]
       const schemaValue = column[key]
-      if (
-        utils.isExist(schemaValue) &&
-        String(dbValue) !== String(schemaValue)
-      ) {
+      if (String(dbValue) !== String(schemaValue)) {
         acc[key] = schemaValue
         switch (key) {
           case 'type': {
@@ -445,9 +447,23 @@ module.exports = function (options) {
     }
   }
 
-  const _getSqlSequenceChanges = () => (
-    _sequence && _sequence.getChanges()
+  const _getSqlSequenceChangesFrom = R.when(
+    R.identity,
+    R.pipe(
+      R.map((seq) => seq.getChanges()),
+      (promises) => Promise.all(promises),
+      R.then(
+        R.pipe(
+          R.filter(Boolean),
+          R.map((seq) => seq.getStore()),
+          R.unnest,
+          (sqlArray) => new Sql(sqlArray),
+        ),
+      ),
+    ),
   )
+
+  const _getSqlSequenceChanges = () => _getSqlSequenceChangesFrom(_sequences)
 
   return Object.freeze({
     _getSqlCreateOrAlterTable,

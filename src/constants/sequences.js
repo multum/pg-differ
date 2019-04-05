@@ -6,8 +6,9 @@
  */
 
 const DEFAULTS = {
-  column: 'id',
   increment: 1,
+  max: '9223372036854775807',
+  min: 1,
 }
 
 const ATTRIBUTES = [ 'start', 'increment', 'min', 'max', 'cycle' ]
