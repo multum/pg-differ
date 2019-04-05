@@ -29,13 +29,8 @@ module.exports = function (options) {
   const inserts = () => _seeds.map(_insertSeed)
 
   const _insertSeed = (seed) => {
-    const keys = []
-    const values = []
-    Object.entries(seed).forEach(([ key, value ]) => {
-      value = parser.normalizeValue(value)
-      keys.push(key)
-      values.push(value)
-    })
+    const keys = Object.keys(seed)
+    const values = Object.values(seed).map(parser.normalizeValue)
     return `insert into ${table} (${keys.join(', ')}) values (${values.join(', ')}) on conflict do nothing;`
   }
 

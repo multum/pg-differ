@@ -7,12 +7,14 @@
 
 const R = require('ramda')
 const utils = require('../utils')
-const { TYPES, COLUMNS, CONSTRAINTS } = require('../constants')
+const { TYPES, COLUMNS, CONSTRAINTS, SEQUENCES } = require('../constants')
 
 exports.getTypeGroup = (type) => {
-  type = exports.trimType(type)
-  return Object.values(TYPES.GROUPS)
-    .find((group) => R.includes(type, group)) || null
+  if (type) {
+    type = exports.trimType(type)
+    return Object.values(TYPES.GROUPS)
+      .find((group) => R.includes(type, group)) || null
+  }
 }
 
 const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g
@@ -32,9 +34,12 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.defaultValueInformationSchema = (target) => {
+exports.defaultValueInformationSchema = (target, currentSchema) => {
   switch (typeof target) {
     case 'string': {
+      // adding the current scheme in case of its absence
+      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
+      //
       const regExp = /::((?![')]).)*$/
       if (target.match(regExp)) {
         return target.replace(regExp, '')
@@ -46,6 +51,17 @@ exports.defaultValueInformationSchema = (target) => {
       return target
     }
   }
+}
+exports.normalizeAutoIncrement = (target) => {
+  if (R.is(Object, target)) {
+    return {
+      ...SEQUENCES.DEFAULTS,
+      ...target,
+    }
+  } else if (target) {
+    return { ...SEQUENCES.DEFAULTS }
+  }
+  return target
 }
 
 exports.normalizeValue = (target) => {
@@ -66,20 +82,14 @@ exports.normalizeValue = (target) => {
   }
 }
 
-exports.encodeConstraintType = (key) => {
-  switch (key) {
-    case 'primaryKey':
-      return CONSTRAINTS.TYPES.PRIMARY_KEY
-    case 'unique':
-      return CONSTRAINTS.TYPES.UNIQUE
-    case 'foreignKey':
-      return CONSTRAINTS.TYPES.FOREIGN_KEY
-    case 'index':
-      return CONSTRAINTS.TYPES.INDEX
-    default:
-      return null
-  }
+const _encodeConstraintTypes = {
+  'primaryKey': CONSTRAINTS.TYPES.PRIMARY_KEY,
+  'unique': CONSTRAINTS.TYPES.UNIQUE,
+  'foreignKey': CONSTRAINTS.TYPES.FOREIGN_KEY,
+  'index': CONSTRAINTS.TYPES.INDEX,
 }
+
+exports.encodeConstraintType = (key) => _encodeConstraintTypes[key] || null
 
 const _forceDefaults = {
   primaryKey: false,
@@ -101,10 +111,12 @@ exports.schema = (scheme) => {
 
       const type = exports.normalizeType(column['type'])
       const defaultValue = exports.normalizeValue(column.default)
+      const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement)
 
       return {
         ...column,
         type,
+        autoIncrement,
         default: defaultValue,
       }
     })
@@ -136,22 +148,24 @@ exports.schema = (scheme) => {
   return { ...scheme, columns, indexes, forceIndexes }
 }
 
-exports.dbColumns = R.map((column) => {
-  const {
-    column_name: name,
-    is_nullable: nullable,
-    data_type: type,
-    column_default: defaultValue,
-    collation_name: collate,
-  } = column
-  return {
-    name,
-    nullable: nullable === 'YES',
-    default: exports.defaultValueInformationSchema(defaultValue),
-    type: type,
-    collate: collate,
-  }
-})
+exports.dbColumns = R.curry((currentSchema, columns) => (
+  columns.map((column) => {
+    const {
+      column_name: name,
+      is_nullable: nullable,
+      data_type: type,
+      column_default: defaultValue,
+      collation_name: collate,
+    } = column
+    return {
+      name,
+      nullable: nullable === 'YES',
+      default: exports.defaultValueInformationSchema(defaultValue, currentSchema),
+      type: type,
+      collate: collate,
+    }
+  })
+))
 
 const constraintDefinitionOptions = (type, definition) => {
   switch (type) {

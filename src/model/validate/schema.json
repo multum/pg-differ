@@ -101,6 +101,22 @@
         },
         "force": {
           "type": "boolean"
+        },
+        "formerNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "autoIncrement": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object"
+            }
+          ]
         }
       }
     }

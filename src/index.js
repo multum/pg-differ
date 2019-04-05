@@ -135,15 +135,20 @@ module.exports = function Differ (options) {
     return model
   }
 
-  const _getSqlCreateOrAlterTable = (models) => (
-    Promise.all(
-      models.map((model) => model._getSqlCreateOrAlterTable()),
-    ).then(
+  const _awaitAndUnnestSqlLines = R.pipe(
+    (promises) => Promise.all(promises),
+    R.then(
       R.pipe(
+        R.filter(Boolean),
         R.map((sql) => sql.getLines()),
         R.unnest,
       ),
-    )
+    ),
+  )
+
+  const _getSqlCreateOrAlterTable = R.pipe(
+    R.map((model) => model._getSqlCreateOrAlterTable()),
+    _awaitAndUnnestSqlLines,
   )
 
   const _getSqlConstraintChanges = R.pipe(
@@ -163,36 +168,39 @@ module.exports = function Differ (options) {
   )
 
   const _getSeedSql = R.pipe(
-    R.map((model) => {
-      const sql = model._getSqlInsertSeeds()
-      return sql && sql.getLines()
-    }),
-    R.filter(Boolean),
-    R.unnest,
+    R.map((model) => model._getSqlInsertSeeds()),
+    _awaitAndUnnestSqlLines,
   )
 
-  const sync = async () => {
-    logger.info(chalk.green('Sync start'), null)
+  const _getSqlSequenceChanges = R.pipe(
+    R.map((model) => model._getSqlSequenceChanges()),
+    _awaitAndUnnestSqlLines,
+  )
 
+  const _entitySync = async (entity, promise) => {
+    const sql = Sql.joinUniqueQueries(await promise)
+    if (sql) {
+      logger.info(`Start sync ${chalk.green(entity)} with...`, sql)
+      const result = await _client.query(sql)
+      logger.info(`End sync ${chalk.green(entity)}`, null)
+      return result
+    } else {
+      return null
+    }
+  }
+
+  const sync = async () => {
     const models = Array.from(_models.values())
 
-    const createOrAlterQueries = Sql.joinUniqueQueries(await _getSqlCreateOrAlterTable(models))
-    if (createOrAlterQueries) {
-      logger.info('Start sync tables with...', createOrAlterQueries)
-      await _client.query(createOrAlterQueries)
-      logger.info('End sync tables', null)
-    }
+    logger.info(chalk.green('Sync start'), null)
 
-    const constraintQueries = Sql.joinUniqueQueries(await _getSqlConstraintChanges(models))
-    if (constraintQueries) {
-      logger.info(`Start sync table ${chalk.green('constraints')} with...`, constraintQueries)
-      await _client.query(constraintQueries)
-      logger.info(`End sync table ${chalk.green('constraints')}`, null)
-    }
-
+    const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(models))
+    const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
+    const constraintQueries = await _entitySync('constraints', _getSqlConstraintChanges(models))
     let insertSeedCount = 0
+
     if (await _supportSeeds()) {
-      const insertSeedQueries = Sql.joinUniqueQueries(_getSeedSql(models))
+      const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
       if (insertSeedQueries) {
         logger.info(`Start sync table ${chalk.green('seeds')}`, null)
         insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
@@ -200,7 +208,7 @@ module.exports = function Differ (options) {
       }
     }
 
-    if (!createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
+    if (!sequenceChanges && !createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
       logger.info('Tables do not need structure synchronization', null)
     }
 

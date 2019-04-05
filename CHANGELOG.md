@@ -1,3 +1,14 @@
+## 1.3.0
+
+#### Enhancement
+
+* added the ability to create a **sequence** using the `autoIncrement` in columns
+
+#### Internal
+
+* code optimized
+* increased test coverage
+
 ## 1.2.0
 
 #### Enhancement
@@ -10,7 +21,7 @@
 
 * fixed the error that occurred when checking the existence of a table in PostgreSQL 9.2
 * fixed incorrect comparison of `column.default` values
-* changed model object returned by 'differ.define' method. Now the link to the model is always the same.
+* changed model object returned by 'differ.define' method. Now the link to the model is always the same
 
 #### Internal
 

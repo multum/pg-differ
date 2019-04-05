@@ -24,7 +24,8 @@
       "name": "id",
       "type": "bigint",
       "unique": true,
-      "primaryKey": true
+      "primaryKey": true,
+      "autoIncrement": true
     },
     {
       "name": "age",

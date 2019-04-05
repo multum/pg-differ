@@ -18,7 +18,7 @@ describe('alter columns', () => {
       ],
       columns: [
         { name: 'id', type: 'smallint', primaryKey: true },
-        { name: 'age', type: 'varchar(255)', collate: 'de_DE' },
+        { name: 'age', type: 'varchar(255)', collate: null },
         { name: 'busy', type: 'varchar(255)', 'default': '1' },
       ],
     })

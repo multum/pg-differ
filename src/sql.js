@@ -18,7 +18,7 @@ const R = require('ramda')
  * @returns {Sql}
  * @constructor
  */
-const Sql = function () {
+const Sql = function (sql) {
   let _methods = null
   const _lines = new Set()
   const _store = []
@@ -39,6 +39,8 @@ const Sql = function () {
   const getSize = () => _lines.size
 
   const getLines = () => [ ..._lines ]
+
+  if (sql) add(sql)
 
   return (_methods = Object.freeze({ add, getLines, getSize, getStore }))
 }

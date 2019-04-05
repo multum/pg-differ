@@ -24,7 +24,14 @@
     {
       "name": "id",
       "type": "bigint",
-      "primaryKey": true
+      "primaryKey": true,
+      "autoIncrement": {
+        "min": 1,
+        "max": 10000,
+        "increment": 2,
+        "start": 100,
+        "cycle": true
+      }
     },
     {
       "name": "maker",
@@ -43,8 +50,13 @@
       "type": "varchar(255)"
     },
     {
+      "name": "deleted",
+      "type": "smallint"
+    },
+    {
       "name": "created",
-      "type": "timestamp"
+      "type": "timestamp",
+      "default": "now()::sql"
     }
   ]
 }
