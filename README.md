@@ -41,7 +41,8 @@ npm i pg-differ
   - [Schema structure](#schema-structure)
     - [*indexes*](#indexes)
     - [*columns*](#columns)
-    - [*foreignKey* params](#foreignkey-params)
+    - [*autoIncrement* properties](#autoincrement-properties)
+    - [*foreignKey* properties](#foreignkey-properties)
     - [*forceIndexes*](#forceindexes)
   - [CLI](#cli)
 
@@ -151,7 +152,7 @@ const path = require('path')
 | ------ | ------ | ------ | ------ | ------ |
 | **type** | String | `null` | Yes | `index`&#124;`foreignKey`&#124;`primaryKey`&#124;`unique` |
 | **columns** | Array\<String\> | `null` | Yes | List of column names |
-| [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for `type: 'foreignKey'` |
+| [**foreignKey properties**](#foreignkey-properties) |  |  | No | Parameter list for `type: 'foreignKey'` |
 
 ### columns
 
@@ -165,9 +166,20 @@ const path = require('path')
 | **primaryKey** | Boolean | `false` | No | Define a `PRIMARY KEY` constraint for a column | 
 | **unique** | Boolean | `false` | No | Define a `UNIQUE` constraint for a column | 
 | **formerNames** | Array\<String\> | `null` | No | Array of previous column names that is used to rename |
-| [**foreignKey params**](#foreignkey-params) |  |  | No | Parameter list for define `foreignKey` |
+| **autoIncrement**| [**Object**](#autoincrement-properties) &#124; Boolean |  | No | Creates a sequence and writes the increment function in the `default` field of the current column |
+| [**foreignKey properties**](#foreignkey-properties) |  |  | No | Parameter list for define `foreignKey` |
 
-### foreignKey params
+### autoIncrement properties
+
+| Option | Type | Default | Required | Description |
+| ------ | ------ | ------ | ------ | ------ |
+| **start** | String &#124; Number | `1` | No | Start value |
+| **min** | String &#124; Number | `1` | No | Minimum value |  
+| **max** | String &#124; Number | `9223372036854775807` | No | Maximum value | 
+| **cycle** | Boolean | `false` | No | Sequence looping when max value is reached |  
+| **increment** | String &#124; Number | `1` | No | Determines which number will be added to the current value of the sequence |  
+
+### foreignKey properties
 
 | Option | Type | Default | Required | Description |
 | ------ | ------ | ------ | ------ | ------ |
