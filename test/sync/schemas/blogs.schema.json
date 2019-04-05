@@ -50,10 +50,6 @@
       "type": "varchar(255)"
     },
     {
-      "name": "description",
-      "type": "varchar(255)"
-    },
-    {
       "name": "deleted",
       "type": "smallint"
     },

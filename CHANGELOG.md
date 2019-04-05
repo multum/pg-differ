@@ -1,3 +1,14 @@
+## 1.3.0
+
+#### Enhancement
+
+* added the ability to create a **sequence** using the `autoIncrement` in columns
+
+#### Internal
+
+* code optimized
+* increased test coverage
+
 ## 1.2.0
 
 #### Enhancement
