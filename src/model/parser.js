@@ -258,7 +258,7 @@ const _getConstraintsFromColumns = (
           return utils.notEmpty(value) ? ({
             type: 'foreignKey',
             columns: [ column.name ],
-            references: { table: value.table, columns: value.columns.slice(0, 1) },
+            references: { table: value.models, columns: value.columns.slice(0, 1) },
             match: column.match || DEFAULTS.match,
             onUpdate: column.onUpdate || DEFAULTS.onUpdate,
             onDelete: column.onDelete || DEFAULTS.onDelete,

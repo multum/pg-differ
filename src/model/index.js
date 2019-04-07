@@ -38,7 +38,7 @@ module.exports = function (options) {
   let _sequences = null
 
   const _schema = _parseSchema(schema)
-  const _table = _schema.table
+  const _table = _schema.models
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
 
   const _forceIndexes = _schema.forceIndexes
