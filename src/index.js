@@ -131,7 +131,7 @@ module.exports = function Differ (options) {
       force,
       logging,
     })
-    _models.set(schema.models, model)
+    _models.set(schema.table, model)
     return model
   }
 

@@ -25,7 +25,7 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
   - Change logging
 
-### [Documentation](https://av-dev.github.io/postgres-differ/)
+## [Documentation](https://av-dev.github.io/postgres-differ/)
 
 
 ## In future
