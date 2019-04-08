@@ -2,17 +2,18 @@
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)
 
-Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
+> Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
 
 ![](https://travis-ci.com/av-dev/postgres-differ.svg?branch=master)
 ![](https://img.shields.io/npm/l/pg-differ.svg)
 ![](https://img.shields.io/npm/v/pg-differ.svg)
 ![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg)
 
+## [Documentation](https://av-dev.github.io/postgres-differ/)
 
 ## Features
 
-  - Easy to use [schema structure](#schema-structure)
+  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/model-schema)
   - Creating tables
   - Adding/changing columns
   - Constraint support: 
@@ -24,9 +25,6 @@ Node.js module for easy synchronization of postgres tables with models (json-sch
   - Force changing column types *(with `force: true`)*
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
   - Change logging
-
-## [Documentation](https://av-dev.github.io/postgres-differ/)
-
 
 ## In future
   - [x] Force sync tables(drop and create) *v0.1.8*
