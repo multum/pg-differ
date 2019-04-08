@@ -1,6 +1,5 @@
 # postgres-differ
-> Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
-
+[PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)

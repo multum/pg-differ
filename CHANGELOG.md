@@ -8,6 +8,7 @@
 
 * code optimized
 * increased test coverage
+* documentation migrated to [GitHub Pages](https://av-dev.github.io/postgres-differ/#/)
 
 ## 1.2.0
 
