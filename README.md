@@ -1,8 +1,9 @@
 # postgres-differ
+> Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
+
+
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)
-
-> Node.js module for easy synchronization of postgres tables with models (json-schemas), alternative migration 
 
 ![](https://travis-ci.com/av-dev/postgres-differ.svg?branch=master)
 ![](https://img.shields.io/npm/l/pg-differ.svg)
