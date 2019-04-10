@@ -4,10 +4,10 @@
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)
 
-![](https://travis-ci.com/av-dev/postgres-differ.svg?branch=master)
-![](https://img.shields.io/npm/l/pg-differ.svg)
-![](https://img.shields.io/npm/v/pg-differ.svg)
-![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg)
+![](https://img.shields.io/travis/com/av-dev/postgres-differ.svg?style=flat-square)
+![](https://img.shields.io/npm/l/pg-differ.svg?style=flat-square)
+![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)
+![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg?style=flat-square)
 
 ## [Documentation](https://av-dev.github.io/postgres-differ/)
 
@@ -28,9 +28,9 @@
 
 ## In future
   - [x] Force sync tables(drop and create) *v0.1.8*
-  - [x] Support rename column *v1.0.0*
+  - [x] Support rename column(formerNames prop) *v1.0.0*
   - [x] Support seeds *v1.0.0*
-  - [ ] Support `CHECK` constraint
+  - [ ] Sequence support as a separate entity *v2.0.0*
 
 ## Contributing
 
