@@ -13,7 +13,7 @@
 
 ## Features
 
-  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/model-schema)
+  - Easy to use [schema structure](model-schema.md)
   - Creating tables
   - Adding/changing columns
   - Constraint support: 
@@ -47,4 +47,4 @@ Please **ask first** if somebody else is already working on this or the core dev
 Please also provide a **test plan**, i.e. specify how you verified that your addition works.
 
 ## License
-pg-differ is open source software [licensed as MIT](LICENSE).
+pg-differ is open source software [licensed as MIT](https://github.com/av-dev/postgres-differ/blob/master/LICENSE).
