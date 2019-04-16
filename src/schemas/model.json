@@ -109,12 +109,12 @@
           }
         },
         "autoIncrement": {
-          "anyOf": [
+          "oneOf": [
             {
               "type": "boolean"
             },
             {
-              "type": "object"
+              "$ref": "sequence"
             }
           ]
         }
@@ -139,11 +139,7 @@
     "indexes": {
       "type": "array",
       "items": {
-        "allOf": [
-          {
-            "$ref": "#/definitions/index"
-          }
-        ]
+        "$ref": "#/definitions/index"
       }
     },
     "columns": {
