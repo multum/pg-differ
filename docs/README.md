@@ -9,7 +9,7 @@
 ![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)
 ![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg?style=flat-square)
 
-## [Documentation](https://av-dev.github.io/postgres-differ/)
+## [Documentation](https://av-dev.github.io/postgres-differ/#/)
 
 ## Features
 
