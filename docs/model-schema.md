@@ -1,4 +1,4 @@
-# Model schema {docsify-ignore-all}
+# Model schema
 
 > parameters of the `differ.define` method or the `*.schema.json` file structure for `options.schemaFolder`
 
