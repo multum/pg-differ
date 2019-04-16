@@ -14,11 +14,13 @@ const Logger = require('../logger')
 
 const utils = require('../utils')
 const parser = require('./parser')
-const validate = require('./validate')
 const { COLUMNS, TYPES } = require('../constants')
 
+const validate = require('../validate')
+const { SCHEMAS } = validate
+
 const _parseSchema = R.pipe(
-  validate.schema,
+  validate(SCHEMAS.MODEL),
   parser.schema,
 )
 
