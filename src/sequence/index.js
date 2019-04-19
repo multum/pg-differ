@@ -23,14 +23,13 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
  */
 module.exports = function (options) {
   let {
-    name,
     schema,
-    sequence,
+    properties,
     client,
   } = options
 
-  sequence = { ...DEFAULTS, ...sequence }
-  const _sequenceName = `${name}_seq`
+  properties = { ...DEFAULTS, ...properties }
+  const _sequenceName = properties.name
 
   const _fetchStructure = () => (
     client.query(
@@ -88,8 +87,8 @@ module.exports = function (options) {
   const getChanges = async () => {
     const dbStructure = await _fetchStructure()
     const options = dbStructure
-      ? { action: 'alter', ..._getDifference(sequence, dbStructure) }
-      : { action: 'create', ...sequence }
+      ? { action: 'alter', ..._getDifference(properties, dbStructure) }
+      : { action: 'create', ...properties }
     return _getSql(options)
   }
 
