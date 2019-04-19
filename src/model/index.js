@@ -24,6 +24,25 @@ const _parseSchema = R.pipe(
   parser.schema,
 )
 
+const _setupSequences = ({ columns, tableName, schemaName, client }) => {
+  const sequenceColumns = columns.filter(R.prop('autoIncrement'))
+  if (sequenceColumns.length) {
+    return sequenceColumns.map((column) => {
+      const properties = column.autoIncrement
+      const sequence = new Sequence({
+        client,
+        schema: schemaName,
+        properties: {
+          name: `${tableName}_${column.name}_seq`,
+          ...properties,
+        },
+      })
+      column.default = sequence.getSqlIncrement()
+      return sequence
+    })
+  }
+}
+
 const _parseTableName = (name) => {
   const chunks = name.split('.')
   return {
@@ -37,7 +56,6 @@ module.exports = function (options) {
 
   let _dbColumns = null
   let _dbConstraints = null
-  let _sequences = null
 
   const _schema = _parseSchema(schema)
   const _table = _schema.table
@@ -57,19 +75,12 @@ module.exports = function (options) {
     _seeds.add(_schema.seeds)
   }
 
-  const sequenceColumns = _schema.columns.filter(R.prop('autoIncrement'))
-  if (sequenceColumns.length) {
-    _sequences = sequenceColumns.map((column) => {
-      const sequence = new Sequence({
-        client,
-        name: `${_tableName}_${column.name}`,
-        schema: _schemaName,
-        sequence: column.autoIncrement,
-      })
-      column.default = sequence.getSqlIncrement()
-      return sequence
-    })
-  }
+  const _sequences = _setupSequences({
+    client,
+    tableName: _tableName,
+    schemaName: _schemaName,
+    columns: _schema.columns,
+  })
 
   const _getSchema = () => _schema
 

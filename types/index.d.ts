@@ -43,14 +43,14 @@ declare type IndexType = 'primaryKey' | 'index' | 'foreignKey' | 'unique'
 
 declare type ColumnValueType = string | number | Array<any> | Object
 
-interface ForeignOptions {
+interface ForeignKeyOptions {
     match?: string,
     onDelete?: ActionType,
     onUpdate?: ActionType,
     references?: ReferenceOptions
 }
 
-interface ColumnOptions extends ForeignOptions {
+interface ColumnOptions extends ForeignKeyOptions {
     name: string,
     type: string,
     nullable?: boolean,
@@ -58,12 +58,22 @@ interface ColumnOptions extends ForeignOptions {
     primaryKey?: boolean,
     unique?: boolean,
     default?: ColumnValueType,
+    autoIncrement?: boolean | SequenceOptions,
     formerNames?: Array<string>,
 }
 
-interface IndexOptions extends ForeignOptions {
+interface IndexOptions extends ForeignKeyOptions {
     type: IndexType,
     columns: Array<string>,
+}
+
+interface SequenceOptions {
+    name?: string,
+    start?: string | number,
+    min?: string | number,
+    max?: string | number,
+    increment?: string | number,
+    cycle?: boolean,
 }
 
 interface Model {
