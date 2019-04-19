@@ -1,3 +1,16 @@
+## 1.3.1
+
+#### Enhancement
+
+* added property `name` to `column.autoIncrement`
+
+#### Internal
+
+* schema validation method refactored
+* code optimized
+* dependencies updated
+* update docs
+
 ## 1.3.0
 
 #### Enhancement
