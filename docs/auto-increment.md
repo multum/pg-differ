@@ -1,5 +1,13 @@
 # autoIncrement
 
+## name
+
+* Type: `String`
+* Default: `'<tableName>_<columnName>_seq'`
+* Required: `false`
+
+Sequence name
+
 ## start
 
 * Type: `String | Number`
