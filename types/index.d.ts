@@ -23,15 +23,6 @@ interface DifferOptions {
     placeholders?: { [key: string]: string; },
 }
 
-interface ModelOptions {
-    table: string,
-    columns: Array<ColumnOptions>,
-    force?: boolean,
-    indexes?: Array<IndexOptions>,
-    seeds?: Array<Object>,
-    forceIndexes?: Array<IndexType>,
-}
-
 interface ReferenceOptions {
     table: string,
     columns: Array<string>,
@@ -76,6 +67,20 @@ interface SequenceOptions {
     cycle?: boolean,
 }
 
+interface TableOptions {
+    name: string,
+    columns: Array<ColumnOptions>,
+    force?: boolean,
+    indexes?: Array<IndexOptions>,
+    seeds?: Array<Object>,
+    forceIndexes?: Array<IndexType>,
+}
+
+interface Schema {
+    type: string,
+    properties: TableOptions | SequenceOptions
+}
+
 interface Model {
     // public methods
     addSeeds(seeds: Array<Object>): null
@@ -95,7 +100,7 @@ declare class Differ {
 
     getModel(name: string): Model | undefined
 
-    define(schema: ModelOptions): Model
+    define(schema: Schema): Model
 
     sync(): Promise<null>
 }

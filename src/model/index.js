@@ -20,7 +20,6 @@ const validate = require('../validate')
 const { SCHEMAS } = validate
 
 const _parseSchema = R.pipe(
-  R.prop('properties'),
   validate(SCHEMAS.MODEL),
   parser.schema,
 )

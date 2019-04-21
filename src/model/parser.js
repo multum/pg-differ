@@ -97,8 +97,8 @@ const _forceDefaults = {
   unique: false,
 }
 
-exports.schema = (properties) => {
-  const columns = properties.columns
+exports.schema = (schema) => {
+  const columns = schema.columns
     .map((column) => {
       column = {
         ...COLUMNS.DEFAULTS,
@@ -122,8 +122,8 @@ exports.schema = (properties) => {
     })
 
   const columnConstraints = _getConstraintsFromColumns(columns)
-  let indexes = properties.indexes
-    ? R.concat(properties.indexes, columnConstraints)
+  let indexes = schema.indexes
+    ? R.concat(schema.indexes, columnConstraints)
     : columnConstraints
 
   indexes = indexes.map((constraint) => (
@@ -137,15 +137,15 @@ exports.schema = (properties) => {
 
   const forceIndexes = {
     ..._forceDefaults,
-    ...properties.forceIndexes
-      ? properties.forceIndexes.reduce((acc, index) => {
+    ...schema.forceIndexes
+      ? schema.forceIndexes.reduce((acc, index) => {
         acc[index] = true
         return acc
       }, {})
       : { primaryKey: true },
   }
 
-  return { ...properties, columns, indexes, forceIndexes }
+  return { ...schema, columns, indexes, forceIndexes }
 }
 
 exports.dbColumns = R.curry((currentSchema, columns) => (

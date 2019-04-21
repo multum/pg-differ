@@ -83,7 +83,7 @@ module.exports = function Differ (options) {
         pathFolder: schemaFolder,
         filePattern: /^.*\.schema.json$/,
       })
-      schemas.map(define)
+      schemas.forEach(define)
       if (await _supportSeeds()) {
         _initSeeds()
       } else {
@@ -126,15 +126,17 @@ module.exports = function Differ (options) {
     return result
   }
 
-  const define = (schema) => {
-    const model = new Model({
-      client: _client,
-      schema,
-      force,
-      logging,
-    })
-    _models.set(schema.table, model)
-    return model
+  const define = ({ type, properties }) => {
+    if (type === 'table') {
+      const model = new Model({
+        client: _client,
+        schema: properties,
+        force,
+        logging,
+      })
+      _models.set(properties.name, model)
+      return model
+    }
   }
 
   const _awaitAndUnnestSqlLines = R.pipe(
