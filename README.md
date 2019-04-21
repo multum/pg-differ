@@ -13,7 +13,7 @@
 
 ## Features
 
-  - Easy to use [schema structure](model-schema.md)
+  - Easy to use [schema structure](docs/model-schema.md)
   - Creating tables
   - Adding/changing columns
   - Constraint support: 

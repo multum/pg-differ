@@ -8,15 +8,17 @@ describe('schema validation', () => {
 
     const differ = new Differ({
       dbConfig,
-      logging: logging && console.info,
+      logging: logging,
     })
 
     try {
       differ.define({
-        table: 1,
-        columns: [
-          { name: 'id', type: 'smallint' },
-        ],
+        type: 'table',
+        properties: {
+          columns: [
+            { name: 'id', type: 'smallint' },
+          ],
+        },
       })
     } catch (e) {
       done()

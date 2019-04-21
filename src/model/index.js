@@ -20,6 +20,7 @@ const validate = require('../validate')
 const { SCHEMAS } = validate
 
 const _parseSchema = R.pipe(
+  R.prop('properties'),
   validate(SCHEMAS.MODEL),
   parser.schema,
 )
@@ -58,7 +59,7 @@ module.exports = function (options) {
   let _dbConstraints = null
 
   const _schema = _parseSchema(schema)
-  const _table = _schema.table
+  const _table = _schema.name
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
 
   const _forceIndexes = _schema.forceIndexes

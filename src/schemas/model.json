@@ -1,6 +1,6 @@
 {
   "required": [
-    "table",
+    "name",
     "columns"
   ],
   "definitions": {
@@ -122,7 +122,7 @@
     }
   },
   "properties": {
-    "table": {
+    "name": {
       "type": "string"
     },
     "forceIndexes": {

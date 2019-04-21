@@ -113,11 +113,13 @@ module.exports = function Differ (options) {
         placeholders,
         filePattern: /^.*\.seeds.json$/,
       })
-      seeds.forEach(({ table, seeds }) => {
-        if (result.has(table)) {
-          result.set(table, [ ...result.get(table), ...seeds ])
-        } else {
-          result.set(table, seeds)
+      seeds.forEach(({ type, properties: { table, rows } }) => {
+        if (type === 'seeds') {
+          if (result.has(table)) {
+            result.set(table, [ ...result.get(table), ...rows ])
+          } else {
+            result.set(table, rows)
+          }
         }
       })
     }
