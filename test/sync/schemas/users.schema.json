@@ -57,7 +57,7 @@
     },
     {
       "id": 2,
-      "description":  "some string with backslash \n [new line]"
+      "description":  "some string with backslash \\n [new line]"
     },
     {
       "id": 3,

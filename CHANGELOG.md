@@ -1,3 +1,10 @@
+## 1.3.2
+
+#### Bug Fix
+
+* A single quote in the string for the `column.default` key (or the column value in `seeds`) caused an error. Added escaping for strings
+
+
 ## 1.3.1
 
 #### Enhancement
