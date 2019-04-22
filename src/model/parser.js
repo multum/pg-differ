@@ -73,7 +73,7 @@ exports.normalizeValue = (target) => {
       if (target.match(regExp)) {
         return target.replace(regExp, '')
       } else {
-        return `'${target}'`
+        return exports.quoteLiteral(target)
       }
     }
     default: {
@@ -270,3 +270,30 @@ const _getConstraintsFromColumns = (
     )(column)
   ), [])
 )
+
+exports.quoteLiteral = (value) => {
+  const literal = value.slice(0) // create copy
+
+  let hasBackslash = false
+  let quoted = '\''
+
+  for (let i = 0; i < literal.length; i++) {
+    const c = literal[i]
+    if (c === '\'') {
+      quoted += c + c
+    } else if (c === '\\') {
+      quoted += c + c
+      hasBackslash = true
+    } else {
+      quoted += c
+    }
+  }
+
+  quoted += '\''
+
+  if (hasBackslash === true) {
+    quoted = 'E' + quoted
+  }
+
+  return quoted
+}
