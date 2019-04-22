@@ -9,18 +9,16 @@
 ![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)
 ![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg?style=flat-square)
 
-## [Documentation](https://av-dev.github.io/postgres-differ/#/)
+## Documentation
+
+You can find the documentation [on the website](https://av-dev.github.io/postgres-differ/#/)
 
 ## Features
 
   - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/model-schema)
   - Creating tables
   - Adding/changing columns
-  - Constraint support: 
-    - `FOREIGN KEY`
-    - `UNIQUE`
-    - `PRIMARY KEY`
-  - `INDEX` support
+  - Constraint and index support
   - Seed support
   - Force changing column types *(with `force: true`)*
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
