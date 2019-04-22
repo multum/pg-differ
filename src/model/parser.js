@@ -272,16 +272,7 @@ const _getConstraintsFromColumns = (
 )
 
 exports.quoteLiteral = (value) => {
-  let literal = null
-  if (value === undefined || value === null) {
-    return 'NULL'
-  } else if (value === false) {
-    return '\'f\''
-  } else if (value === true) {
-    return '\'t\''
-  } else {
-    literal = value.toString().slice(0) // create copy
-  }
+  const literal = value.slice(0) // create copy
 
   let hasBackslash = false
   let quoted = '\''
