@@ -13,7 +13,7 @@
 
 ## Features
 
-  - Easy to use [schema structure](model-schema.md)
+  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/model-schema)
   - Creating tables
   - Adding/changing columns
   - Constraint support: 
