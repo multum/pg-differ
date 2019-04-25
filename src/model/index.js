@@ -105,15 +105,20 @@ module.exports = function (options) {
     return _dbColumns
   }
 
-  const _fetchConstraints = () => (
+  const _fetchConstraints = (table = _table) => (
     client.query(`
     select
       conname as name,
       c.contype as type,
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
-      where c.conrelid = '${_table}'::regclass order by 1
-      `).then(R.prop('rows')).then(parser.constraintDefinitions)
+      where c.conrelid = '${table}'::regclass order by 1
+      `).then(
+      R.pipe(
+        R.prop('rows'),
+        parser.constraintDefinitions,
+      ),
+    )
   )
 
   const _fetchIndexes = () => (
@@ -148,7 +153,7 @@ module.exports = function (options) {
 
   const _getSqlCreateOrAlterTable = async () => {
     if (_forceCreate) {
-      return _createTable(true)
+      return _createTable({ force: true })
     }
     const {
       rows: [
@@ -164,7 +169,7 @@ module.exports = function (options) {
       await _fetchStructure()
       return _getSQLColumnChanges()
     } else {
-      return _createTable()
+      return _createTable({ force: false })
     }
   }
 
@@ -183,14 +188,14 @@ module.exports = function (options) {
     R.filter(Boolean),
   )
 
-  const _findDbConstraintWhere = (props) => {
-    const { type, columns } = props
+  const _findConstraintWhere = (constraints, props) => {
+    const { columns } = props
     if (columns) {
       return utils.notEmpty(columns)
-        ? _dbConstraints.find(R.whereEq(props))
+        ? constraints.find(R.whereEq(props))
         : null
     } else {
-      return _dbConstraints.find(R.propEq('type', type))
+      return _dbConstraints.find(R.whereEq(props))
     }
   }
 
@@ -221,6 +226,23 @@ module.exports = function (options) {
     return sql
   }
 
+  // const _getCheckChanges = async () => {
+  //   const excludeDrop = []
+  //   await client.query('begin')
+  //   await _createTable({ temp: true, force: false })
+  //   let constraints = await _fetchConstraints()
+  //   constraints = constraints.filter(R.propEq('type', 'check'))
+  //   _schema.checks.forEach((query) => {
+  //     const constraint = _findConstraintWhere({ type: 'check', definition: query })
+  //     if (constraint) {
+  //       excludeDrop.push(constraint.name)
+  //     } else {
+  //       sql.add(_alterConstraint({ type: 'check', definition: query }))
+  //     }
+  //   })
+  //   await client.query('commit')
+  // }
+
   const _getSqlConstraintChanges = async () => {
     await _fetchAllConstraints()
     const constraints = _schema.indexes
@@ -229,7 +251,7 @@ module.exports = function (options) {
 
     if (utils.notEmpty(constraints)) {
       constraints.forEach((constraint) => {
-        const dbConstraint = _findDbConstraintWhere(constraint)
+        const dbConstraint = _findConstraintWhere(_dbConstraints, constraint)
         if (dbConstraint) {
           excludeDrop.push(dbConstraint.name)
         } else {
@@ -304,7 +326,7 @@ module.exports = function (options) {
           )
         } else {
           let dropPrimaryKey = null
-          const primaryKey = _findDbConstraintWhere({ type: 'primaryKey' })
+          const primaryKey = _findConstraintWhere(_dbConstraints, { type: 'primaryKey' })
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
             if (_forceIndexes.primaryKey) {
               dropPrimaryKey = _dropConstraint(primaryKey)
@@ -414,13 +436,14 @@ module.exports = function (options) {
     return chunks.join(' ')
   }
 
-  const _createTable = (force) => {
-    const columns = _schema.columns
+  const _createTable = ({ table = _table, columns = _schema.columns, force, temp }) => {
+    columns = columns
       .map(_getColumnDescription)
       .join(',\n\t')
+    temp = temp ? ' temporary' : ''
     return new Sql([
-      force ? Sql.create('drop table', `drop table if exists ${_table} cascade;`) : null,
-      Sql.create('create table', `create table ${_table} (\n\t${columns}\n);`),
+      force ? Sql.create('drop table', `drop table if exists ${table} cascade;`) : null,
+      Sql.create('create table', `create${temp} table ${table} (\n\t${columns}\n);`),
     ])
   }
 

@@ -6,18 +6,18 @@
       "unique",
       "foreignKey"
     ],
-    "indexes": [
+    "unique": [
       {
-        "type": "index",
-        "columns": [
-          "parent"
-        ]
-      },
-      {
-        "type": "unique",
         "columns": [
           "id",
           "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "columns": [
+          "parent"
         ]
       }
     ],
@@ -55,11 +55,11 @@
     "seeds": [
       {
         "id": 1,
-        "description": "some string"
+        "description": "some string with quote '"
       },
       {
         "id": 2,
-        "description": "some string"
+        "description": "some string with backslash \\n [new line]"
       },
       {
         "id": 3,
