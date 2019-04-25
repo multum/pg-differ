@@ -26,6 +26,38 @@ Force sync of table (drop and create). Priority over the constructor settings fo
 
 Array of objects with parameters of table indexes
 
+## foreignKeys
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](foreign-key.md) of table foreign keys
+
+## unique
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](unique.md) of table unique
+
+## primaryKeys
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](primaryKey.md) of table primary keys
+
+## checks
+
+* Type: `Array<String>`
+* Default: `null`
+* Required: `false`
+
+Array of strings of table checks
+
 ## columns
 
 * Type: `Array<Object>`
@@ -48,4 +80,4 @@ Array of objects. Key - column name, value - column value
 * Default: `['primaryKey']`
 * Required: `false`
 
-Array with a list of types `['index' | 'foreignKey' | 'unique' | 'primaryKey']`, which are deleted from the database if they are not defined in the model schema
+Array with a list of types `['index' | 'foreignKey' | 'unique' | 'primaryKey', 'check']`, which are deleted from the database if they are not defined in the model schema

@@ -28,7 +28,8 @@ You can find the documentation [on the website](https://av-dev.github.io/postgre
   - [x] Force sync tables(drop and create) *v0.1.8*
   - [x] Support rename column(formerNames prop) *v1.0.0*
   - [x] Support seeds *v1.0.0*
-  - [ ] Sequence support as a separate entity *v2.0.0*
+  - [x] Support `check` constraint *v2.0.0*
+  - [x] Sequence support as a separate entity *v2.0.0*
 
 ## Contributing
 

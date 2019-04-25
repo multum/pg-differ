@@ -1,28 +1,12 @@
-# foreignKey properties
+# foreignKey
 
-## match
+## columns
 
-* Type: `String`
-* Default: `'SIMPLE'`
-* Required: `false`
+* Type: `Array<String>`
+* Default: `null`
+* Required: `true`
 
-Object with required parameters for the `type: 'foreignKey'` index
-
-## onDelete
-
-* Type: `String`
-* Default: `'NO ACTION'`
-* Required: `false`
-
-`CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`
-
-## onUpdate
-
-* Type: `String`
-* Default: `'NO ACTION'`
-* Required: `false`
-
-`CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`
+List of column names
 
 ## references
 
@@ -47,3 +31,27 @@ Foreign table name
 * Required: `true`
 
 Foreign table column names
+
+## match
+
+* Type: `String`
+* Default: `'SIMPLE'`
+* Required: `false`
+
+Object with required parameters for the `type: 'foreignKey'` index
+
+## onDelete
+
+* Type: `String`
+* Default: `'NO ACTION'`
+* Required: `false`
+
+`CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`
+
+## onUpdate
+
+* Type: `String`
+* Default: `'NO ACTION'`
+* Required: `false`
+
+`CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`

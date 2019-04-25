@@ -30,7 +30,7 @@ interface ReferenceOptions {
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
-declare type ExtensionType = 'primaryKey' | 'index' | 'foreignKey' | 'unique'
+declare type ExtensionType = 'primaryKey' | 'index' | 'foreignKey' | 'unique' | 'check'
 
 declare type ColumnValueType = string | number | Array<any> | Object
 
@@ -71,10 +71,11 @@ interface TableOptions {
     name: string,
     columns: Array<ColumnOptions>,
     force?: boolean,
-    foreignKeys?: Array<ForeignKeyOptions>,
     primaryKeys?,
     unique?,
     indexes?: Array<IndexOptions>,
+    foreignKeys?: Array<ForeignKeyOptions>,
+    checks?: Array<string>,
     seeds?: Array<Object>,
     forceExtensions?: Array<ExtensionType>,
 }

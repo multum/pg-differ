@@ -240,7 +240,8 @@ module.exports = function (options) {
 
     await client.query(sql.getLines().join(''))
 
-    const dbChecks = (await _fetchConstraints(tempTableName)).filter(R.propEq('type', 'check'))
+    const dbConstraints = await _fetchConstraints(tempTableName)
+    const dbChecks = dbConstraints.filter(R.propEq('type', 'check'))
 
     const result = lines.map((query, i) => {
       const check = _findExtensionWhere(dbChecks, { name: getConstraintName(i) })

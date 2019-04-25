@@ -6,6 +6,9 @@
   "definitions": {
     "extension": {
       "type": "object",
+      "required": [
+        "columns"
+      ],
       "properties": {
         "columns": {
           "type": "array"
@@ -14,6 +17,10 @@
     },
     "foreignKey": {
       "type": "object",
+      "required": [
+        "columns",
+        "references"
+      ],
       "properties": {
         "columns": {
           "type": "array"
@@ -63,11 +70,11 @@
       }
     },
     "column": {
+      "type": "object",
       "required": [
         "name",
         "type"
       ],
-      "type": "object",
       "properties": {
         "name": {
           "type": "string"
@@ -147,6 +154,12 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/foreignKey"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
     "columns": {

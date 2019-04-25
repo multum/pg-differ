@@ -18,7 +18,7 @@ Type name (with alias support)
 
 ## default
 
-* Type: [Value](#column-value-definitions)
+* Type: [Value](column-value.md)
 * Default: `null`
 * Required: `false`
  
@@ -66,12 +66,8 @@ Array of previous column names that is used to rename
 
 ## autoIncrement
 
-* Type: `Boolean` | [autoIncrement object](auto-increment.md)
+* Type: `Boolean` | [sequence object](sequence.md)
 * Default: `false`
 * Required: `false`
  
 Creates a sequence and writes the increment function in the `default` field of the current column
-
-## [foreignKey properties](foreign-key.md) {docsify-ignore}
-
-Parameter list for `type === 'foreignKey'`
