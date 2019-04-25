@@ -120,7 +120,8 @@
           "foreignKey",
           "primaryKey",
           "unique",
-          "index"
+          "index",
+          "check"
         ]
       }
     },

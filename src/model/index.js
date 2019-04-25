@@ -54,7 +54,6 @@ const _parseTableName = (name) => {
 module.exports = function (options) {
   const { client, force, schema, logging } = options
 
-  let _dbColumns = null
   let _dbExtensions = null
 
   const _schema = _parseSchema(schema)
@@ -84,8 +83,8 @@ module.exports = function (options) {
 
   const _getSchema = () => _schema
 
-  const _fetchColumns = async () => {
-    _dbColumns = await client.query(`
+  const _fetchColumns = async () => (
+    client.query(`
     select
       pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
       ic.collation_name,
@@ -102,18 +101,22 @@ module.exports = function (options) {
     where t.relname = '${_tableName}'
       and n.nspname = '${_schemaName}';
   `).then(R.prop('rows')).then(parser.dbColumns(_schemaName))
-    return _dbColumns
-  }
+  )
 
-  const _fetchConstraints = () => (
+  const _fetchConstraints = (table = _table) => (
     client.query(`
     select
       conname as name,
       c.contype as type,
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
-      where c.conrelid = '${_table}'::regclass order by 1
-      `).then(R.prop('rows')).then(parser.extensionDefinitions)
+      where c.conrelid = '${table}'::regclass order by 1
+      `).then(
+      R.pipe(
+        R.prop('rows'),
+        parser.extensionDefinitions,
+      ),
+    )
   )
 
   const _fetchIndexes = () => (
@@ -146,52 +149,48 @@ module.exports = function (options) {
     Promise.all([ _fetchColumns(), _fetchAllExtensions() ])
   )
 
-  const _getSqlCreateOrAlterTable = async () => {
-    if (_forceCreate) {
-      return _createTable(true)
-    }
-    const {
-      rows: [
-        { exists },
-      ],
-    } = await client.query(`
+  const _tableExist = (schema, table) => (
+    client.query(`
       select exists (
         select 1 from pg_tables
-          where schemaname = '${_schemaName}'
-          and tablename = '${_tableName}'
-      )`)
-    if (exists) {
-      await _fetchStructure()
+          where schemaname = '${schema}'
+          and tablename = '${table}'
+      )`).then(R.path([ 'rows', 0, 'exists' ]))
+  )
+
+  const _getSqlCreateOrAlterTable = async () => {
+    if (_forceCreate) {
+      return _createTable({ force: true })
+    }
+    if (await _tableExist(_schemaName, _tableName)) {
       return _getSQLColumnChanges()
     } else {
-      return _createTable()
+      return _createTable({ force: false })
     }
   }
 
-  const _getColumnDifferences = R.pipe(
-    R.map((column) => {
-      const dbColumn = utils.findByName(_dbColumns, column.name, column.formerNames)
-      if (dbColumn) {
-        const diff = _getColumnAttributeDiffs(column, dbColumn)
-        return diff && utils.notEmpty(diff)
-          ? { ...column, diff }
-          : null
-      } else {
-        return column
-      }
-    }),
-    R.filter(Boolean),
+  const _getColumnDifferences = (dbColumns, schemaColumns) => (
+    schemaColumns
+      .map((column) => {
+        const dbColumn = utils.findByName(dbColumns, column.name, column.formerNames)
+        if (dbColumn) {
+          const diff = _getColumnAttributeDiffs(column, dbColumn)
+          return diff && utils.notEmpty(diff)
+            ? { ...column, diff }
+            : null
+        } else {
+          return column
+        }
+      })
+      .filter(Boolean)
   )
 
-  const _findDbExtensionWhere = (props) => {
-    const { type, columns } = props
-    if (columns) {
-      return utils.notEmpty(columns)
-        ? _dbExtensions.find(R.whereEq(props))
-        : null
-    } else {
-      return _dbExtensions.find(R.propEq('type', type))
+  const _findExtensionWhere = (extensions, props) => {
+    const { columns } = props
+    if (columns && R.isEmpty(columns)) {
+      return null
     }
+    return extensions.find(R.whereEq(props))
   }
 
   const _getDropExtensionQueries = (exclude = []) => (
@@ -201,9 +200,10 @@ module.exports = function (options) {
       .map(_dropExtension)
   )
 
-  const _getSQLColumnChanges = () => {
+  const _getSQLColumnChanges = async () => {
+    const [ dbColumns ] = await _fetchStructure()
     const sql = new Sql()
-    const differences = _getColumnDifferences(_schema.columns)
+    const differences = _getColumnDifferences(dbColumns, _schema.columns)
     if (utils.notEmpty(differences)) {
       differences.forEach((column) => {
         const { diff } = column
@@ -221,15 +221,55 @@ module.exports = function (options) {
     return sql
   }
 
+  const _normalizeCheckLines = async (lines) => {
+    const getConstraintName = (index) => `temp_constraint_check_${index}`
+    const tempTableName = `temp_${_tableName}`
+    await client.query('begin')
+
+    const createQuery = _createTable({ table: tempTableName, temp: true, force: false }).getLines()
+    await client.query(Sql.joinUniqueQueries(createQuery))
+
+    const sql = new Sql()
+    for (let i = 0; i < lines.length; i++) {
+      const check = lines[i]
+      sql.add(_alterExtension(
+        { type: 'check', name: getConstraintName(i), definition: check },
+        tempTableName,
+      ))
+    }
+
+    await client.query(sql.getLines().join(''))
+
+    const dbChecks = (await _fetchConstraints(tempTableName)).filter(R.propEq('type', 'check'))
+
+    const result = lines.map((query, i) => {
+      const check = _findExtensionWhere(dbChecks, { name: getConstraintName(i) })
+      if (check) {
+        return check.definition
+      }
+    })
+    await client.query(`drop table ${tempTableName};`)
+    await client.query('commit')
+    return result
+  }
+
   const _getSqlExtensionChanges = async () => {
     await _fetchAllExtensions()
-    const extensions = _schema.extensions
+    let extensions = _schema.extensions
     const sql = new Sql()
     const excludeDrop = []
 
+    if (_schema.checks && _schema.checks.length) {
+      const checks = await _normalizeCheckLines(schema.checks)
+      extensions = [
+        ...extensions,
+        ...checks.map((query) => ({ type: 'check', definition: query })),
+      ]
+    }
+
     if (utils.notEmpty(extensions)) {
       extensions.forEach((extension) => {
-        const dbExtension = _findDbExtensionWhere(extension)
+        const dbExtension = _findExtensionWhere(_dbExtensions, extension)
         if (dbExtension) {
           excludeDrop.push(dbExtension.name)
         } else {
@@ -248,23 +288,23 @@ module.exports = function (options) {
     )
   )
 
-  const _alterExtension = (extension) => {
-    let { type, columns, references, onDelete, onUpdate, match } = extension
-    const alterTable = `alter table ${_table}`
+  const _alterExtension = (extension, table = _table) => {
+    let { type, columns = [], references, onDelete, onUpdate, match, definition, name } = extension
+    const alterTable = `alter table ${table}`
     const extensionType = parser.encodeExtensionType(type)
 
     const addExtension = Sql.create(`add ${type}`)
     columns = columns.join(',')
     switch (type) {
       case 'index':
-        return Sql.create(`create ${type}`, `create ${extensionType} on ${_table} (${columns});`)
+        return Sql.create(`create ${type}`, `create ${extensionType} on ${table} (${columns});`)
 
       case 'primaryKey':
         return addExtension(`${alterTable} add ${extensionType} (${columns});`)
 
       case 'unique':
         return !_shouldBePrimaryKey(extension.columns) && [
-          _forceExtensions.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
+          _forceExtensions.unique ? Sql.create(`delete rows`, `delete from ${table};`) : null,
           addExtension(`${alterTable} add ${extensionType} (${columns});`),
         ]
 
@@ -273,6 +313,11 @@ module.exports = function (options) {
         references = `references ${references.table} (${references.columns.join(',')})`
         const events = `on update ${onUpdate} on delete ${onDelete}`
         return addExtension(`${alterTable} add ${extensionType} (${columns}) ${references}${match} ${events};`)
+      }
+
+      case 'check': {
+        const constraintName = name ? ` constraint ${name}` : ''
+        return addExtension(`${alterTable} add${constraintName} ${extensionType} (${definition});`)
       }
 
       default:
@@ -304,7 +349,7 @@ module.exports = function (options) {
           )
         } else {
           let dropPrimaryKey = null
-          const primaryKey = _findDbExtensionWhere({ type: 'primaryKey' })
+          const primaryKey = _findExtensionWhere(_dbExtensions, { type: 'primaryKey' })
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
             if (_forceExtensions.primaryKey) {
               dropPrimaryKey = _dropExtension(primaryKey)
@@ -414,13 +459,14 @@ module.exports = function (options) {
     return chunks.join(' ')
   }
 
-  const _createTable = (force) => {
-    const columns = _schema.columns
+  const _createTable = ({ table = _table, columns = _schema.columns, force, temp }) => {
+    columns = columns
       .map(_getColumnDescription)
       .join(',\n\t')
+    temp = temp ? ' temporary' : ''
     return new Sql([
-      force ? Sql.create('drop table', `drop table if exists ${_table} cascade;`) : null,
-      Sql.create('create table', `create table ${_table} (\n\t${columns}\n);`),
+      force ? Sql.create('drop table', `drop table if exists ${table} cascade;`) : null,
+      Sql.create('create table', `create${temp} table ${table} (\n\t${columns}\n);`),
     ])
   }
 

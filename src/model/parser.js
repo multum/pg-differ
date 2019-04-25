@@ -73,7 +73,7 @@ exports.normalizeValue = (target) => {
       if (target.match(regExp)) {
         return target.replace(regExp, '')
       } else {
-        return `'${target}'`
+        return exports.quoteLiteral(target)
       }
     }
     default: {
@@ -87,6 +87,7 @@ const _encodeExtensionTypes = {
   'unique': EXTENSIONS.TYPES.UNIQUE,
   'foreignKey': EXTENSIONS.TYPES.FOREIGN_KEY,
   'index': EXTENSIONS.TYPES.INDEX,
+  'check': EXTENSIONS.TYPES.CHECK,
 }
 
 exports.encodeExtensionType = (key) => _encodeExtensionTypes[key] || null
@@ -168,6 +169,7 @@ exports.schema = (schema) => {
     name: schema.name,
     force: schema.force,
     seeds: schema.seeds,
+    checks: schema.checks,
     columns,
     extensions,
     forceExtensions,
@@ -243,6 +245,14 @@ const extensionDefinitionOptions = (type, definition) => {
       return { columns }
     }
 
+    /**
+     * example foreignKey definition
+     * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
+     */
+    case 'check': {
+      return { definition: definition.match(/[^(]+(?=\))/)[0] }
+    }
+
     default:
       return {}
   }
@@ -258,6 +268,9 @@ exports.extensionDefinitions = R.map(({ name, definition, type }) => {
       break
     case 'u':
       type = 'unique'
+      break
+    case 'c':
+      type = 'check'
       break
     default:
       break
@@ -282,3 +295,30 @@ const _getExtensionsFromColumns = (
     )(column)
   ), [])
 )
+
+exports.quoteLiteral = (value) => {
+  const literal = value.slice(0) // create copy
+
+  let hasBackslash = false
+  let quoted = '\''
+
+  for (let i = 0; i < literal.length; i++) {
+    const c = literal[i]
+    if (c === '\'') {
+      quoted += c + c
+    } else if (c === '\\') {
+      quoted += c + c
+      hasBackslash = true
+    } else {
+      quoted += c
+    }
+  }
+
+  quoted += '\''
+
+  if (hasBackslash === true) {
+    quoted = 'E' + quoted
+  }
+
+  return quoted
+}

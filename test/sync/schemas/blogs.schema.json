@@ -4,7 +4,11 @@
     "name": "${schema}.blogs",
     "forceExtensions": [
       "index",
-      "foreignKey"
+      "foreignKey",
+      "check"
+    ],
+    "checks": [
+      "maker != 0 and description != 'bad string'"
     ],
     "foreignKeys": [
       {
