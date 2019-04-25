@@ -8,16 +8,14 @@ describe('alter columns', () => {
 
     const differ = new Differ({
       dbConfig,
-      logging: logging && console.info,
+      logging: logging,
     })
 
     differ.define({
       type: 'table',
       properties: {
         name: 'users',
-        indexes: [
-          { type: 'index', columns: [ 'age' ] },
-        ],
+        indexes: [ { columns: [ 'age' ] } ],
         columns: [
           { name: 'id', type: 'smallint', primaryKey: true },
           { name: 'age', type: 'varchar(255)', collate: null },
@@ -31,7 +29,7 @@ describe('alter columns', () => {
       type: 'table',
       properties: {
         name: 'users',
-        forceIndexes: [ 'index' ],
+        forceExtensions: [ 'index' ],
         columns: [
           { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
           { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },

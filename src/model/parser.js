@@ -7,7 +7,7 @@
 
 const R = require('ramda')
 const utils = require('../utils')
-const { TYPES, COLUMNS, CONSTRAINTS, SEQUENCES } = require('../constants')
+const { TYPES, COLUMNS, EXTENSIONS, SEQUENCES } = require('../constants')
 
 exports.getTypeGroup = (type) => {
   if (type) {
@@ -82,14 +82,14 @@ exports.normalizeValue = (target) => {
   }
 }
 
-const _encodeConstraintTypes = {
-  'primaryKey': CONSTRAINTS.TYPES.PRIMARY_KEY,
-  'unique': CONSTRAINTS.TYPES.UNIQUE,
-  'foreignKey': CONSTRAINTS.TYPES.FOREIGN_KEY,
-  'index': CONSTRAINTS.TYPES.INDEX,
+const _encodeExtensionTypes = {
+  'primaryKey': EXTENSIONS.TYPES.PRIMARY_KEY,
+  'unique': EXTENSIONS.TYPES.UNIQUE,
+  'foreignKey': EXTENSIONS.TYPES.FOREIGN_KEY,
+  'index': EXTENSIONS.TYPES.INDEX,
 }
 
-exports.encodeConstraintType = (key) => _encodeConstraintTypes[key] || null
+exports.encodeExtensionType = (key) => _encodeExtensionTypes[key] || null
 
 const _forceDefaults = {
   primaryKey: false,
@@ -121,31 +121,57 @@ exports.schema = (schema) => {
       }
     })
 
-  const columnConstraints = _getConstraintsFromColumns(columns)
-  let indexes = schema.indexes
-    ? R.concat(schema.indexes, columnConstraints)
-    : columnConstraints
-
-  indexes = indexes.map((constraint) => (
-    constraint.type === 'foreignKey'
-      ? {
-        ...CONSTRAINTS.FOREIGN_KEY_DEFAULTS,
-        ...constraint,
+  let extensions = R.pipe(
+    R.pick(EXTENSIONS.LIST),
+    R.filter(Boolean),
+    R.toPairs,
+    R.reduce((acc, [ type, elements ]) => {
+      switch (type) {
+        case 'primaryKeys':
+          type = 'primaryKey'
+          break
+        case 'indexes':
+          type = 'index'
+          break
+        case 'foreignKeys':
+          type = 'foreignKeys'
+          break
+        default:
+          break
       }
-      : constraint
+      elements = elements.map((props) => ({ type, ...props }))
+      return R.concat(acc, elements)
+    }, []),
+    R.concat(_getExtensionsFromColumns(columns)),
+  )(schema)
+
+  extensions = extensions.map((extension) => (
+    extension.type === 'foreignKey'
+      ? {
+        ...EXTENSIONS.FOREIGN_KEY_DEFAULTS,
+        ...extension,
+      }
+      : extension
   ))
 
-  const forceIndexes = {
+  const forceExtensions = {
     ..._forceDefaults,
-    ...schema.forceIndexes
-      ? schema.forceIndexes.reduce((acc, index) => {
+    ...schema.forceExtensions
+      ? schema.forceExtensions.reduce((acc, index) => {
         acc[index] = true
         return acc
       }, {})
       : { primaryKey: true },
   }
 
-  return { ...schema, columns, indexes, forceIndexes }
+  return {
+    name: schema.name,
+    force: schema.force,
+    seeds: schema.seeds,
+    columns,
+    extensions,
+    forceExtensions,
+  }
 }
 
 exports.dbColumns = R.curry((currentSchema, columns) => (
@@ -167,14 +193,14 @@ exports.dbColumns = R.curry((currentSchema, columns) => (
   })
 ))
 
-const constraintDefinitionOptions = (type, definition) => {
+const extensionDefinitionOptions = (type, definition) => {
   switch (type) {
     /**
      * example foreignKey definition
      * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
      */
     case 'foreignKey': {
-      const DEFAULTS = CONSTRAINTS.FOREIGN_KEY_DEFAULTS
+      const DEFAULTS = EXTENSIONS.FOREIGN_KEY_DEFAULTS
 
       const [ columns, referenceColumns ] = definition.match(/[^(]+(?=\))/g).map(R.split(', '))
       const table = definition.match(/(?<=\bREFERENCES).*(?=\()/i)[0].trim()
@@ -222,7 +248,7 @@ const constraintDefinitionOptions = (type, definition) => {
   }
 }
 
-exports.constraintDefinitions = R.map(({ name, definition, type }) => {
+exports.extensionDefinitions = R.map(({ name, definition, type }) => {
   switch (type) {
     case 'p':
       type = 'primaryKey'
@@ -236,35 +262,21 @@ exports.constraintDefinitions = R.map(({ name, definition, type }) => {
     default:
       break
   }
-  return { name, type, ...constraintDefinitionOptions(type, definition) }
+  return { name, type, ...extensionDefinitionOptions(type, definition) }
 })
 
 exports.indexDefinitions = R.map(({ name, definition }) => ({
   name,
   type: 'index',
-  ...constraintDefinitionOptions('index', definition),
+  ...extensionDefinitionOptions('index', definition),
 }))
 
-const _getConstraintsFromColumns = (
+const _getExtensionsFromColumns = (
   R.reduce((acc, column) => (
     R.pipe(
-      R.pick(COLUMNS.CONSTRAINTS),
+      R.pick(COLUMNS.EXTENSIONS),
       R.toPairs,
-      R.map(([ type, value ]) => {
-        if ([ 'unique', 'primaryKey', 'index' ].includes(type)) {
-          return value === true ? ({ type, columns: [ column.name ] }) : null
-        } else if (type === 'references') {
-          const DEFAULTS = CONSTRAINTS.FOREIGN_KEY_DEFAULTS
-          return utils.notEmpty(value) ? ({
-            type: 'foreignKey',
-            columns: [ column.name ],
-            references: { table: value.table, columns: value.columns.slice(0, 1) },
-            match: column.match || DEFAULTS.match,
-            onUpdate: column.onUpdate || DEFAULTS.onUpdate,
-            onDelete: column.onDelete || DEFAULTS.onDelete,
-          }) : null
-        }
-      }),
+      R.map(([ type, value ]) => value === true ? ({ type, columns: [ column.name ] }) : null),
       R.filter(Boolean),
       R.concat(acc),
     )(column)

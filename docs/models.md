@@ -21,9 +21,8 @@ const path = require('path')
  
  const model = differ.define({
      table: 'schema_name.table_name',
-     indexes: [
+     foreignKeys: [
        {
-            type: 'foreignKey',
             columns: ['id'],
             references: {
                 table: 'reference_table_name',

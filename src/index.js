@@ -16,7 +16,7 @@ const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
 
-const { ORDER_OF_OPERATIONS } = require('./constants/constraints')
+const { ORDER_OF_OPERATIONS } = require('./constants/extensions')
 
 const _defaultOptions = {
   logging: false,
@@ -155,8 +155,8 @@ module.exports = function Differ (options) {
     _awaitAndUnnestSqlLines,
   )
 
-  const _getSqlConstraintChanges = R.pipe(
-    R.map((model) => model._getSqlConstraintChanges()),
+  const _getSqlExtensionChanges = R.pipe(
+    R.map((model) => model._getSqlExtensionChanges()),
     (promises) => Promise.all(promises),
     R.then(
       R.pipe(
@@ -200,7 +200,7 @@ module.exports = function Differ (options) {
 
     const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(models))
     const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
-    const constraintQueries = await _entitySync('constraints', _getSqlConstraintChanges(models))
+    const extensionQueries = await _entitySync('extensions', _getSqlExtensionChanges(models))
     let insertSeedCount = 0
 
     if (await _supportSeeds()) {
@@ -212,7 +212,7 @@ module.exports = function Differ (options) {
       }
     }
 
-    if (!sequenceChanges && !createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
+    if (!sequenceChanges && !createOrAlterQueries && !extensionQueries && insertSeedCount === 0) {
       logger.info('Tables do not need structure synchronization', null)
     }
 

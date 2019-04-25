@@ -2,22 +2,22 @@
   "type": "table",
   "properties": {
     "name": "users",
-    "forceIndexes": [
+    "forceExtensions": [
       "unique",
       "foreignKey"
     ],
-    "indexes": [
+    "unique": [
       {
-        "type": "index",
-        "columns": [
-          "parent"
-        ]
-      },
-      {
-        "type": "unique",
         "columns": [
           "id",
           "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "columns": [
+          "parent"
         ]
       }
     ],

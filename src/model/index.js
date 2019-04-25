@@ -55,14 +55,14 @@ module.exports = function (options) {
   const { client, force, schema, logging } = options
 
   let _dbColumns = null
-  let _dbConstraints = null
+  let _dbExtensions = null
 
   const _schema = _parseSchema(schema)
   const _table = _schema.name
   const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
 
-  const _forceIndexes = _schema.forceIndexes
-  const _primaryKey = _schema.indexes.find(R.propEq('type', 'primaryKey'))
+  const _forceExtensions = _schema.forceExtensions
+  const _primaryKey = _schema.extensions.find(R.propEq('type', 'primaryKey'))
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
   const _seeds = new Seeds({
@@ -113,7 +113,7 @@ module.exports = function (options) {
       pg_catalog.pg_get_constraintdef(c.oid, true) as definition
     from pg_catalog.pg_constraint as c
       where c.conrelid = '${_table}'::regclass order by 1
-      `).then(R.prop('rows')).then(parser.constraintDefinitions)
+      `).then(R.prop('rows')).then(parser.extensionDefinitions)
   )
 
   const _fetchIndexes = () => (
@@ -129,21 +129,21 @@ module.exports = function (options) {
   )
 
   /**
-   *  Database constraint structure
+   *  Database extension structure
    */
-  const _fetchAllConstraints = async () => {
-    _dbConstraints = await Promise.all([
+  const _fetchAllExtensions = async () => {
+    _dbExtensions = await Promise.all([
       _fetchConstraints(),
       _fetchIndexes(),
     ]).then(R.reduce(R.concat, []))
-    return _dbConstraints
+    return _dbExtensions
   }
 
   /**
-   *  Database column and constraint structure
+   *  Database column and extension structure
    */
   const _fetchStructure = () => (
-    Promise.all([ _fetchColumns(), _fetchAllConstraints() ])
+    Promise.all([ _fetchColumns(), _fetchAllExtensions() ])
   )
 
   const _getSqlCreateOrAlterTable = async () => {
@@ -183,22 +183,22 @@ module.exports = function (options) {
     R.filter(Boolean),
   )
 
-  const _findDbConstraintWhere = (props) => {
+  const _findDbExtensionWhere = (props) => {
     const { type, columns } = props
     if (columns) {
       return utils.notEmpty(columns)
-        ? _dbConstraints.find(R.whereEq(props))
+        ? _dbExtensions.find(R.whereEq(props))
         : null
     } else {
-      return _dbConstraints.find(R.propEq('type', type))
+      return _dbExtensions.find(R.propEq('type', type))
     }
   }
 
-  const _getDropConstraintQueries = (exclude = []) => (
+  const _getDropExtensionQueries = (exclude = []) => (
     // must be drop
-    _dbConstraints
-      .filter(({ name, type }) => !exclude.includes(name) && _forceIndexes[type])
-      .map(_dropConstraint)
+    _dbExtensions
+      .filter(({ name, type }) => !exclude.includes(name) && _forceExtensions[type])
+      .map(_dropExtension)
   )
 
   const _getSQLColumnChanges = () => {
@@ -221,24 +221,24 @@ module.exports = function (options) {
     return sql
   }
 
-  const _getSqlConstraintChanges = async () => {
-    await _fetchAllConstraints()
-    const constraints = _schema.indexes
+  const _getSqlExtensionChanges = async () => {
+    await _fetchAllExtensions()
+    const extensions = _schema.extensions
     const sql = new Sql()
     const excludeDrop = []
 
-    if (utils.notEmpty(constraints)) {
-      constraints.forEach((constraint) => {
-        const dbConstraint = _findDbConstraintWhere(constraint)
-        if (dbConstraint) {
-          excludeDrop.push(dbConstraint.name)
+    if (utils.notEmpty(extensions)) {
+      extensions.forEach((extension) => {
+        const dbExtension = _findDbExtensionWhere(extension)
+        if (dbExtension) {
+          excludeDrop.push(dbExtension.name)
         } else {
-          sql.add(_alterConstraint(constraint))
+          sql.add(_alterExtension(extension))
         }
       })
     }
 
-    return sql.add(_getDropConstraintQueries(excludeDrop))
+    return sql.add(_getDropExtensionQueries(excludeDrop))
   }
 
   const _addColumn = (column) => (
@@ -248,31 +248,31 @@ module.exports = function (options) {
     )
   )
 
-  const _alterConstraint = (constraint) => {
-    let { type, columns, references, onDelete, onUpdate, match } = constraint
+  const _alterExtension = (extension) => {
+    let { type, columns, references, onDelete, onUpdate, match } = extension
     const alterTable = `alter table ${_table}`
-    const constraintType = parser.encodeConstraintType(type)
+    const extensionType = parser.encodeExtensionType(type)
 
-    const addConstraint = Sql.create(`add ${type}`)
+    const addExtension = Sql.create(`add ${type}`)
     columns = columns.join(',')
     switch (type) {
       case 'index':
-        return Sql.create(`create ${type}`, `create ${constraintType} on ${_table} (${columns});`)
+        return Sql.create(`create ${type}`, `create ${extensionType} on ${_table} (${columns});`)
 
       case 'primaryKey':
-        return addConstraint(`${alterTable} add ${constraintType} (${columns});`)
+        return addExtension(`${alterTable} add ${extensionType} (${columns});`)
 
       case 'unique':
-        return !_shouldBePrimaryKey(constraint.columns) && [
-          _forceIndexes.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
-          addConstraint(`${alterTable} add ${constraintType} (${columns});`),
+        return !_shouldBePrimaryKey(extension.columns) && [
+          _forceExtensions.unique ? Sql.create(`delete rows`, `delete from ${_table};`) : null,
+          addExtension(`${alterTable} add ${extensionType} (${columns});`),
         ]
 
       case 'foreignKey': {
         match = match ? ` match ${match}` : null
         references = `references ${references.table} (${references.columns.join(',')})`
         const events = `on update ${onUpdate} on delete ${onDelete}`
-        return addConstraint(`${alterTable} add ${constraintType} (${columns}) ${references}${match} ${events};`)
+        return addExtension(`${alterTable} add ${extensionType} (${columns}) ${references}${match} ${events};`)
       }
 
       default:
@@ -280,13 +280,13 @@ module.exports = function (options) {
     }
   }
 
-  const _dropConstraint = (constraint) => {
+  const _dropExtension = (extension) => {
     const alterTable = `alter table ${_table}`
-    if (constraint.type === 'index') {
-      const indexName = _schemaName ? `${_schemaName}.${constraint.name}` : constraint.name
-      return Sql.create(`drop ${constraint.type}`, `drop index ${indexName};`)
+    if (extension.type === 'index') {
+      const indexName = _schemaName ? `${_schemaName}.${extension.name}` : extension.name
+      return Sql.create(`drop ${extension.type}`, `drop index ${indexName};`)
     }
-    return Sql.create(`drop ${constraint.type}`, `${alterTable} drop constraint ${constraint.name};`)
+    return Sql.create(`drop ${extension.type}`, `${alterTable} drop constraint ${extension.name};`)
   }
 
   const _alterColumn = (column, key) => {
@@ -304,14 +304,14 @@ module.exports = function (options) {
           )
         } else {
           let dropPrimaryKey = null
-          const primaryKey = _findDbConstraintWhere({ type: 'primaryKey' })
+          const primaryKey = _findDbExtensionWhere({ type: 'primaryKey' })
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
-            if (_forceIndexes.primaryKey) {
-              dropPrimaryKey = _dropConstraint(primaryKey)
+            if (_forceExtensions.primaryKey) {
+              dropPrimaryKey = _dropExtension(primaryKey)
             } else {
               logger.error(
                 `Error setting '${column.name}.nullable = true'\n` +
-                `You need to add 'primaryKey' to 'forceIndexes'`,
+                `You need to add 'primaryKey' to 'forceExtensions'`,
               )
               return null
             }
@@ -448,7 +448,7 @@ module.exports = function (options) {
   const addSeeds = _seeds.add
 
   const _getSqlInsertSeeds = () => {
-    const hasConstraints = _schema.indexes.some(({ type }) => (
+    const hasConstraints = _schema.extensions.some(({ type }) => (
       [ 'unique', 'primaryKey' ].includes(type)
     ))
     if (hasConstraints) {
@@ -480,7 +480,7 @@ module.exports = function (options) {
 
   return Object.freeze({
     _getSqlCreateOrAlterTable,
-    _getSqlConstraintChanges,
+    _getSqlExtensionChanges,
     _getSqlInsertSeeds,
     _getSqlSequenceChanges,
     _getSchema,

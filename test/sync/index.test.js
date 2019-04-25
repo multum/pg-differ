@@ -21,7 +21,7 @@ describe('sync', () => {
       type: 'table',
       properties: {
         name: 'blogs',
-        forceIndexes: [
+        forceExtensions: [
           'unique',
           'foreignKey',
           'index',
@@ -51,6 +51,15 @@ describe('sync', () => {
       properties: {
         name: 'children',
         force: true,
+        foreignKeys: [
+          {
+            'columns': [ 'parent' ],
+            'references': {
+              'table': 'users',
+              'columns': [ 'description' ],
+            },
+          },
+        ],
         columns: [
           {
             'name': 'id',
@@ -66,10 +75,6 @@ describe('sync', () => {
           {
             'name': 'parent',
             'type': 'varchar(255)',
-            'references': {
-              'table': 'users',
-              'columns': [ 'description' ],
-            },
           },
         ],
       },

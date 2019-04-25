@@ -7,11 +7,11 @@
 
 const COLUMNS = require('./columns')
 const TYPES = require('./types')
-const CONSTRAINTS = require('./constraints')
+const EXTENSIONS = require('./extensions')
 const SEQUENCES = require('./sequences')
 module.exports = {
   COLUMNS,
   TYPES,
-  CONSTRAINTS,
+  EXTENSIONS,
   SEQUENCES,
 }

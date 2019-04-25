@@ -30,18 +30,19 @@ interface ReferenceOptions {
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
-declare type IndexType = 'primaryKey' | 'index' | 'foreignKey' | 'unique'
+declare type ExtensionType = 'primaryKey' | 'index' | 'foreignKey' | 'unique'
 
 declare type ColumnValueType = string | number | Array<any> | Object
 
 interface ForeignKeyOptions {
+    columns: Array<string>
     match?: string,
     onDelete?: ActionType,
     onUpdate?: ActionType,
     references?: ReferenceOptions
 }
 
-interface ColumnOptions extends ForeignKeyOptions {
+interface ColumnOptions {
     name: string,
     type: string,
     nullable?: boolean,
@@ -53,8 +54,7 @@ interface ColumnOptions extends ForeignKeyOptions {
     formerNames?: Array<string>,
 }
 
-interface IndexOptions extends ForeignKeyOptions {
-    type: IndexType,
+interface IndexOptions {
     columns: Array<string>,
 }
 
@@ -71,9 +71,12 @@ interface TableOptions {
     name: string,
     columns: Array<ColumnOptions>,
     force?: boolean,
+    foreignKeys?: Array<ForeignKeyOptions>,
+    primaryKeys?,
+    unique?,
     indexes?: Array<IndexOptions>,
     seeds?: Array<Object>,
-    forceIndexes?: Array<IndexType>,
+    forceExtensions?: Array<ExtensionType>,
 }
 
 interface Schema {
@@ -88,7 +91,7 @@ interface Model {
     // private methods
     _getSqlCreateOrAlterTable(): Promise<SQL>
 
-    _getSqlConstraintChanges(): Promise<SQL>
+    _getSqlExtensionChanges(): Promise<SQL>
 
     _getSchema(): Object
 

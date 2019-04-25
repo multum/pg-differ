@@ -2,13 +2,12 @@
   "type": "table",
   "properties": {
     "name": "${schema}.blogs",
-    "forceIndexes": [
+    "forceExtensions": [
       "index",
       "foreignKey"
     ],
-    "indexes": [
+    "foreignKeys": [
       {
-        "type": "foreignKey",
         "references": {
           "table": "users",
           "columns": [

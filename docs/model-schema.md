@@ -42,7 +42,7 @@ Array of objects with table column parameters
 
 Array of objects. Key - column name, value - column value
 
-## forceIndexes
+## forceExtensions
 
 * Type: `Array<String>`
 * Default: `['primaryKey']`
