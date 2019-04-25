@@ -122,38 +122,33 @@ exports.schema = (schema) => {
       }
     })
 
-  let extensions = R.pipe(
+  const extensions = R.pipe(
     R.pick(EXTENSIONS.LIST),
     R.filter(Boolean),
     R.toPairs,
     R.reduce((acc, [ type, elements ]) => {
+      let addition
       switch (type) {
         case 'primaryKeys':
-          type = 'primaryKey'
+          addition = { type: 'primaryKey' }
           break
         case 'indexes':
-          type = 'index'
+          addition = { type: 'index' }
           break
         case 'foreignKeys':
-          type = 'foreignKeys'
+          addition = {
+            type: 'foreignKey',
+            ...EXTENSIONS.FOREIGN_KEY_DEFAULTS,
+          }
           break
         default:
+          addition = {}
           break
       }
-      elements = elements.map((props) => ({ type, ...props }))
-      return R.concat(acc, elements)
+      return R.concat(acc, elements.map((props) => ({ ...addition, ...props })))
     }, []),
     R.concat(_getExtensionsFromColumns(columns)),
   )(schema)
-
-  extensions = extensions.map((extension) => (
-    extension.type === 'foreignKey'
-      ? {
-        ...EXTENSIONS.FOREIGN_KEY_DEFAULTS,
-        ...extension,
-      }
-      : extension
-  ))
 
   const forceExtensions = {
     ..._forceDefaults,
