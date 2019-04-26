@@ -12,6 +12,7 @@ const R = require('ramda')
  * @property {function} add
  * @property {function} getSize
  * @property {function} getLines
+ * @property {function} getStore
  */
 
 /**

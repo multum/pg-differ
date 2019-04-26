@@ -142,13 +142,6 @@ module.exports = function (options) {
     return _dbExtensions
   }
 
-  /**
-   *  Database column and extension structure
-   */
-  const _fetchStructure = () => (
-    Promise.all([ _fetchColumns(), _fetchAllExtensions() ])
-  )
-
   const _tableExist = (schema, table) => (
     client.query(`
       select exists (
@@ -159,14 +152,26 @@ module.exports = function (options) {
   )
 
   const _getSqlCreateOrAlterTable = async () => {
+    let sqlCreateOrAlterTable
+
+    await _fetchAllExtensions()
     if (_forceCreate) {
-      return _createTable({ force: true })
-    }
-    if (await _tableExist(_schemaName, _tableName)) {
-      return _getSQLColumnChanges()
+      sqlCreateOrAlterTable = _createTable({ force: true })
     } else {
-      return _createTable({ force: false })
+      if (await _tableExist(_schemaName, _tableName)) {
+        sqlCreateOrAlterTable = await _getSQLColumnChanges()
+      } else {
+        sqlCreateOrAlterTable = _createTable({ force: false })
+      }
     }
+
+    const [ dropCheckLines = [], addCheckLines = [] ] = await _getCheckChanges()
+
+    return new Sql([
+      ...dropCheckLines,
+      ...sqlCreateOrAlterTable.getStore(),
+      ...addCheckLines,
+    ])
   }
 
   const _getColumnDifferences = (dbColumns, schemaColumns) => (
@@ -201,7 +206,7 @@ module.exports = function (options) {
   )
 
   const _getSQLColumnChanges = async () => {
-    const [ dbColumns ] = await _fetchStructure()
+    const dbColumns = await _fetchColumns()
     const sql = new Sql()
     const differences = _getColumnDifferences(dbColumns, _schema.columns)
     if (utils.notEmpty(differences)) {
@@ -222,7 +227,7 @@ module.exports = function (options) {
   }
 
   const _normalizeCheckLines = async (lines) => {
-    const getConstraintName = (index) => `temp_constraint_check_${index}`
+    const getConstraintName = (id) => `temp_constraint_check_${id}`
     const tempTableName = `temp_${_tableName}`
     await client.query('begin')
 
@@ -231,9 +236,9 @@ module.exports = function (options) {
 
     const sql = new Sql()
     for (let i = 0; i < lines.length; i++) {
-      const check = lines[i]
-      sql.add(_alterExtension(
-        { type: 'check', name: getConstraintName(i), definition: check },
+      const line = lines[i]
+      sql.add(_addExtension(
+        { type: 'check', name: getConstraintName(i), definition: line },
         tempTableName,
       ))
     }
@@ -254,19 +259,19 @@ module.exports = function (options) {
     return result
   }
 
-  const _getSqlExtensionChanges = async () => {
-    await _fetchAllExtensions()
-    let extensions = _schema.extensions
-    const sql = new Sql()
-    const excludeDrop = []
-
+  const _getCheckChanges = async () => {
     if (_schema.checks && _schema.checks.length) {
       const checks = await _normalizeCheckLines(schema.checks)
-      extensions = [
-        ...extensions,
-        ...checks.map((query) => ({ type: 'check', definition: query })),
-      ]
+      return _getExtensionChangesOf(
+        checks.map((query) => ({ type: 'check', definition: query })),
+      )
     }
+    return []
+  }
+
+  const _getExtensionChangesOf = (extensions) => {
+    const adding = []
+    const excludeDrop = []
 
     if (utils.notEmpty(extensions)) {
       extensions.forEach((extension) => {
@@ -274,12 +279,22 @@ module.exports = function (options) {
         if (dbExtension) {
           excludeDrop.push(dbExtension.name)
         } else {
-          sql.add(_alterExtension(extension))
+          adding.push(_addExtension(extension))
         }
       })
     }
 
-    return sql.add(_getDropExtensionQueries(excludeDrop))
+    return [
+      _getDropExtensionQueries(excludeDrop),
+      adding,
+    ]
+  }
+
+  const _getSqlExtensionChanges = async () => {
+    await _fetchAllExtensions()
+    return new Sql(
+      R.unnest(_getExtensionChangesOf(_schema.extensions)),
+    )
   }
 
   const _addColumn = (column) => (
@@ -289,7 +304,7 @@ module.exports = function (options) {
     )
   )
 
-  const _alterExtension = (extension, table = _table) => {
+  const _addExtension = (extension, table = _table) => {
     let { type, columns = [], references, onDelete, onUpdate, match, definition, name } = extension
     const alterTable = `alter table ${table}`
     const extensionType = parser.encodeExtensionType(type)
