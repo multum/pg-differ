@@ -54,7 +54,7 @@ const _parseTableName = (name) => {
 module.exports = function (options) {
   const { client, force, schema, logging } = options
 
-  let _dbExtensions = null
+  let _dbExtensions = []
 
   const _schema = _parseSchema(schema)
   const _table = _schema.name
@@ -154,11 +154,11 @@ module.exports = function (options) {
   const _getSqlCreateOrAlterTable = async () => {
     let sqlCreateOrAlterTable
 
-    await _fetchAllExtensions()
     if (_forceCreate) {
       sqlCreateOrAlterTable = _createTable({ force: true })
     } else {
       if (await _tableExist(_schemaName, _tableName)) {
+        await _fetchAllExtensions()
         sqlCreateOrAlterTable = await _getSQLColumnChanges()
       } else {
         sqlCreateOrAlterTable = _createTable({ force: false })
