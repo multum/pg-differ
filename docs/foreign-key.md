@@ -1,6 +1,6 @@
 # foreignKey
 
-## columns
+### columns
 
 * Type: `Array<String>`
 * Default: `null`
@@ -8,7 +8,7 @@
 
 List of column names
 
-## references
+### references
 
 * Type: `Object`
 * Default: `null`
@@ -16,7 +16,7 @@ List of column names
 
 Object with foreign table parameters
 
-## references.table
+### references.table
 
 * Type: `String`
 * Default: `null`
@@ -24,7 +24,7 @@ Object with foreign table parameters
 
 Foreign table name
 
-## references.columns
+### references.columns
 
 * Type: `Array<String>`
 * Default: `null`
@@ -32,7 +32,7 @@ Foreign table name
 
 Foreign table column names
 
-## match
+### match
 
 * Type: `String`
 * Default: `'SIMPLE'`
@@ -40,7 +40,7 @@ Foreign table column names
 
 Object with required parameters for the `type: 'foreignKey'` index
 
-## onDelete
+### onDelete
 
 * Type: `String`
 * Default: `'NO ACTION'`
@@ -48,7 +48,7 @@ Object with required parameters for the `type: 'foreignKey'` index
 
 `CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`
 
-## onUpdate
+### onUpdate
 
 * Type: `String`
 * Default: `'NO ACTION'`

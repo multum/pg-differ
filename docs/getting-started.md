@@ -8,7 +8,7 @@ npm i pg-differ
 
 ## Writing schemas
 
-Then create a folder with your first [schema](model-schema.md) or use the `define` method.
+Then create a folder with your first [schema](entities.md) or use the `define` method.
 
 ```bash
 mkdir schemas && touch schemas/name.schema.json

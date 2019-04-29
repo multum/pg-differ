@@ -67,7 +67,7 @@ module.exports = function (options) {
     table: _table,
   })
 
-  const logger = new Logger({ prefix: `Postgres Differ [table: '${_table}']`, callback: logging })
+  const logger = new Logger({ prefix: `Postgres Differ [ '${_table}' ]`, callback: logging })
 
   if (_schema.seeds) {
     _seeds.add(_schema.seeds)
@@ -191,14 +191,15 @@ module.exports = function (options) {
     return extensions && extensions.find(R.whereEq(props))
   }
 
-  const _getDropExtensionQueries = (extensions, excludeNames) => (
+  const _getDropExtensionQueries = (extensions, excludeNames) => R.pipe(
     // must be drop
-    R.unnest(extensions)
-      .filter(({ type, name }) => (
-        _forceExtensions[type] && !excludeNames.includes(name)
-      ))
-      .map(_dropExtension)
-  )
+    R.values,
+    R.unnest,
+    R.filter(({ type, name }) => (
+      _forceExtensions[type] && !excludeNames.includes(name)
+    )),
+    R.map(_dropExtension),
+  )(extensions)
 
   const _getSQLColumnChanges = async () => {
     const dbColumns = await _fetchColumns()
@@ -258,8 +259,8 @@ module.exports = function (options) {
 
   const _getCheckChanges = async (rows) => {
     rows = await _normalizeCheckRows(rows)
-    const checks = rows.map((query) => ({ type: 'check', definition: query }))
-    return _getExtensionChangesOf({ check: _dbExtensions.check }, checks)
+    const extensions = rows.map((query) => ({ type: 'check', definition: query }))
+    return _getExtensionChangesOf({ check: _dbExtensions.check }, extensions)
   }
 
   const _getExtensionChangesOf = (dbExtensions, extensions) => {

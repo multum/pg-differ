@@ -4,8 +4,9 @@
 * [Getting started](getting-started.md)
 * [Configuration](configuration.md)
 * [Methods](methods.md)
-* [Models](models.md)
-    * [Schema](model-schema.md)
-    * [Methods](model-methods.md)
+* [Entities](entities.md)
+    * [Model](model.md)
+    * [Sequence](sequence.md)
+
 * [CLI](cli.md)
 

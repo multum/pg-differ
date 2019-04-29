@@ -1,6 +1,8 @@
 # sequence
 
-## name
+## Properties
+
+### name
 
 * Type: `String`
 * Default: `'<tableName>_<columnName>_seq'`
@@ -8,7 +10,7 @@
 
 Sequence name
 
-## start
+### start
 
 * Type: `String | Number`
 * Default: `1`
@@ -16,7 +18,7 @@ Sequence name
 
 Start value
 
-## min
+### min
 
 * Type: `String | Number`
 * Default: `1`
@@ -24,7 +26,7 @@ Start value
 
 Minimum value
 
-## max
+### max
 
 * Type: `String | Number`
 * Default: `9223372036854775807`
@@ -32,7 +34,7 @@ Minimum value
 
 Maximum value
 
-## cycle
+### cycle
 
 * Type: `Boolean`
 * Default: `false`
@@ -40,7 +42,7 @@ Maximum value
 
 Sequence looping when max value is reached
 
-## increment
+### increment
 
 * Type: `String | Number`
 * Default: `1`

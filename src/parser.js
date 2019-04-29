@@ -77,7 +77,7 @@ exports.normalizeValue = (target) => {
       }
     }
     default: {
-      return utils.isObject(target) ? `'${JSON.stringify(target)}'` : target
+      return R.is(Object, target) ? `'${JSON.stringify(target)}'` : target
     }
   }
 }

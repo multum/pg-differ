@@ -14,7 +14,7 @@
   "scripts": {
     "test": "mocha test/**/*.test.js",
     "test::log": "cross-env TEST_LOGGING=true npm test",
-    "eslint": "eslint --max-warnings=0 **/*.js",
+    "eslint": "eslint --max-warnings=0 '**/*.js'",
     "docs::start": "docsify serve docs"
   },
   "repository": {

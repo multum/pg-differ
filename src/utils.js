@@ -10,8 +10,6 @@ const fs = require('fs')
 
 exports.isExist = R.compose(R.not, R.isNil)
 
-exports.isObject = (target) => [ '[object Object]', '[object Array]' ].includes(Object.prototype.toString.call(target))
-
 exports.notEmpty = R.compose(R.not, R.isEmpty)
 
 exports.findByName = (array, name, formerNames) => R.find((el) => {

@@ -1,6 +1,6 @@
 # CLI
 
-## connectionString
+### connectionString
 * Alias: `-c`
 * Default: `null`
 * Required: `true`
@@ -8,7 +8,7 @@
 
 Connection URI to database
 
-## placeholders
+### placeholders
 * Alias: `-p`
 * Default: `null`
 * Required: `false`
@@ -16,41 +16,41 @@ Connection URI to database
 
 String with names and their values to replace placeholders in `schemaFolder` files
 
-## logging
+### logging
 * Alias: `-l`
 * Default: `true`
 * Required: `false`
 
 Option to enable logging in the console
 
-## force
+### force
 * Alias: `-f`
 * Default: `false`
 * Required: `false`
 
 Force sync of tables (drop and create)
 
-## schemaFolder
+### schemaFolder
 * Alias: `-s`
 * Default: `./schemas`
 * Required: `false`
 
 Path to the folder with * .schema.json files
 
-## seedFolder
+### seedFolder
 * Alias: `-sd`
 * Default: `./seeds`
 * Required: `false`
 
 Path to the folder with * .seed.json files
 
-## version
+### version
 * Alias: `-v`
 * Required: `false`
 
 Print out the installed version
 
-## help
+### help
 * Alias: `-v`
 * Required: `false`
 

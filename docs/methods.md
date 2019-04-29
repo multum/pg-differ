@@ -1,28 +1,28 @@
 # Methods 
 
-## define
+### define
 
-* Arguments: [schema](model-schema.md)
-* Returns: [Model](model-schema.md)
+* Arguments: (type: String, properties: Object)
+* Returns: [Model](model.md) | [Sequence](sequence.md) 
 
 Model definition
 
-## sync
+### sync
 
 * Arguments: `null`
 * Returns: `Promise<null>`
 
 Synchronization of previously defined models and their seeds
 
-## getModel
+### getModel
 
 * Arguments: `name: String`
-* Returns: [Model](model-schema.md) | `undefined`
+* Returns: [Model](model.md) | `undefined`
 
 Getting a defined model by table name
 
 
-## getSequence
+### getSequence
 
 * Arguments: `name: String`
 * Returns: [Sequence](sequence.md) | `undefined`

@@ -1,7 +1,7 @@
-# Models {docsify-ignore-all}
+# Entities {docsify-ignore-all}
 
-* [Schema](model-schema.md)
-* [Methods](model-methods.md)
+* [Model](model.md)
+* [Sequence](sequence.md)
 
 ## Example
 
@@ -22,7 +22,7 @@ const differ = new Differ({
 const model = differ.define({
   type: 'table',
   properties: {
-    table: 'schema_name.table_name',
+    name: 'schema_name.table_name',
     foreignKeys: [
       {
         columns: ['id'],
@@ -37,7 +37,8 @@ const model = differ.define({
         name: 'id',
         type: 'bigint',
         nullable: false,
-        primaryKey: true
+        primaryKey: true,
+        default: 'nextval(\'schema_name.table_name_id\'::regclass)::sql'
       },
       {
         name: 'description',
@@ -56,7 +57,14 @@ const model = differ.define({
   }
 })
 
- 
+differ.define({
+  type: 'sequence',
+  properties: {
+    name: 'schema_name.table_name_id',
+    start: 100
+  }
+})
+
  // ...
  
  model.addSeeds([

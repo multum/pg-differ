@@ -1,6 +1,6 @@
 # unique
 
-## columns
+### columns
 
 * Type: `Array<String>`
 * Default: `null`

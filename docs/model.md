@@ -1,8 +1,10 @@
-# Model schema
+# Model
+
+## Properties
 
 > parameters of the `differ.define` method or the `*.schema.json` file structure for `options.schemaFolder`
 
-## table
+### name
 
 * Type: `String`
 * Default: `null`
@@ -10,7 +12,7 @@
 
 The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
-## force
+### force
 
 * Type: `Boolean`
 * Default: `false`
@@ -18,7 +20,7 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
 Force sync of table (drop and create). Priority over the constructor settings for the current table
 
-## indexes
+### indexes
 
 * Type: `Array<Object>`
 * Default: `null`
@@ -26,7 +28,7 @@ Force sync of table (drop and create). Priority over the constructor settings fo
 
 Array of objects with parameters of table indexes
 
-## foreignKeys
+### foreignKeys
 
 * Type: `Array<Object>`
 * Default: `null`
@@ -34,7 +36,7 @@ Array of objects with parameters of table indexes
 
 Array of [objects with parameters](foreign-key.md) of table foreign keys
 
-## unique
+### unique
 
 * Type: `Array<Object>`
 * Default: `null`
@@ -42,7 +44,7 @@ Array of [objects with parameters](foreign-key.md) of table foreign keys
 
 Array of [objects with parameters](unique.md) of table unique
 
-## primaryKeys
+### primaryKeys
 
 * Type: `Array<Object>`
 * Default: `null`
@@ -50,7 +52,7 @@ Array of [objects with parameters](unique.md) of table unique
 
 Array of [objects with parameters](primaryKey.md) of table primary keys
 
-## checks
+### checks
 
 * Type: `Array<String>`
 * Default: `null`
@@ -58,7 +60,7 @@ Array of [objects with parameters](primaryKey.md) of table primary keys
 
 Array of strings of table checks
 
-## columns
+### columns
 
 * Type: `Array<Object>`
 * Default: `null`
@@ -66,7 +68,7 @@ Array of strings of table checks
 
 Array of objects with table column parameters
 
-## seeds
+### seeds
 
 * Type: `Array<Object>`
 * Default: `null`
@@ -74,10 +76,19 @@ Array of objects with table column parameters
 
 Array of objects. Key - column name, value - column value
 
-## forceExtensions
+### forceExtensions
 
 * Type: `Array<String>`
 * Default: `['primaryKey']`
 * Required: `false`
 
 Array with a list of types `['index' | 'foreignKey' | 'unique' | 'primaryKey', 'check']`, which are deleted from the database if they are not defined in the model schema
+
+## Methods
+
+### addSeeds
+
+* Arguments: `seeds: Array<Object>`
+* Returns: `null`
+
+Seed definitions

@@ -1,6 +1,6 @@
 # Configuration 
 
-## dbConfig
+### dbConfig
 
 * Type: `Object`
 * Default: `null`
@@ -8,7 +8,7 @@
 
 Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic)
 
-## schemaFolder
+### schemaFolder
 
 * Type: `String`
 * Default: `null`
@@ -16,15 +16,15 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 
 Path to the folder with `*.schema.json` files for automatic model definitions. Equivalent to function calls [define](methods.md#define)
 
-## seedFolder
+### seedFolder
 
 * Type: `String`
 * Default: `null`
 * Required: `false`
 
-Path to the folder with `*.seeds.json` files for automatic seed definitions. Equivalent to function calls [addSeeds](model-methods.md#addSeeds)
+Path to the folder with `*.seeds.json` files for automatic seed definitions. Equivalent to function calls [addSeeds](model.md#addSeeds)
 
-## logging
+### logging
 
 * Type: `Boolean | Function`
 * Default: `console.info`
@@ -32,7 +32,7 @@ Path to the folder with `*.seeds.json` files for automatic seed definitions. Equ
 
 Option to enable logging in the console or callback of the format `function(message) {}` for displaying a message about changes
 
-## force
+### force
 
 * Type: `Boolean`
 * Default: `false`
@@ -40,7 +40,7 @@ Option to enable logging in the console or callback of the format `function(mess
 
 Force sync of tables (drop and create)
 
-## placeholders
+### placeholders
 
 * Type: `Object`
 * Default: `null`
