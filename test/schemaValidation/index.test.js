@@ -24,4 +24,23 @@ describe('schema validation', () => {
       done()
     }
   })
+
+  it('catching schema type error', async function (done) {
+    const differ = new Differ({
+      dbConfig,
+      logging: logging,
+    })
+    try {
+      differ.define({
+        type: 't', // invalid type
+        properties: {
+          columns: [
+            { name: 'id', type: 'smallint' },
+          ],
+        },
+      })
+    } catch (e) {
+      done()
+    }
+  })
 })

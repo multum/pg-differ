@@ -159,7 +159,7 @@ module.exports = function Differ (options) {
         return sequence
       }
       default:
-        return false
+        throw new Error(`Invalid schema type: ${type}`)
     }
   }
 
