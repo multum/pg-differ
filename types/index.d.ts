@@ -94,9 +94,18 @@ interface Model {
 
     _getSqlExtensionChanges(): Promise<SQL>
 
-    _getSchema(): Object
-
     _getSqlInsertSeeds(): SQL
+
+    _getProperties(): Object
+}
+
+interface Sequence {
+    // private methods
+    _getSqlChanges(): Promise<SQL>
+
+    _getSqlIncrement(): string
+
+    _getProperties(): Object
 }
 
 declare class Differ {
@@ -104,7 +113,9 @@ declare class Differ {
 
     getModel(name: string): Model | undefined
 
-    define(schema: Schema): Model
+    getSequence(name: string): Sequence | undefined
+
+    define(schema: Schema): Model | Sequence
 
     sync(): Promise<null>
 }

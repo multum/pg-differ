@@ -104,13 +104,9 @@
           }
         },
         "autoIncrement": {
-          "oneOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "$ref": "sequence"
-            }
+          "type": [
+            "boolean",
+            "object"
           ]
         }
       }

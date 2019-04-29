@@ -12,15 +12,15 @@ const Seeds = require('./seeds')
 const Sequence = require('../sequence')
 const Logger = require('../logger')
 
+const queries = require('../queries/model')
 const utils = require('../utils')
-const parser = require('./parser')
+const parser = require('../parser')
 const { COLUMNS, TYPES } = require('../constants')
 
 const validate = require('../validate')
-const { SCHEMAS } = validate
 
 const _parseSchema = R.pipe(
-  validate(SCHEMAS.MODEL),
+  validate.model,
   parser.schema,
 )
 
@@ -31,23 +31,14 @@ const _setupSequences = ({ columns, tableName, schemaName, client }) => {
       const properties = column.autoIncrement
       const sequence = new Sequence({
         client,
-        schema: schemaName,
         properties: {
-          name: `${tableName}_${column.name}_seq`,
+          name: `${schemaName}.${tableName}_${column.name}_seq`,
           ...properties,
         },
       })
-      column.default = sequence.getSqlIncrement()
+      column.default = sequence._getSqlIncrement()
       return sequence
     })
-  }
-}
-
-const _parseTableName = (name) => {
-  const chunks = name.split('.')
-  return {
-    schema: chunks[1] ? chunks[0] : 'public',
-    table: chunks[1] || chunks[0],
   }
 }
 
@@ -58,17 +49,17 @@ module.exports = function (options) {
 
   const _schema = _parseSchema(schema)
   const _table = _schema.name
-  const { schema: _schemaName, table: _tableName } = _parseTableName(_table)
+  const [ _schemaName, _tableName ] = parser.separateSchema(_table)
 
   const _forceExtensions = _schema.forceExtensions
-  const _primaryKey = _schema.extensions.find(R.propEq('type', 'primaryKey'))
+  const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
   const _seeds = new Seeds({
     table: _table,
   })
 
-  const logger = new Logger({ prefix: `Postgres Differ('${_table}')`, callback: logging })
+  const logger = new Logger({ prefix: `Postgres Differ ['${_table}']`, callback: logging })
 
   if (_schema.seeds) {
     _seeds.add(_schema.seeds)
@@ -81,37 +72,23 @@ module.exports = function (options) {
     columns: _schema.columns,
   })
 
-  const _getSchema = () => _schema
+  const _getProperties = () => ({ ..._schema })
 
   const _fetchColumns = async () => (
-    client.query(`
-    select
-      pg_catalog.format_type(c.atttypid, c.atttypmod) as data_type,
-      ic.collation_name,
-      ic.column_default,
-      ic.is_nullable,
-      ic.column_name
-    from pg_attribute c
-    join pg_class t on c.attrelid = t.oid
-    join pg_namespace n on t.relnamespace = n.oid
-    join information_schema.columns ic
-      on c.attname = ic.column_name
-      and t.relname = ic.table_name
-      and n.nspname = ic.table_schema
-    where t.relname = '${_tableName}'
-      and n.nspname = '${_schemaName}';
-  `).then(R.prop('rows')).then(parser.dbColumns(_schemaName))
+    client.query(
+      queries.getColumns(_schemaName, _tableName),
+    ).then(
+      R.pipe(
+        R.prop('rows'),
+        parser.dbColumns(_schemaName),
+      ),
+    )
   )
 
   const _fetchConstraints = (table = _table) => (
-    client.query(`
-    select
-      conname as name,
-      c.contype as type,
-      pg_catalog.pg_get_constraintdef(c.oid, true) as definition
-    from pg_catalog.pg_constraint as c
-      where c.conrelid = '${table}'::regclass order by 1
-      `).then(
+    client.query(
+      queries.getConstraints(table),
+    ).then(
       R.pipe(
         R.prop('rows'),
         parser.extensionDefinitions,
@@ -120,15 +97,14 @@ module.exports = function (options) {
   )
 
   const _fetchIndexes = () => (
-    client.query(`
-    select
-      indexname as name,
-      indexdef as definition
-    from pg_indexes as i
-      where schemaname = '${_schemaName}'
-        and tablename = '${_tableName}'
-        and indexname not in (select conname from pg_catalog.pg_constraint)
-      `).then(R.prop('rows')).then(parser.indexDefinitions)
+    client.query(
+      queries.getIndexes(_schemaName, _tableName),
+    ).then(
+      R.pipe(
+        R.prop('rows'),
+        parser.indexDefinitions,
+      ),
+    )
   )
 
   /**
@@ -143,12 +119,9 @@ module.exports = function (options) {
   }
 
   const _tableExist = (schema, table) => (
-    client.query(`
-      select exists (
-        select 1 from pg_tables
-          where schemaname = '${schema}'
-          and tablename = '${table}'
-      )`).then(R.path([ 'rows', 0, 'exists' ]))
+    client.query(
+      queries.tableExist(schema, table),
+    ).then(R.path([ 'rows', 0, 'exists' ]))
   )
 
   const _getSqlCreateOrAlterTable = async () => {
@@ -165,13 +138,16 @@ module.exports = function (options) {
       }
     }
 
-    const [ dropCheckLines = [], addCheckLines = [] ] = await _getCheckChanges()
+    if (_schema.checks && _schema.checks.length) {
+      const [ dropQueries = [], addQueries = [] ] = await _getCheckChanges()
+      return new Sql([
+        ...dropQueries,
+        ...sqlCreateOrAlterTable.getStore(),
+        ...addQueries,
+      ])
+    }
 
-    return new Sql([
-      ...dropCheckLines,
-      ...sqlCreateOrAlterTable.getStore(),
-      ...addCheckLines,
-    ])
+    return sqlCreateOrAlterTable
   }
 
   const _getColumnDifferences = (dbColumns, schemaColumns) => (
@@ -231,42 +207,36 @@ module.exports = function (options) {
     const tempTableName = `temp_${_tableName}`
     await client.query('begin')
 
-    const createQuery = _createTable({ table: tempTableName, temp: true, force: false }).getLines()
-    await client.query(Sql.joinUniqueQueries(createQuery))
+    const createQueries = _createTable({ table: tempTableName, temp: true, force: false })
+    await client.query(createQueries.join())
 
-    const sql = new Sql()
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      sql.add(_addExtension(
-        { type: 'check', name: getConstraintName(i), definition: line },
+    const sql = lines.reduce((acc, line, i) => (
+      acc.add(_addExtension(
         tempTableName,
+        { type: 'check', name: getConstraintName(i), definition: line },
       ))
-    }
+    ), new Sql())
 
-    await client.query(sql.getLines().join(''))
+    await client.query(sql.join())
 
-    const dbConstraints = await _fetchConstraints(tempTableName)
-    const dbChecks = dbConstraints.filter(R.propEq('type', 'check'))
+    const dbExtensions = await _fetchConstraints(tempTableName)
+    const dbChecks = dbExtensions.filter(({ type }) => type === 'check')
 
-    const result = lines.map((query, i) => {
-      const check = _findExtensionWhere(dbChecks, { name: getConstraintName(i) })
-      if (check) {
-        return check.definition
-      }
-    })
+    const result = lines.map((query, i) => (
+      dbChecks
+        .find(({ name }) => name === getConstraintName(i))
+        .definition
+    ))
     await client.query(`drop table ${tempTableName};`)
     await client.query('commit')
     return result
   }
 
   const _getCheckChanges = async () => {
-    if (_schema.checks && _schema.checks.length) {
-      const checks = await _normalizeCheckLines(schema.checks)
-      return _getExtensionChangesOf(
-        checks.map((query) => ({ type: 'check', definition: query })),
-      )
-    }
-    return []
+    const checks = await _normalizeCheckLines(schema.checks)
+    return _getExtensionChangesOf(
+      checks.map((query) => ({ type: 'check', definition: query })),
+    )
   }
 
   const _getExtensionChangesOf = (extensions) => {
@@ -279,7 +249,7 @@ module.exports = function (options) {
         if (dbExtension) {
           excludeDrop.push(dbExtension.name)
         } else {
-          adding.push(_addExtension(extension))
+          adding.push(_addExtension(_table, extension))
         }
       })
     }
@@ -304,7 +274,7 @@ module.exports = function (options) {
     )
   )
 
-  const _addExtension = (extension, table = _table) => {
+  const _addExtension = (table, extension) => {
     let { type, columns = [], references, onDelete, onUpdate, match, definition, name } = extension
     const alterTable = `alter table ${table}`
     const extensionType = parser.encodeExtensionType(type)
@@ -444,6 +414,8 @@ module.exports = function (options) {
       return R.is(Array)
         ? R.equals(names, _primaryKey.columns)
         : R.includes(names, _primaryKey.columns)
+    } else {
+      return false
     }
   }
 
@@ -522,30 +494,14 @@ module.exports = function (options) {
     }
   }
 
-  const _getSqlSequenceChangesFrom = R.when(
-    R.identity,
-    R.pipe(
-      R.map((seq) => seq.getChanges()),
-      (promises) => Promise.all(promises),
-      R.then(
-        R.pipe(
-          R.filter(Boolean),
-          R.map((seq) => seq.getStore()),
-          R.unnest,
-          (sqlArray) => new Sql(sqlArray),
-        ),
-      ),
-    ),
-  )
-
-  const _getSqlSequenceChanges = () => _getSqlSequenceChangesFrom(_sequences)
+  const _getSequences = () => _sequences
 
   return Object.freeze({
     _getSqlCreateOrAlterTable,
     _getSqlExtensionChanges,
     _getSqlInsertSeeds,
-    _getSqlSequenceChanges,
-    _getSchema,
+    _getSequences,
+    _getProperties,
     addSeeds,
   })
 }

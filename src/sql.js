@@ -13,6 +13,7 @@ const R = require('ramda')
  * @property {function} getSize
  * @property {function} getLines
  * @property {function} getStore
+ * @property {function} join
  */
 
 /**
@@ -41,9 +42,11 @@ const Sql = function (sql) {
 
   const getLines = () => [ ..._lines ]
 
+  const join = (separator = '\n') => getLines().join(separator)
+
   if (sql) add(sql)
 
-  return (_methods = Object.freeze({ add, getLines, getSize, getStore }))
+  return (_methods = Object.freeze({ add, getLines, getSize, getStore, join }))
 }
 
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)

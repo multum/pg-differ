@@ -15,6 +15,7 @@ const Sql = require('./sql')
 const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
+const Sequence = require('./sequence')
 
 const { ORDER_OF_OPERATIONS } = require('./constants/extensions')
 
@@ -69,6 +70,7 @@ module.exports = function Differ (options) {
 
   const _client = new Client(dbConfig)
   const _models = new Map()
+  const _sequences = new Map()
 
   const _getDatabaseVersion = async () => {
     const { rows: [ row ] } = await _client.query('select version()')
@@ -126,16 +128,38 @@ module.exports = function Differ (options) {
     return result
   }
 
-  const define = ({ type, properties }) => {
-    if (type === 'table') {
-      const model = new Model({
-        client: _client,
-        schema: properties,
-        force,
-        logging,
-      })
-      _models.set(properties.name, model)
-      return model
+  const define = (type, properties) => {
+    if (typeof type === 'object') {
+      properties = type.properties
+      type = type.type
+    }
+
+    switch (type) {
+      case 'table': {
+        const model = new Model({
+          client: _client,
+          schema: properties,
+          force,
+          logging,
+        })
+        const sequences = model._getSequences()
+        sequences && sequences.forEach((seq) => {
+          const { name } = seq._getProperties()
+          _sequences.set(name, seq)
+        })
+        _models.set(properties.name, model)
+        return model
+      }
+      case 'sequence': {
+        const sequence = new Sequence({
+          client: _client,
+          properties,
+        })
+        _sequences.set(properties.name, sequence)
+        return sequence
+      }
+      default:
+        return false
     }
   }
 
@@ -177,7 +201,7 @@ module.exports = function Differ (options) {
   )
 
   const _getSqlSequenceChanges = R.pipe(
-    R.map((model) => model._getSqlSequenceChanges()),
+    R.map((sequence) => sequence._getSqlChanges()),
     _awaitAndUnnestSqlLines,
   )
 
@@ -194,11 +218,12 @@ module.exports = function Differ (options) {
   }
 
   const sync = async () => {
-    const models = Array.from(_models.values())
+    const models = [ ..._models.values() ]
+    const sequences = [ ..._sequences.values() ]
 
     logger.info(chalk.green('Sync start'), null)
 
-    const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(models))
+    const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(sequences))
     const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
     const extensionQueries = await _entitySync('extensions', _getSqlExtensionChanges(models))
     let insertSeedCount = 0
@@ -222,11 +247,14 @@ module.exports = function Differ (options) {
 
   const getModel = (name) => _models.get(name)
 
+  const getSequence = (name) => _sequences.get(name)
+
   _setup()
 
   return Object.freeze({
     sync,
     define,
     getModel,
+    getSequence,
   })
 }
