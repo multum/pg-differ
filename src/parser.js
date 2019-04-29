@@ -142,7 +142,7 @@ exports.schema = (schema) => {
           }
           break
         default:
-          addition = {}
+          addition = { type }
           break
       }
       return R.concat(acc, elements.map((props) => ({ ...addition, ...props })))

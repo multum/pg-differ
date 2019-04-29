@@ -42,10 +42,18 @@ const _setupSequences = ({ columns, tableName, schemaName, client }) => {
   }
 }
 
+const _defaultExtensions = {
+  primaryKey: [],
+  foreignKey: [],
+  check: [],
+  unique: [],
+  index: [],
+}
+
 module.exports = function (options) {
   const { client, force, schema, logging } = options
 
-  let _dbExtensions = []
+  let _dbExtensions = { ..._defaultExtensions }
 
   const _schema = _parseSchema(schema)
   const _table = _schema.name
@@ -59,7 +67,7 @@ module.exports = function (options) {
     table: _table,
   })
 
-  const logger = new Logger({ prefix: `Postgres Differ ['${_table}']`, callback: logging })
+  const logger = new Logger({ prefix: `Postgres Differ [table: '${_table}']`, callback: logging })
 
   if (_schema.seeds) {
     _seeds.add(_schema.seeds)
@@ -92,6 +100,7 @@ module.exports = function (options) {
       R.pipe(
         R.prop('rows'),
         parser.extensionDefinitions,
+        R.groupBy(R.prop('type')),
       ),
     )
   )
@@ -111,10 +120,15 @@ module.exports = function (options) {
    *  Database extension structure
    */
   const _fetchAllExtensions = async () => {
-    _dbExtensions = await Promise.all([
+    const [ constraints, index ] = await Promise.all([
       _fetchConstraints(),
       _fetchIndexes(),
-    ]).then(R.reduce(R.concat, []))
+    ])
+    _dbExtensions = {
+      ..._defaultExtensions,
+      ...constraints,
+      index,
+    }
     return _dbExtensions
   }
 
@@ -137,9 +151,12 @@ module.exports = function (options) {
         sqlCreateOrAlterTable = _createTable({ force: false })
       }
     }
+    if (_forceExtensions.check || utils.notEmpty(schema.checks)) {
+      const [
+        dropQueries = [],
+        addQueries = [],
+      ] = await _getCheckChanges(schema.checks || [])
 
-    if (_schema.checks && _schema.checks.length) {
-      const [ dropQueries = [], addQueries = [] ] = await _getCheckChanges()
       return new Sql([
         ...dropQueries,
         ...sqlCreateOrAlterTable.getStore(),
@@ -171,13 +188,15 @@ module.exports = function (options) {
     if (columns && R.isEmpty(columns)) {
       return null
     }
-    return extensions.find(R.whereEq(props))
+    return extensions && extensions.find(R.whereEq(props))
   }
 
-  const _getDropExtensionQueries = (exclude = []) => (
+  const _getDropExtensionQueries = (extensions, excludeNames) => (
     // must be drop
-    _dbExtensions
-      .filter(({ name, type }) => !exclude.includes(name) && _forceExtensions[type])
+    R.unnest(extensions)
+      .filter(({ type, name }) => (
+        _forceExtensions[type] && !excludeNames.includes(name)
+      ))
       .map(_dropExtension)
   )
 
@@ -202,50 +221,54 @@ module.exports = function (options) {
     return sql
   }
 
-  const _normalizeCheckLines = async (lines) => {
+  const _normalizeCheckRows = async (rows) => {
+    let result
     const getConstraintName = (id) => `temp_constraint_check_${id}`
     const tempTableName = `temp_${_tableName}`
+
     await client.query('begin')
+    try {
+      const createQueries = _createTable({ table: tempTableName, temp: true, force: false })
+      await client.query(createQueries.join())
 
-    const createQueries = _createTable({ table: tempTableName, temp: true, force: false })
-    await client.query(createQueries.join())
+      const sql = rows.reduce((acc, row, i) => (
+        acc.add(_addExtension(
+          tempTableName,
+          { type: 'check', name: getConstraintName(i), definition: row },
+        ))
+      ), new Sql())
 
-    const sql = lines.reduce((acc, line, i) => (
-      acc.add(_addExtension(
-        tempTableName,
-        { type: 'check', name: getConstraintName(i), definition: line },
+      await client.query(sql.join())
+
+      const { check: dbChecks } = await _fetchConstraints(tempTableName)
+
+      result = rows.map((query, i) => (
+        dbChecks
+          .find(({ name }) => name === getConstraintName(i))
+          .definition
       ))
-    ), new Sql())
-
-    await client.query(sql.join())
-
-    const dbExtensions = await _fetchConstraints(tempTableName)
-    const dbChecks = dbExtensions.filter(({ type }) => type === 'check')
-
-    const result = lines.map((query, i) => (
-      dbChecks
-        .find(({ name }) => name === getConstraintName(i))
-        .definition
-    ))
-    await client.query(`drop table ${tempTableName};`)
+      await client.query(`drop table ${tempTableName};`)
+    } catch (error) {
+      await client.query(`rollback`)
+      throw error
+    }
     await client.query('commit')
     return result
   }
 
-  const _getCheckChanges = async () => {
-    const checks = await _normalizeCheckLines(schema.checks)
-    return _getExtensionChangesOf(
-      checks.map((query) => ({ type: 'check', definition: query })),
-    )
+  const _getCheckChanges = async (rows) => {
+    rows = await _normalizeCheckRows(rows)
+    const checks = rows.map((query) => ({ type: 'check', definition: query }))
+    return _getExtensionChangesOf({ check: _dbExtensions.check }, checks)
   }
 
-  const _getExtensionChangesOf = (extensions) => {
+  const _getExtensionChangesOf = (dbExtensions, extensions) => {
     const adding = []
     const excludeDrop = []
-
     if (utils.notEmpty(extensions)) {
       extensions.forEach((extension) => {
-        const dbExtension = _findExtensionWhere(_dbExtensions, extension)
+        const { type } = extension
+        const dbExtension = _findExtensionWhere(dbExtensions[type], extension)
         if (dbExtension) {
           excludeDrop.push(dbExtension.name)
         } else {
@@ -253,9 +276,8 @@ module.exports = function (options) {
         }
       })
     }
-
     return [
-      _getDropExtensionQueries(excludeDrop),
+      _getDropExtensionQueries(dbExtensions, excludeDrop),
       adding,
     ]
   }
@@ -263,7 +285,10 @@ module.exports = function (options) {
   const _getSqlExtensionChanges = async () => {
     await _fetchAllExtensions()
     return new Sql(
-      R.unnest(_getExtensionChangesOf(_schema.extensions)),
+      R.unnest(_getExtensionChangesOf(
+        R.omit([ 'check' ], _dbExtensions),
+        _schema.extensions,
+      )),
     )
   }
 
@@ -335,7 +360,7 @@ module.exports = function (options) {
           )
         } else {
           let dropPrimaryKey = null
-          const primaryKey = _findExtensionWhere(_dbExtensions, { type: 'primaryKey' })
+          const primaryKey = _dbExtensions.primaryKey[0]
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
             if (_forceExtensions.primaryKey) {
               dropPrimaryKey = _dropExtension(primaryKey)

@@ -4,23 +4,24 @@ const dbConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('sync', () => {
-  const differ = new Differ({
-    dbConfig,
-    logging,
-    schemaFolder: path.resolve(__dirname, 'schemas'),
-    seedFolder: path.resolve(__dirname, 'seeds'),
-    placeholders: {
-      schema: 'public',
-    },
-  })
-
   it('sync schemas and seeds', async function () {
     this.timeout(20000)
+    const differ = new Differ({
+      dbConfig,
+      logging,
+      schemaFolder: path.resolve(__dirname, 'schemas'),
+      seedFolder: path.resolve(__dirname, 'seeds'),
+      placeholders: {
+        schema: 'public',
+      },
+    })
+
     await differ.sync()
+
     differ.define({
       type: 'table',
       properties: {
-        name: 'blogs',
+        name: 'public.blogs',
         forceExtensions: [
           'unique',
           'foreignKey',
@@ -41,11 +42,16 @@ describe('sync', () => {
         ],
       },
     })
+
     await differ.sync()
   })
 
   it('force sync', async function () {
     this.timeout(20000)
+    const differ = new Differ({
+      dbConfig,
+      logging,
+    })
     differ.define({
       type: 'table',
       properties: {
