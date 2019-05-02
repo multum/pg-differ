@@ -12,8 +12,6 @@ Then create a folder with your first [schema](entities.md) or use the `define` m
 
 ```bash
 mkdir schemas && touch schemas/name.schema.json
-# and you can additionally create a folder with a file for the table
-mkdir seeds && touch seeds/name.seeds.json
 ```
 
 ## Initialize

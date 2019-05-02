@@ -7,7 +7,6 @@ const pkg = require('../package.json')
 const argv = minimist(process.argv.slice(2), {
   alias: {
     s: 'schemaFolder',
-    sd: 'schemaFolder',
     v: 'version',
     c: 'connectionString',
     p: 'placeholders',
@@ -16,7 +15,6 @@ const argv = minimist(process.argv.slice(2), {
   },
   default: {
     s: './schemas',
-    sd: './seeds',
     l: true,
     f: false,
   },

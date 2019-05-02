@@ -4,7 +4,7 @@ const connectionConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('sync', () => {
-  it('sync schemas and seeds', async function () {
+  it('sync schemas', async function () {
     this.timeout(20000)
     const differ = new Differ({
       connectionConfig,
