@@ -30,7 +30,13 @@ interface ReferenceOptions {
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
-declare type ExtensionType = 'primaryKey' | 'index' | 'foreignKey' | 'unique' | 'check'
+declare type CleanExtensionOptions = {
+    primaryKey: boolean,
+    index: boolean,
+    foreignKey: boolean,
+    unique: boolean,
+    check: boolean
+}
 
 declare type ColumnValueType = string | number | Array<any> | Object
 
@@ -71,13 +77,13 @@ interface TableOptions {
     name: string,
     columns: Array<ColumnOptions>,
     force?: boolean,
-    primaryKeys?,
-    unique?,
+    primaryKeys?: Array<IndexOptions>,
+    unique?: Array<IndexOptions>,
     indexes?: Array<IndexOptions>,
     foreignKeys?: Array<ForeignKeyOptions>,
     checks?: Array<string>,
     seeds?: Array<Object>,
-    forceExtensions?: Array<ExtensionType>,
+    cleanExtensions?: CleanExtensionOptions,
 }
 
 interface Schema {
@@ -108,6 +114,8 @@ interface Sequence {
     _getProperties(): Object
 }
 
+declare type EntityType = 'table' | 'sequence'
+
 declare class Differ {
     constructor(options: DifferOptions);
 
@@ -115,7 +123,7 @@ declare class Differ {
 
     getSequence(name: string): Sequence | undefined
 
-    define(schema: Schema): Model | Sequence
+    define(entityType: Schema | EntityType, properties?: Schema): Model | Sequence
 
     sync(): Promise<null>
 }

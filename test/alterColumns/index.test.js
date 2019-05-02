@@ -11,31 +11,25 @@ describe('alter columns', () => {
       logging: logging,
     })
 
-    differ.define({
-      type: 'table',
-      properties: {
-        name: 'users',
-        indexes: [ { columns: [ 'age' ] } ],
-        columns: [
-          { name: 'id', type: 'smallint', primaryKey: true },
-          { name: 'age', type: 'varchar(255)', collate: null },
-          { name: 'busy', type: 'varchar(255)', 'default': '1' },
-        ],
-      },
+    differ.define('table', {
+      name: 'users',
+      indexes: [ { columns: [ 'age' ] } ],
+      columns: [
+        { name: 'id', type: 'smallint', primaryKey: true },
+        { name: 'age', type: 'varchar(255)', collate: null },
+        { name: 'busy', type: 'varchar(255)', 'default': '1' },
+      ],
     })
     await differ.sync()
 
-    differ.define({
-      type: 'table',
-      properties: {
-        name: 'users',
-        forceExtensions: [ 'index' ],
-        columns: [
-          { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
-          { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
-          { name: 'busy', type: 'bool', 'default': true },
-        ],
-      },
+    differ.define('table', {
+      name: 'users',
+      cleanExtensions: { index: true },
+      columns: [
+        { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
+        { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
+        { name: 'busy', type: 'bool', 'default': true },
+      ],
     })
     await differ.sync()
   })

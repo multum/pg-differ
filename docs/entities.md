@@ -19,58 +19,53 @@ const differ = new Differ({
   }
 })
  
-const model = differ.define({
-  type: 'table',
-  properties: {
-    name: 'schema_name.table_name',
-    foreignKeys: [
-      {
-        columns: ['id'],
-        references: {
-          table: 'reference_table_name',
-          columns: ['id']
-        }
+const model = differ.define('table', {
+  name: 'schema_name.table_name',
+  cleanExtensions: { foreignKey: true },
+  foreignKeys: [
+    {
+      columns: ['id'],
+      references: {
+        table: 'reference_table_name',
+        columns: ['id']
       }
-    ],
-    columns: [
-      {
-        name: 'id',
-        type: 'bigint',
-        nullable: false,
-        primaryKey: true,
-        default: 'nextval(\'schema_name.table_name_id\'::regclass)::sql'
-      },
-      {
-        name: 'description',
-        type: 'character varying(255)'
-      },
-      {
-        name: 'body',
-        type: 'json',
-      }
-    ],
-    seeds: [
-      { id: 1, description: 'first seed', body: { ... } },
-      { id: 2, description: 'second seed', body: { ... } },
-      { id: 3, description: 'third seed', body: { ... } }
-    ]
-  }
+    }
+  ],
+  columns: [
+    {
+      name: 'id',
+      type: 'bigint',
+      nullable: false,
+      primaryKey: true,
+      default: 'nextval(\'schema_name.table_name_id\'::regclass)::sql'
+    },
+    {
+      name: 'description',
+      type: 'character varying(255)'
+    },
+    {
+      name: 'body',
+      type: 'json',
+    }
+  ],
+  seeds: [
+    { id: 1, description: 'first seed', body: { ... } },
+    { id: 2, description: 'second seed', body: { ... } },
+    { id: 3, description: 'third seed', body: { ... } }
+  ]
 })
 
-differ.define({
-  type: 'sequence',
-  properties: {
-    name: 'schema_name.table_name_id',
-    start: 100
-  }
+differ.define('sequence', {
+  name: 'schema_name.table_name_id',
+  start: 100
 })
 
- // ...
+// ...
  
- model.addSeeds([
-    { id: 4, description: 'fourth seed', body: { ... } },
-    { id: 5, description: 'fifth seed', body: { ... } },
- ])
+model.addSeeds([
+  { id: 4, description: 'fourth seed', body: { ... } },
+  { id: 5, description: 'fifth seed', body: { ... } },
+])
  
- differ.sync()
+differ.sync()
 ```

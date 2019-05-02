@@ -76,13 +76,13 @@ Array of objects with table column parameters
 
 Array of objects. Key - column name, value - column value
 
-### forceExtensions
+### cleanExtensions
 
-* Type: `Array<String>`
-* Default: `['primaryKey']`
+* Type: `Object`
+* Default: `{ primaryKey: true }`
 * Required: `false`
 
-Array with a list of types `['index' | 'foreignKey' | 'unique' | 'primaryKey', 'check']`, which are deleted from the database if they are not defined in the model schema
+Object with types `['index' | 'foreignKey' | 'unique' | 'primaryKey', 'check']: Boolean`, which are deleted from the database if they are not defined in the model schema
 
 ## Methods
 

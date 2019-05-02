@@ -93,7 +93,7 @@ const _encodeExtensionTypes = {
 exports.encodeExtensionType = (key) => _encodeExtensionTypes[key] || null
 
 const _forceDefaults = {
-  primaryKey: false,
+  primaryKey: true,
   foreignKey: false,
   unique: false,
 }
@@ -150,15 +150,9 @@ exports.schema = (schema) => {
     R.concat(_getExtensionsFromColumns(columns)),
   )(schema)
 
-  const forceExtensions = {
-    ..._forceDefaults,
-    ...schema.forceExtensions
-      ? schema.forceExtensions.reduce((acc, index) => {
-        acc[index] = true
-        return acc
-      }, {})
-      : { primaryKey: true },
-  }
+  const cleanExtensions = schema.cleanExtensions
+    ? { ..._forceDefaults, ...schema.cleanExtensions }
+    : _forceDefaults
 
   return {
     name: schema.name,
@@ -167,7 +161,7 @@ exports.schema = (schema) => {
     checks: schema.checks,
     columns,
     extensions,
-    forceExtensions,
+    cleanExtensions,
   }
 }
 

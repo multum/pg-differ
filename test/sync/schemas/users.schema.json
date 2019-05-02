@@ -2,10 +2,10 @@
   "type": "table",
   "properties": {
     "name": "users",
-    "forceExtensions": [
-      "unique",
-      "foreignKey"
-    ],
+    "cleanExtensions": {
+      "foreignKey": true,
+      "unique": true
+    },
     "unique": [
       {
         "columns": [

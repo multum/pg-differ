@@ -222,26 +222,34 @@ module.exports = function Differ (options) {
     const sequences = [ ..._sequences.values() ]
 
     logger.info(chalk.green('Sync start'), null)
+    await _client.query('begin')
 
-    const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(sequences))
-    const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
-    const extensionQueries = await _entitySync('extensions', _getSqlExtensionChanges(models))
-    let insertSeedCount = 0
+    try {
+      const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(sequences))
+      const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
+      const extensionQueries = await _entitySync('extensions', _getSqlExtensionChanges(models))
+      let insertSeedCount = 0
 
-    if (await _supportSeeds()) {
-      const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
-      if (insertSeedQueries) {
-        logger.info(`Start sync table ${chalk.green('seeds')}`, null)
-        insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
-        logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
+      if (await _supportSeeds()) {
+        const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
+        if (insertSeedQueries) {
+          logger.info(`Start sync table ${chalk.green('seeds')}`, null)
+          insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
+          logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
+        }
       }
+
+      if (!sequenceChanges && !createOrAlterQueries && !extensionQueries && insertSeedCount === 0) {
+        logger.info('Tables do not need structure synchronization', null)
+      }
+    } catch (error) {
+      await _client.query('rollback')
+      throw error
     }
 
-    if (!sequenceChanges && !createOrAlterQueries && !extensionQueries && insertSeedCount === 0) {
-      logger.info('Tables do not need structure synchronization', null)
-    }
-
+    await _client.query('commit')
     logger.info(chalk.green('Sync end'), null)
+
     return _client.end()
   }
 

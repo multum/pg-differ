@@ -59,7 +59,7 @@ module.exports = function (options) {
   const _table = _schema.name
   const [ _schemaName, _tableName ] = parser.separateSchema(_table)
 
-  const _forceExtensions = _schema.forceExtensions
+  const _cleanExtensions = _schema.cleanExtensions
   const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
@@ -151,7 +151,7 @@ module.exports = function (options) {
         sqlCreateOrAlterTable = _createTable({ force: false })
       }
     }
-    if (_forceExtensions.check || utils.notEmpty(schema.checks)) {
+    if (_cleanExtensions.check || utils.notEmpty(schema.checks)) {
       const [
         dropQueries = [],
         addQueries = [],
@@ -196,7 +196,7 @@ module.exports = function (options) {
     R.values,
     R.unnest,
     R.filter(({ type, name }) => (
-      _forceExtensions[type] && !excludeNames.includes(name)
+      _cleanExtensions[type] && !excludeNames.includes(name)
     )),
     R.map(_dropExtension),
   )(extensions)
@@ -315,10 +315,7 @@ module.exports = function (options) {
         return addExtension(`${alterTable} add ${extensionType} (${columns});`)
 
       case 'unique':
-        return !_shouldBePrimaryKey(extension.columns) && [
-          _forceExtensions.unique ? Sql.create(`delete rows`, `delete from ${table};`) : null,
-          addExtension(`${alterTable} add ${extensionType} (${columns});`),
-        ]
+        return addExtension(`${alterTable} add ${extensionType} (${columns});`)
 
       case 'foreignKey': {
         match = match ? ` match ${match}` : null
@@ -356,19 +353,19 @@ module.exports = function (options) {
       if (value === true) {
         if (_shouldBePrimaryKey(column.name)) {
           logger.error(
-            `Error setting '${column.name}.nullable = true'\n` +
-            `${column.name} is primaryKey`,
+            `Error setting '${column.name}.nullable = true'. ` +
+            `'${column.name}' is primaryKey`,
           )
         } else {
           let dropPrimaryKey = null
           const primaryKey = _dbExtensions.primaryKey[0]
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
-            if (_forceExtensions.primaryKey) {
+            if (_cleanExtensions.primaryKey) {
               dropPrimaryKey = _dropExtension(primaryKey)
             } else {
               logger.error(
-                `Error setting '${column.name}.nullable = true'\n` +
-                `You need to add 'primaryKey' to 'forceExtensions'`,
+                `Error setting '${column.name}.nullable = true'. ` +
+                `You need to add 'primaryKey: true' to 'cleanExtensions'`,
               )
               return null
             }

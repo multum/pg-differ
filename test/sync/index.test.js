@@ -22,12 +22,12 @@ describe('sync', () => {
       type: 'table',
       properties: {
         name: 'public.blogs',
-        forceExtensions: [
-          'unique',
-          'foreignKey',
-          'index',
-          'primaryKey',
-        ],
+        cleanExtensions: {
+          'unique': true,
+          'foreignKey': true,
+          'index': true,
+          'primaryKey': true,
+        },
         columns: [
           {
             'name': 'id',

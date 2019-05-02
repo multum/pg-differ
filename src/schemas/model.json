@@ -116,16 +116,24 @@
     "name": {
       "type": "string"
     },
-    "forceExtensions": {
-      "type": "array",
-      "items": {
-        "enum": [
-          "foreignKey",
-          "primaryKey",
-          "unique",
-          "index",
-          "check"
-        ]
+    "cleanExtensions": {
+      "type": "object",
+      "properties": {
+        "foreignKey": {
+          "type": "boolean"
+        },
+        "primaryKey": {
+          "type": "boolean"
+        },
+        "unique": {
+          "type": "boolean"
+        },
+        "index": {
+          "type": "boolean"
+        },
+        "check": {
+          "type": "boolean"
+        }
       }
     },
     "indexes": {
