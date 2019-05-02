@@ -25,9 +25,8 @@ const Differ = require('pg-differ')
 const path = require('path')
 
 const differ = new Differ({
-   dbConfig: {},
+   connectionConfig: {},
    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
-   seedFolder: path.resolve(__dirname, 'seeds'), // or/and use 'model.addSeeds' method,
    logging: true,
    placeholders: {
      schema: 'schema_name'

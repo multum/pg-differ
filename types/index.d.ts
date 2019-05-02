@@ -15,9 +15,8 @@ interface SQL {
 }
 
 interface DifferOptions {
-    dbConfig: object,
+    connectionConfig: object,
     schemaFolder?: string,
-    seedFolder?: string,
     logging?: boolean | Function,
     force?: boolean,
     placeholders?: { [key: string]: string; },

@@ -22,8 +22,7 @@ const { ORDER_OF_OPERATIONS } = require('./constants/extensions')
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
-  seedFolder: null,
-  dbConfig: null,
+  connectionConfig: null,
   force: false,
 }
 
@@ -48,10 +47,9 @@ module.exports = function Differ (options) {
   options = { ..._defaultOptions, ...options }
   const {
     schemaFolder,
-    seedFolder,
     placeholders,
     force,
-    dbConfig,
+    connectionConfig,
   } = options
 
   let logging
@@ -68,7 +66,7 @@ module.exports = function Differ (options) {
 
   const logger = new Logger({ prefix: 'Postgres Differ', callback: logging })
 
-  const _client = new Client(dbConfig)
+  const _client = new Client(connectionConfig)
   const _models = new Map()
   const _sequences = new Map()
 
@@ -86,46 +84,12 @@ module.exports = function Differ (options) {
         filePattern: /^.*\.schema.json$/,
       })
       schemas.forEach(define)
-      if (await _supportSeeds()) {
-        _initSeeds()
-      } else {
-        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
-      }
     }
   }
 
   const _supportSeeds = async () => {
     const version = await _getDatabaseVersion()
     return version >= 9.5
-  }
-
-  const _initSeeds = () => {
-    const localSeeds = _getSeeds()
-    localSeeds.forEach((seeds, table) => {
-      const model = _models.get(table)
-      model && model.addSeeds(seeds)
-    })
-  }
-
-  const _getSeeds = () => {
-    const result = new Map()
-    if (seedFolder) {
-      const seeds = _getSchemas({
-        pathFolder: seedFolder,
-        placeholders,
-        filePattern: /^.*\.seeds.json$/,
-      })
-      seeds.forEach(({ type, properties: { table, rows } }) => {
-        if (type === 'seeds') {
-          if (result.has(table)) {
-            result.set(table, [ ...result.get(table), ...rows ])
-          } else {
-            result.set(table, rows)
-          }
-        }
-      })
-    }
-    return result
   }
 
   const define = (type, properties) => {
@@ -237,6 +201,8 @@ module.exports = function Differ (options) {
           insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
           logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
         }
+      } else {
+        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
       }
 
       if (!sequenceChanges && !createOrAlterQueries && !extensionQueries && insertSeedCount === 0) {

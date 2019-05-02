@@ -37,13 +37,6 @@ Force sync of tables (drop and create)
 
 Path to the folder with * .schema.json files
 
-### seedFolder
-* Alias: `-sd`
-* Default: `./seeds`
-* Required: `false`
-
-Path to the folder with * .seed.json files
-
 ### version
 * Alias: `-v`
 * Required: `false`

@@ -1,6 +1,6 @@
 # Configuration 
 
-### dbConfig
+### connectionConfig
 
 * Type: `Object`
 * Default: `null`
@@ -15,14 +15,6 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 * Required: `false`
 
 Path to the folder with `*.schema.json` files for automatic model definitions. Equivalent to function calls [define](methods.md#define)
-
-### seedFolder
-
-* Type: `String`
-* Default: `null`
-* Required: `false`
-
-Path to the folder with `*.seeds.json` files for automatic seed definitions. Equivalent to function calls [addSeeds](model.md#addSeeds)
 
 ### logging
 

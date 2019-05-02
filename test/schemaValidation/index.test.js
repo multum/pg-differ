@@ -1,5 +1,5 @@
 const Differ = require('../..')
-const dbConfig = require('../pg.config')
+const connectionConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('schema validation', () => {
@@ -7,7 +7,7 @@ describe('schema validation', () => {
     this.timeout(20000)
 
     const differ = new Differ({
-      dbConfig,
+      connectionConfig,
       logging: logging,
     })
 
@@ -27,7 +27,7 @@ describe('schema validation', () => {
 
   it('catching schema type error', async function (done) {
     const differ = new Differ({
-      dbConfig,
+      connectionConfig,
       logging: logging,
     })
     try {

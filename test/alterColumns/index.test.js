@@ -1,5 +1,5 @@
 const Differ = require('../..')
-const dbConfig = require('../pg.config')
+const connectionConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
@@ -7,7 +7,7 @@ describe('alter columns', () => {
     this.timeout(20000)
 
     const differ = new Differ({
-      dbConfig,
+      connectionConfig,
       logging: logging,
     })
 

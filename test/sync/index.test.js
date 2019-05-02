@@ -1,16 +1,15 @@
 const Differ = require('../..')
 const path = require('path')
-const dbConfig = require('../pg.config')
+const connectionConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('sync', () => {
   it('sync schemas and seeds', async function () {
     this.timeout(20000)
     const differ = new Differ({
-      dbConfig,
+      connectionConfig,
       logging,
       schemaFolder: path.resolve(__dirname, 'schemas'),
-      seedFolder: path.resolve(__dirname, 'seeds'),
       placeholders: {
         schema: 'public',
       },
@@ -49,7 +48,7 @@ describe('sync', () => {
   it('force sync', async function () {
     this.timeout(20000)
     const differ = new Differ({
-      dbConfig,
+      connectionConfig,
       logging,
     })
     differ.define({

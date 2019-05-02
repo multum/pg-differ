@@ -82,7 +82,7 @@ Array of objects. Key - column name, value - column value
 * Default: `{ primaryKey: true }`
 * Required: `false`
 
-Object with types `['index' | 'foreignKey' | 'unique' | 'primaryKey', 'check']: Boolean`, which are deleted from the database if they are not defined in the model schema
+Object with types `[ index | foreignKey | unique | primaryKey, check ]: Boolean`, which are deleted from the database if they are not defined in the model schema
 
 ## Methods
 
