@@ -156,7 +156,6 @@ module.exports = function (options) {
         dropQueries = [],
         addQueries = [],
       ] = await _getCheckChanges(schema.checks || [])
-
       return new Sql([
         ...dropQueries,
         ...sqlCreateOrAlterTable.getStore(),

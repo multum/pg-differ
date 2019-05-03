@@ -26,5 +26,3 @@ exports.ORDER_OF_OPERATIONS = [
   'delete rows',
   'add unique',
 ]
-
-exports.LIST = [ 'indexes', 'unique', 'foreignKeys', 'primaryKeys' ]

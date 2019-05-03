@@ -99,6 +99,22 @@ const _cleanableDefaults = {
   check: false,
 }
 
+const _getExtensionDefaults = (type) => {
+  switch (type) {
+    case 'primaryKeys':
+      return { type: 'primaryKey' }
+    case 'indexes':
+      return { type: 'index' }
+    case 'foreignKeys':
+      return {
+        type: 'foreignKey',
+        ...EXTENSIONS.FOREIGN_KEY_DEFAULTS,
+      }
+    default:
+      return { type }
+  }
+}
+
 exports.schema = (schema) => {
   const columns = schema.columns
     .map((column) => {
@@ -123,31 +139,19 @@ exports.schema = (schema) => {
       }
     })
 
-  const extensions = schema.extensions && R.pipe(
-    R.pick(EXTENSIONS.LIST),
-    R.filter(Boolean),
-    R.toPairs,
-    R.reduce((acc, [ type, elements ]) => {
-      let addition
-      switch (type) {
-        case 'primaryKeys':
-          addition = { type: 'primaryKey' }
-          break
-        case 'indexes':
-          addition = { type: 'index' }
-          break
-        case 'foreignKeys':
-          addition = {
-            type: 'foreignKey',
-            ...EXTENSIONS.FOREIGN_KEY_DEFAULTS,
-          }
-          break
-        default:
-          addition = { type }
-          break
-      }
-      return R.concat(acc, elements.map((props) => ({ ...addition, ...props })))
-    }, []),
+  const extensions = R.pipe(
+    R.ifElse(
+      R.not,
+      R.always([]),
+      R.pipe(
+        R.pick([ 'indexes', 'unique', 'foreignKeys', 'primaryKeys' ]), // without 'checks'
+        R.filter(Boolean),
+        R.toPairs,
+        R.reduce((acc, [ type, elements ]) => (
+          R.concat(acc, elements.map((props) => ({ ..._getExtensionDefaults(type), ...props })))
+        ), []),
+      ),
+    ),
     R.concat(_getExtensionsFromColumns(columns)),
   )(schema.extensions)
 
