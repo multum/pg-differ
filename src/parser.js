@@ -92,10 +92,11 @@ const _encodeExtensionTypes = {
 
 exports.encodeExtensionType = (key) => _encodeExtensionTypes[key] || null
 
-const _forceDefaults = {
+const _cleanableDefaults = {
   primaryKey: true,
   foreignKey: false,
   unique: false,
+  check: false,
 }
 
 exports.schema = (schema) => {
@@ -150,17 +151,18 @@ exports.schema = (schema) => {
     R.concat(_getExtensionsFromColumns(columns)),
   )(schema.extensions)
 
-  const cleanableExtensions = (
-    schema.extensions &&
-    schema.extensions.cleanable
-  ) ? { ..._forceDefaults, ...schema.extensions.cleanable }
-    : _forceDefaults
+  const cleanableExtensions = {
+    ..._cleanableDefaults,
+    ...R.pathOr({}, [ 'extensions', 'cleanable' ], schema),
+  }
+
+  const checks = R.path([ 'extensions', 'checks' ], schema)
 
   return {
     name: schema.name,
     force: schema.force,
     seeds: schema.seeds,
-    checks: schema.checks,
+    checks,
     columns,
     extensions,
     cleanableExtensions,

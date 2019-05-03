@@ -15,7 +15,8 @@ describe('alter columns', () => {
         indexes: [ { columns: [ 'age' ] } ],
       },
       columns: [
-        { name: 'id', type: 'smallint', primaryKey: true },
+        { name: 'id', type: 'smallint' },
+        { name: 'large_id', type: 'bigint', primaryKey: true },
         { name: 'age', type: 'varchar(255)', collate: null },
         { name: 'busy', type: 'varchar(255)', 'default': '1' },
       ],
