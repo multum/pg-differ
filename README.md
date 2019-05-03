@@ -15,7 +15,7 @@ You can find the documentation [on the website](https://av-dev.github.io/postgre
 
 ## Features
 
-  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/entity)
+  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/entities)
   - Creating tables
   - Adding/changing columns
   - Constraint and index support

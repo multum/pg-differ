@@ -29,6 +29,8 @@ interface ReferenceOptions {
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
+declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE'
+
 declare type CleanExtensionOptions = {
     primaryKey: boolean,
     index: boolean,
@@ -41,7 +43,7 @@ declare type ColumnValueType = string | number | Array<any> | Object
 
 interface ForeignKeyOptions {
     columns: Array<string>
-    match?: string,
+    match?: MatchType,
     onDelete?: ActionType,
     onUpdate?: ActionType,
     references?: ReferenceOptions

@@ -1,4 +1,4 @@
-# sequence
+# Sequence
 
 ## Properties
 

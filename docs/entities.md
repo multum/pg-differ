@@ -11,8 +11,8 @@ const path = require('path')
 
 const differ = new Differ({
   connectionConfig: {},
-  schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
-  logging: true,
+  schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model
+  logging: true, // default value of console.log
   placeholders: {
     schema: 'schema_name'
   }
