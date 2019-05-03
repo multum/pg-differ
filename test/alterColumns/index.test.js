@@ -16,7 +16,6 @@ describe('alter columns', () => {
       },
       columns: [
         { name: 'id', type: 'smallint' },
-        { name: 'large_id', type: 'bigint', primaryKey: true },
         { name: 'age', type: 'varchar(255)', collate: null },
         { name: 'busy', type: 'varchar(255)', 'default': '1' },
       ],

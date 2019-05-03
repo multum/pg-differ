@@ -35,10 +35,8 @@ describe('sync', () => {
             'nullable': true,
             'autoIncrement': { 'start': 1 },
           },
-          {
-            'name': 'deleted',
-            'type': 'bool',
-          },
+          { name: 'large_id', type: 'bigint', primaryKey: true },
+          { 'name': 'deleted', 'type': 'bool' },
         ],
       },
     })
