@@ -122,7 +122,7 @@ exports.schema = (schema) => {
       }
     })
 
-  const extensions = R.pipe(
+  const extensions = schema.extensions && R.pipe(
     R.pick(EXTENSIONS.LIST),
     R.filter(Boolean),
     R.toPairs,
@@ -148,10 +148,12 @@ exports.schema = (schema) => {
       return R.concat(acc, elements.map((props) => ({ ...addition, ...props })))
     }, []),
     R.concat(_getExtensionsFromColumns(columns)),
-  )(schema)
+  )(schema.extensions)
 
-  const cleanExtensions = schema.cleanExtensions
-    ? { ..._forceDefaults, ...schema.cleanExtensions }
+  const cleanableExtensions = (
+    schema.extensions &&
+    schema.extensions.cleanable
+  ) ? { ..._forceDefaults, ...schema.extensions.cleanable }
     : _forceDefaults
 
   return {
@@ -161,7 +163,7 @@ exports.schema = (schema) => {
     checks: schema.checks,
     columns,
     extensions,
-    cleanExtensions,
+    cleanableExtensions,
   }
 }
 

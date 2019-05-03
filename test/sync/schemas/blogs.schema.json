@@ -2,29 +2,31 @@
   "type": "table",
   "properties": {
     "name": "${schema}.blogs",
-    "cleanExtensions": {
-      "index": true,
-      "foreignKey": true,
-      "check": true
-    },
-    "checks": [
-      "maker != 0 and description != 'bad string'"
-    ],
-    "foreignKeys": [
-      {
-        "references": {
-          "table": "users",
+    "extensions": {
+      "cleanable": {
+        "index": true,
+        "foreignKey": true,
+        "check": true
+      },
+      "checks": [
+        "maker != 0 and description != 'bad string'"
+      ],
+      "foreignKeys": [
+        {
+          "references": {
+            "table": "users",
+            "columns": [
+              "id"
+            ]
+          },
+          "match": "FULL",
+          "onDelete": "CASCADE",
           "columns": [
-            "id"
+            "maker"
           ]
-        },
-        "match": "FULL",
-        "onDelete": "CASCADE",
-        "columns": [
-          "maker"
-        ]
-      }
-    ],
+        }
+      ]
+    },
     "columns": [
       {
         "name": "id",

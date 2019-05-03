@@ -59,7 +59,7 @@ module.exports = function (options) {
   const _table = _schema.name
   const [ _schemaName, _tableName ] = parser.separateSchema(_table)
 
-  const _cleanExtensions = _schema.cleanExtensions
+  const _cleanableExtensions = _schema.cleanableExtensions
   const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
@@ -151,7 +151,7 @@ module.exports = function (options) {
         sqlCreateOrAlterTable = _createTable({ force: false })
       }
     }
-    if (_cleanExtensions.check || utils.notEmpty(schema.checks)) {
+    if (_cleanableExtensions.check || utils.notEmpty(schema.checks)) {
       const [
         dropQueries = [],
         addQueries = [],
@@ -196,7 +196,7 @@ module.exports = function (options) {
     R.values,
     R.unnest,
     R.filter(({ type, name }) => (
-      _cleanExtensions[type] && !excludeNames.includes(name)
+      _cleanableExtensions[type] && !excludeNames.includes(name)
     )),
     R.map(_dropExtension),
   )(extensions)
@@ -360,12 +360,12 @@ module.exports = function (options) {
           let dropPrimaryKey = null
           const primaryKey = _dbExtensions.primaryKey[0]
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
-            if (_cleanExtensions.primaryKey) {
+            if (_cleanableExtensions.primaryKey) {
               dropPrimaryKey = _dropExtension(primaryKey)
             } else {
               logger.error(
                 `Error setting '${column.name}.nullable = true'. ` +
-                `You need to add 'primaryKey: true' to 'cleanExtensions'`,
+                `You need to add 'primaryKey: true' to 'extensions.cleanable'`,
               )
               return null
             }

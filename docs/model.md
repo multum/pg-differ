@@ -20,53 +20,13 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
 Force sync of table (drop and create). Priority over the constructor settings for the current table
 
-### indexes
-
-* Type: `Array<Object>`
-* Default: `null`
-* Required: `false`
-
-Array of objects with parameters of table indexes
-
-### foreignKeys
-
-* Type: `Array<Object>`
-* Default: `null`
-* Required: `false`
-
-Array of [objects with parameters](foreign-key.md) of table foreign keys
-
-### unique
-
-* Type: `Array<Object>`
-* Default: `null`
-* Required: `false`
-
-Array of [objects with parameters](unique.md) of table unique
-
-### primaryKeys
-
-* Type: `Array<Object>`
-* Default: `null`
-* Required: `false`
-
-Array of [objects with parameters](primaryKey.md) of table primary keys
-
-### checks
-
-* Type: `Array<String>`
-* Default: `null`
-* Required: `false`
-
-Array of strings of table checks
-
 ### columns
 
 * Type: `Array<Object>`
 * Default: `null`
 * Required: `true`
 
-Array of objects with table column parameters
+Array of [objects with table column parameters](columns.md)
 
 ### seeds
 
@@ -76,13 +36,13 @@ Array of objects with table column parameters
 
 Array of objects. Key - column name, value - column value
 
-### cleanExtensions
+### extensions
 
-* Type: `Object`
-* Default: `{ primaryKey: true }`
+* Type: [extensions object](model-extensions.md)
+* Default: `{ cleanable: { primaryKey: true } }`
 * Required: `false`
 
-Object with types `[ index | foreignKey | unique | primaryKey, check ]: Boolean`, which are deleted from the database if they are not defined in the model schema
+Object with definitions of `constraints` and `indexes`
 
 ## Methods
 

@@ -2,25 +2,27 @@
   "type": "table",
   "properties": {
     "name": "users",
-    "cleanExtensions": {
-      "foreignKey": true,
-      "unique": true
+    "extensions": {
+      "cleanable": {
+        "foreignKey": true,
+        "unique": true
+      },
+      "unique": [
+        {
+          "columns": [
+            "id",
+            "code"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "parent"
+          ]
+        }
+      ]
     },
-    "unique": [
-      {
-        "columns": [
-          "id",
-          "code"
-        ]
-      }
-    ],
-    "indexes": [
-      {
-        "columns": [
-          "parent"
-        ]
-      }
-    ],
     "columns": [
       {
         "name": "id",
