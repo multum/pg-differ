@@ -4,8 +4,6 @@ const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('schema validation', () => {
   it('catching schema validation errors', async function (done) {
-    this.timeout(20000)
-
     const differ = new Differ({
       connectionConfig,
       logging: logging,

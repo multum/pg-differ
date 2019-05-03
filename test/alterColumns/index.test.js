@@ -4,8 +4,6 @@ const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
   it('alter columns', async function () {
-    this.timeout(20000)
-
     const differ = new Differ({
       connectionConfig,
       logging: logging,
@@ -28,7 +26,6 @@ describe('alter columns', () => {
       name: 'users',
       extensions: {
         cleanable: { index: true },
-        indexes: [ { columns: [ 'age' ] } ],
       },
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },

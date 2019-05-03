@@ -5,7 +5,6 @@ const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('sync', () => {
   it('sync schemas', async function () {
-    this.timeout(20000)
     const differ = new Differ({
       connectionConfig,
       logging,
@@ -48,7 +47,6 @@ describe('sync', () => {
   })
 
   it('force sync', async function () {
-    this.timeout(20000)
     const differ = new Differ({
       connectionConfig,
       logging,
