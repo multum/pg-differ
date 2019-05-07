@@ -2,7 +2,8 @@
   "table": "${schema}.blogs",
   "forceIndexes": [
     "index",
-    "foreignKey"
+    "foreignKey",
+    "primaryKey"
   ],
   "indexes": [
     {
