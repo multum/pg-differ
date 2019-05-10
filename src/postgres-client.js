@@ -29,16 +29,17 @@ module.exports = function (options) {
 
   const _connect = () => client.connect().catch(retry)
 
-  const retry = (error) => {
+  const retry = async (error) => {
     console.error(error)
     console.info(`Reconnection will be in ${_timeoutRetry} seconds.`)
+    await end()
     return new Promise((resolve) => {
-      setTimeout(() => resolve(_connect()), _timeoutRetry * 1000)
+      setTimeout(() => resolve(connect()), _timeoutRetry * 1000)
     })
   }
 
-  const end = () => {
-    client && client.end()
+  const end = async () => {
+    client && await client.end()
     client = null
   }
 
