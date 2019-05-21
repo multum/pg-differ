@@ -15,14 +15,14 @@ const Sql = require('./sql')
 const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
+const Sequence = require('./sequence')
 
-const { ORDER_OF_OPERATIONS } = require('./constants/constraints')
+const { ORDER_OF_OPERATIONS } = require('./constants/extensions')
 
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
-  seedFolder: null,
-  dbConfig: null,
+  connectionConfig: null,
   force: false,
 }
 
@@ -47,10 +47,9 @@ module.exports = function Differ (options) {
   options = { ..._defaultOptions, ...options }
   const {
     schemaFolder,
-    seedFolder,
     placeholders,
     force,
-    dbConfig,
+    connectionConfig,
   } = options
 
   let logging
@@ -67,8 +66,9 @@ module.exports = function Differ (options) {
 
   const logger = new Logger({ prefix: 'Postgres Differ', callback: logging })
 
-  const _client = new Client(dbConfig)
+  const _client = new Client(connectionConfig)
   const _models = new Map()
+  const _sequences = new Map()
 
   const _getDatabaseVersion = async () => {
     const { rows: [ row ] } = await _client.query('select version()')
@@ -83,12 +83,7 @@ module.exports = function Differ (options) {
         pathFolder: schemaFolder,
         filePattern: /^.*\.schema.json$/,
       })
-      schemas.map(define)
-      if (await _supportSeeds()) {
-        _initSeeds()
-      } else {
-        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
-      }
+      schemas.forEach(define)
     }
   }
 
@@ -97,42 +92,39 @@ module.exports = function Differ (options) {
     return version >= 9.5
   }
 
-  const _initSeeds = () => {
-    const localSeeds = _getSeeds()
-    localSeeds.forEach((seeds, table) => {
-      const model = _models.get(table)
-      model && model.addSeeds(seeds)
-    })
-  }
-
-  const _getSeeds = () => {
-    const result = new Map()
-    if (seedFolder) {
-      const seeds = _getSchemas({
-        pathFolder: seedFolder,
-        placeholders,
-        filePattern: /^.*\.seeds.json$/,
-      })
-      seeds.forEach(({ table, seeds }) => {
-        if (result.has(table)) {
-          result.set(table, [ ...result.get(table), ...seeds ])
-        } else {
-          result.set(table, seeds)
-        }
-      })
+  const define = (type, properties) => {
+    if (typeof type === 'object') {
+      properties = type.properties
+      type = type.type
     }
-    return result
-  }
 
-  const define = (schema) => {
-    const model = new Model({
-      client: _client,
-      schema,
-      force,
-      logging,
-    })
-    _models.set(schema.table, model)
-    return model
+    switch (type) {
+      case 'table': {
+        const model = new Model({
+          client: _client,
+          schema: properties,
+          force,
+          logging,
+        })
+        const sequences = model._getSequences()
+        sequences && sequences.forEach((seq) => {
+          const { name } = seq._getProperties()
+          _sequences.set(name, seq)
+        })
+        _models.set(properties.name, model)
+        return model
+      }
+      case 'sequence': {
+        const sequence = new Sequence({
+          client: _client,
+          properties,
+        })
+        _sequences.set(properties.name, sequence)
+        return sequence
+      }
+      default:
+        throw new Error(`Invalid schema type: ${type}`)
+    }
   }
 
   const _awaitAndUnnestSqlLines = R.pipe(
@@ -151,8 +143,8 @@ module.exports = function Differ (options) {
     _awaitAndUnnestSqlLines,
   )
 
-  const _getSqlConstraintChanges = R.pipe(
-    R.map((model) => model._getSqlConstraintChanges()),
+  const _getSqlExtensionChanges = R.pipe(
+    R.map((model) => model._getSqlExtensionChanges()),
     (promises) => Promise.all(promises),
     R.then(
       R.pipe(
@@ -173,7 +165,7 @@ module.exports = function Differ (options) {
   )
 
   const _getSqlSequenceChanges = R.pipe(
-    R.map((model) => model._getSqlSequenceChanges()),
+    R.map((sequence) => sequence._getSqlChanges()),
     _awaitAndUnnestSqlLines,
   )
 
@@ -190,39 +182,47 @@ module.exports = function Differ (options) {
   }
 
   const sync = async () => {
-    const models = Array.from(_models.values())
+    const models = [ ..._models.values() ]
+    const sequences = [ ..._sequences.values() ]
 
     logger.info(chalk.green('Sync start'), null)
+    await _client.query('begin')
 
-    const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(models))
-    const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
-    const constraintQueries = await _entitySync('constraints', _getSqlConstraintChanges(models))
-    let insertSeedCount = 0
+    try {
+      const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(sequences))
+      const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
+      const extensionQueries = await _entitySync('extensions', _getSqlExtensionChanges(models))
+      let insertSeedCount = 0
 
-    if (await _supportSeeds()) {
-      const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
-      if (insertSeedQueries) {
-        logger.info(`Start sync table ${chalk.green('seeds')}`, null)
-        insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
-        logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
+      if (await _supportSeeds()) {
+        const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
+        if (insertSeedQueries) {
+          logger.info(`Start sync table ${chalk.green('seeds')}`, null)
+          insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
+          logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
+        }
+      } else {
+        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
       }
+
+      if (!sequenceChanges && !createOrAlterQueries && !extensionQueries && insertSeedCount === 0) {
+        logger.info('Tables do not need structure synchronization', null)
+      }
+    } catch (error) {
+      await _client.query('rollback')
+      throw error
     }
 
-    if (!sequenceChanges && !createOrAlterQueries && !constraintQueries && insertSeedCount === 0) {
-      logger.info('Tables do not need structure synchronization', null)
-    }
-
+    await _client.query('commit')
     logger.info(chalk.green('Sync end'), null)
+
     return _client.end()
   }
-
-  const getModel = (name) => _models.get(name)
 
   _setup()
 
   return Object.freeze({
     sync,
     define,
-    getModel,
   })
 }

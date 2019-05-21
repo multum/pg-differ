@@ -1,63 +1,71 @@
 {
-  "table": "${schema}.blogs",
-  "forceIndexes": [
-    "index",
-    "foreignKey",
-    "primaryKey"
-  ],
-  "indexes": [
-    {
-      "type": "foreignKey",
-      "references": {
-        "table": "users",
+  "type": "table",
+  "properties": {
+    "name": "${schema}.blogs",
+    "cleanable": {
+      "indexes": true,
+      "foreignKeys": true,
+      "checks": true,
+      "primaryKeys": true
+    },
+    "checks": [
+      {
+        "condition": "maker != 0 and description != 'bad string'"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "references": {
+          "table": "users",
+          "columns": [
+            "id"
+          ]
+        },
+        "match": "FULL",
+        "onDelete": "CASCADE",
         "columns": [
-          "id"
+          "maker"
         ]
+      }
+    ],
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "primaryKey": true,
+        "autoIncrement": {
+          "min": 1,
+          "max": 10000,
+          "increment": 2,
+          "start": 100,
+          "cycle": true
+        }
       },
-      "match": "FULL",
-      "onDelete": "CASCADE",
-      "columns": [
-        "maker"
-      ]
-    }
-  ],
-  "columns": [
-    {
-      "name": "id",
-      "type": "bigint",
-      "primaryKey": true,
-      "autoIncrement": {
-        "min": 1,
-        "max": 10000,
-        "increment": 2,
-        "start": 100,
-        "cycle": true
+      {
+        "name": "maker",
+        "type": "bigint"
+      },
+      {
+        "name": "body",
+        "type": "json",
+        "default": {
+          "2": "some value",
+          "1": "some value"
+        }
+      },
+      {
+        "name": "description",
+        "type": "varchar(255)"
+      },
+      {
+        "name": "deleted",
+        "type": "smallint"
+      },
+      {
+        "name": "created",
+        "type": "timestamp",
+        "default": "now()::sql"
       }
-    },
-    {
-      "name": "maker",
-      "type": "bigint"
-    },
-    {
-      "name": "body",
-      "type": "json",
-      "default": {
-        "2": "some value",
-        "1": "some value"
-      }
-    },
-    {
-      "name": "description",
-      "type": "varchar(255)"
-    },
-    {
-      "name": "deleted",
-      "type": "smallint"
-    },
-    {
-      "name": "created",
-      "type": "timestamp",
-      "default": "now()::sql"
-    }
-  ]
+    ]
+  }
 }

@@ -11,7 +11,7 @@
  * @property {function} inserts
  */
 
-const parser = require('./parser')
+const parser = require('../parser')
 
 /**
  *

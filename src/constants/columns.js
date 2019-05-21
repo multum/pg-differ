@@ -6,8 +6,8 @@
  */
 
 const ATTRS = [ 'name', 'nullable', 'default', 'type', 'collate' ]
-const CONSTRAINTS = [ 'unique', 'primaryKey', 'references' ]
-const ALL_PROPERTIES = [ ...ATTRS, ...CONSTRAINTS, 'formerNames', 'force', 'autoIncrement' ]
+const EXTENSIONS = [ 'unique', 'primaryKey' ]
+const ALL_PROPERTIES = [ ...ATTRS, ...EXTENSIONS, 'formerNames', 'force', 'autoIncrement' ]
 
 const DEFAULTS = {
   nullable: true,
@@ -21,6 +21,6 @@ const DEFAULTS = {
 module.exports = {
   DEFAULTS,
   ATTRS,
-  CONSTRAINTS,
+  EXTENSIONS,
   ALL_PROPERTIES,
 }

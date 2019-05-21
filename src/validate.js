@@ -8,14 +8,14 @@
 const R = require('ramda')
 const Ajv = require('ajv')
 
-const SCHEMAS = {
+const TYPES = {
   MODEL: 'model',
   SEQUENCE: 'sequence',
 }
 
 const ajv = new Ajv({
   schemas: (
-    Object.values(SCHEMAS).map((schemaPath) => {
+    Object.values(TYPES).map((schemaPath) => {
       const json = require(`./schemas/${schemaPath}`)
       json.$id = schemaPath
       return json
@@ -29,7 +29,7 @@ const formatErrors = R.pipe(
   R.join('\n'),
 )
 
-module.exports = R.curry((schemaName, target) => {
+const validate = R.curry((schemaName, target) => {
   const validate = ajv.getSchema(schemaName)
   if (validate(target)) {
     return target
@@ -38,4 +38,7 @@ module.exports = R.curry((schemaName, target) => {
   }
 })
 
-module.exports.SCHEMAS = SCHEMAS
+module.exports = {
+  model: validate(TYPES.MODEL),
+  sequence: validate(TYPES.SEQUENCE),
+}

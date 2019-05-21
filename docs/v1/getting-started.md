@@ -8,10 +8,12 @@ npm i pg-differ
 
 ## Writing schemas
 
-Then create a folder with your first [schema](entities.md) or use the `define` method.
+Then create a folder with your first [schema](model-schema.md) or use the `define` method.
 
 ```bash
 mkdir schemas && touch schemas/name.schema.json
+# and you can additionally create a folder with a file for the table
+mkdir seeds && touch seeds/name.seeds.json
 ```
 
 ## Initialize
@@ -23,8 +25,9 @@ const Differ = require('pg-differ')
 const path = require('path')
 
 const differ = new Differ({
-   connectionConfig: {},
+   dbConfig: {},
    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
+   seedFolder: path.resolve(__dirname, 'seeds'), // or/and use 'model.addSeeds' method,
    logging: true,
    placeholders: {
      schema: 'schema_name'

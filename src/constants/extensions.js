@@ -16,6 +16,7 @@ exports.TYPES = {
   UNIQUE: 'UNIQUE',
   FOREIGN_KEY: 'FOREIGN KEY',
   INDEX: 'INDEX',
+  CHECK: 'CHECK',
 }
 
 exports.ORDER_OF_OPERATIONS = [

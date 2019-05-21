@@ -6,8 +6,8 @@
  */
 
 const R = require('ramda')
-const utils = require('../utils')
-const { TYPES, COLUMNS, CONSTRAINTS, SEQUENCES } = require('../constants')
+const utils = require('./utils')
+const { TYPES, COLUMNS, EXTENSIONS, SEQUENCES } = require('./constants')
 
 exports.getTypeGroup = (type) => {
   if (type) {
@@ -82,23 +82,54 @@ exports.normalizeValue = (target) => {
   }
 }
 
-const _encodeConstraintTypes = {
-  'primaryKey': CONSTRAINTS.TYPES.PRIMARY_KEY,
-  'unique': CONSTRAINTS.TYPES.UNIQUE,
-  'foreignKey': CONSTRAINTS.TYPES.FOREIGN_KEY,
-  'index': CONSTRAINTS.TYPES.INDEX,
+const _encodeExtensionTypes = {
+  'primaryKey': EXTENSIONS.TYPES.PRIMARY_KEY,
+  'unique': EXTENSIONS.TYPES.UNIQUE,
+  'foreignKey': EXTENSIONS.TYPES.FOREIGN_KEY,
+  'index': EXTENSIONS.TYPES.INDEX,
+  'check': EXTENSIONS.TYPES.CHECK,
 }
 
-exports.encodeConstraintType = (key) => _encodeConstraintTypes[key] || null
+exports.encodeExtensionType = (key) => _encodeExtensionTypes[key] || null
 
-const _forceDefaults = {
-  primaryKey: false,
+const _cleanableDefaults = {
+  primaryKey: true,
   foreignKey: false,
   unique: false,
+  check: false,
 }
 
-exports.schema = (scheme) => {
-  const columns = scheme.columns
+const _encryptedNamesListExtensions = {
+  primaryKeys: 'primaryKey',
+  indexes: 'index',
+  foreignKeys: 'foreignKey',
+  checks: 'check',
+}
+
+const _getExtensionDefaults = (listName) => {
+  const type = _encryptedNamesListExtensions[listName]
+  switch (type) {
+    case 'foreignKey':
+      return { type, ...EXTENSIONS.FOREIGN_KEY_DEFAULTS }
+    default:
+      return { type }
+  }
+}
+
+const _normalizeCleanableObject = (object) => {
+  if (object) {
+    const encrypted = Object.entries(object)
+      .reduce((acc, [ listName, value ]) => {
+        acc[_encryptedNamesListExtensions[listName]] = value
+        return acc
+      }, {})
+    return { ..._cleanableDefaults, ...encrypted }
+  }
+  return _cleanableDefaults
+}
+
+exports.schema = (schema) => {
+  const columns = schema.columns
     .map((column) => {
       column = {
         ...COLUMNS.DEFAULTS,
@@ -121,31 +152,27 @@ exports.schema = (scheme) => {
       }
     })
 
-  const columnConstraints = _getConstraintsFromColumns(columns)
-  let indexes = scheme.indexes
-    ? R.concat(scheme.indexes, columnConstraints)
-    : columnConstraints
+  const extensions = R.pipe(
+    R.pick([ 'indexes', 'unique', 'foreignKeys', 'primaryKeys' ]), // without 'checks'
+    R.filter(Boolean),
+    R.toPairs,
+    R.reduce((acc, [ listName, elements ]) => (
+      R.concat(acc, elements.map((props) => ({ ..._getExtensionDefaults(listName), ...props })))
+    ), []),
+    R.concat(_getExtensionsFromColumns(columns)),
+  )(schema)
 
-  indexes = indexes.map((constraint) => (
-    constraint.type === 'foreignKey'
-      ? {
-        ...CONSTRAINTS.FOREIGN_KEY_DEFAULTS,
-        ...constraint,
-      }
-      : constraint
-  ))
+  const cleanable = _normalizeCleanableObject(schema.cleanable)
 
-  const forceIndexes = {
-    ..._forceDefaults,
-    ...scheme.forceIndexes
-      ? scheme.forceIndexes.reduce((acc, index) => {
-        acc[index] = true
-        return acc
-      }, {})
-      : { primaryKey: true },
+  return {
+    name: schema.name,
+    force: schema.force,
+    seeds: schema.seeds,
+    checks: schema.checks,
+    columns,
+    extensions,
+    cleanable,
   }
-
-  return { ...scheme, columns, indexes, forceIndexes }
 }
 
 exports.dbColumns = R.curry((currentSchema, columns) => (
@@ -167,14 +194,14 @@ exports.dbColumns = R.curry((currentSchema, columns) => (
   })
 ))
 
-const constraintDefinitionOptions = (type, definition) => {
+const extensionDefinitionOptions = (type, definition) => {
   switch (type) {
     /**
      * example foreignKey definition
      * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
      */
     case 'foreignKey': {
-      const DEFAULTS = CONSTRAINTS.FOREIGN_KEY_DEFAULTS
+      const DEFAULTS = EXTENSIONS.FOREIGN_KEY_DEFAULTS
 
       const [ columns, referenceColumns ] = definition.match(/[^(]+(?=\))/g).map(R.split(', '))
       const table = definition.match(/(?<=\bREFERENCES).*(?=\()/i)[0].trim()
@@ -217,12 +244,20 @@ const constraintDefinitionOptions = (type, definition) => {
       return { columns }
     }
 
+    /**
+     * example foreignKey definition
+     * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
+     */
+    case 'check': {
+      return { condition: definition.match(/[^(]+(?=\))/)[0] }
+    }
+
     default:
       return {}
   }
 }
 
-exports.constraintDefinitions = R.map(({ name, definition, type }) => {
+exports.extensionDefinitions = R.map(({ name, definition, type }) => {
   switch (type) {
     case 'p':
       type = 'primaryKey'
@@ -233,38 +268,27 @@ exports.constraintDefinitions = R.map(({ name, definition, type }) => {
     case 'u':
       type = 'unique'
       break
+    case 'c':
+      type = 'check'
+      break
     default:
       break
   }
-  return { name, type, ...constraintDefinitionOptions(type, definition) }
+  return { name, type, ...extensionDefinitionOptions(type, definition) }
 })
 
 exports.indexDefinitions = R.map(({ name, definition }) => ({
   name,
   type: 'index',
-  ...constraintDefinitionOptions('index', definition),
+  ...extensionDefinitionOptions('index', definition),
 }))
 
-const _getConstraintsFromColumns = (
+const _getExtensionsFromColumns = (
   R.reduce((acc, column) => (
     R.pipe(
-      R.pick(COLUMNS.CONSTRAINTS),
+      R.pick(COLUMNS.EXTENSIONS),
       R.toPairs,
-      R.map(([ type, value ]) => {
-        if ([ 'unique', 'primaryKey', 'index' ].includes(type)) {
-          return value === true ? ({ type, columns: [ column.name ] }) : null
-        } else if (type === 'references') {
-          const DEFAULTS = CONSTRAINTS.FOREIGN_KEY_DEFAULTS
-          return utils.notEmpty(value) ? ({
-            type: 'foreignKey',
-            columns: [ column.name ],
-            references: { table: value.table, columns: value.columns.slice(0, 1) },
-            match: column.match || DEFAULTS.match,
-            onUpdate: column.onUpdate || DEFAULTS.onUpdate,
-            onDelete: column.onDelete || DEFAULTS.onDelete,
-          }) : null
-        }
-      }),
+      R.map(([ type, value ]) => value === true ? ({ type, columns: [ column.name ] }) : null),
       R.filter(Boolean),
       R.concat(acc),
     )(column)
@@ -296,4 +320,25 @@ exports.quoteLiteral = (value) => {
   }
 
   return quoted
+}
+
+exports.separateSchema = (name) => {
+  const chunks = name.split('.')
+  return [
+    chunks[1] ? chunks[0] : 'public',
+    chunks[1] || chunks[0],
+  ]
+}
+
+exports.dbSequence = (response) => {
+  if (response) {
+    const {
+      start_value: start,
+      minimum_value: min,
+      maximum_value: max,
+      cycle_option: cycle,
+      increment,
+    } = response
+    return { start, min, max, increment, cycle: cycle === 'YES' }
+  }
 }

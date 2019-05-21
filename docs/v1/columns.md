@@ -1,6 +1,6 @@
 # columns
 
-### name
+## name
 
 * Type: `String`
 * Default: `null`
@@ -8,7 +8,7 @@
 
 Column name
 
-### type
+## type
 
 * Type: `String`
 * Default: `null`
@@ -16,15 +16,15 @@ Column name
  
 Type name (with alias support)
 
-### default
+## default
 
-* Type: [Value](column-value.md)
+* Type: [Value](#column-value-definitions)
 * Default: `null`
 * Required: `false`
  
 Default value
 
-### nullable
+## nullable
 
 * Type: `Boolean`
 * Default: `true`
@@ -32,7 +32,7 @@ Default value
 
 In the case of `nullable === false`, it will set the constraint `NOT NULL`
 
-### force
+## force
 
 * Type: `Boolean`
 * Default: `false`
@@ -40,7 +40,7 @@ In the case of `nullable === false`, it will set the constraint `NOT NULL`
  
 Deleting column values in case of impossible conversion of values to a new type
 
-### primaryKey
+## primaryKey
 
 * Type: `Boolean`
 * Default: `false`
@@ -48,7 +48,7 @@ Deleting column values in case of impossible conversion of values to a new type
  
 Define a `PRIMARY KEY` constraint for a column
 
-### unique
+## unique
 
 * Type: `Boolean`
 * Default: `false`
@@ -56,7 +56,7 @@ Define a `PRIMARY KEY` constraint for a column
  
 Define a `UNIQUE` constraint for a column
 
-### formerNames
+## formerNames
 
 * Type: `Array<String>`
 * Default: `null`
@@ -64,10 +64,14 @@ Define a `UNIQUE` constraint for a column
  
 Array of previous column names that is used to rename
 
-### autoIncrement
+## autoIncrement
 
-* Type: `Boolean` | [sequence object](sequence.md)
+* Type: `Boolean` | [autoIncrement object](auto-increment.md)
 * Default: `false`
 * Required: `false`
  
 Creates a sequence and writes the increment function in the `default` field of the current column
+
+## [foreignKey properties](foreign-key.md) {docsify-ignore}
+
+Parameter list for `type === 'foreignKey'`

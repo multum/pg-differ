@@ -6,14 +6,17 @@
  */
 
 const R = require('ramda')
-const parser = require('./parser')
+const parser = require('../parser')
 const Sql = require('../sql')
+const queries = require('../queries/sequence')
+const validate = require('../validate')
+
 const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
 
 /**
  * @typedef {object} Sequence
- * @property {function} getChanges
- * @property {function} getSqlIncrement
+ * @property {function} _getSqlChanges
+ * @property {function} _getSqlIncrement
  */
 
 /**
@@ -23,25 +26,21 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
  */
 module.exports = function (options) {
   let {
-    schema,
     properties,
     client,
   } = options
 
-  properties = { ...DEFAULTS, ...properties }
-  const _sequenceName = properties.name
+  properties = validate.sequence({ ...DEFAULTS, ...properties })
+
+  const [ schema, name ] = parser.separateSchema(properties.name)
 
   const _fetchStructure = () => (
     client.query(
-      'select' +
-      ' start_value, minimum_value, maximum_value, increment, cycle_option' +
-      ' from information_schema.sequences' +
-      ` where sequence_schema = '${schema}'` +
-      ` and sequence_name = '${_sequenceName}'`,
+      queries.getSequence(schema, name),
     ).then(R.path([ 'rows', 0 ])).then(parser.dbSequence)
   )
 
-  const _getSql = ({ action, ...rest }) => {
+  const _buildSql = ({ action, ...rest }) => {
     const chunks = []
     Object.entries(rest).forEach(([ key, value ]) => {
       switch (key) {
@@ -66,7 +65,7 @@ module.exports = function (options) {
     })
 
     if (chunks.length) {
-      const sql = [ `${action} sequence ${schema}.${_sequenceName}`, ...chunks ].join(' ') + ';'
+      const sql = [ `${action} sequence ${schema}.${name}`, ...chunks ].join(' ') + ';'
       return new Sql(Sql.create(`${action} sequence`, sql))
     }
 
@@ -84,15 +83,17 @@ module.exports = function (options) {
     }, {})
   )
 
-  const getChanges = async () => {
+  const _getSqlChanges = async () => {
     const dbStructure = await _fetchStructure()
     const options = dbStructure
       ? { action: 'alter', ..._getDifference(properties, dbStructure) }
       : { action: 'create', ...properties }
-    return _getSql(options)
+    return _buildSql(options)
   }
 
-  const getSqlIncrement = () => `nextval('${schema}.${_sequenceName}'::regclass)`
+  const _getProperties = () => ({ ...properties })
 
-  return Object.freeze({ getChanges, getSqlIncrement })
+  const _getSqlIncrement = () => `nextval('${schema}.${name}'::regclass)`
+
+  return Object.freeze({ _getSqlChanges, _getSqlIncrement, _getProperties })
 }

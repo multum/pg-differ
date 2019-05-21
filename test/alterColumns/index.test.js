@@ -1,32 +1,30 @@
 const Differ = require('../..')
-const dbConfig = require('../pg.config')
+const connectionConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
   it('alter columns', async function () {
-    this.timeout(20000)
-
     const differ = new Differ({
-      dbConfig,
-      logging: logging && console.info,
+      connectionConfig,
+      logging: logging,
     })
 
-    differ.define({
-      table: 'users',
-      indexes: [
-        { type: 'index', columns: [ 'age' ] },
-      ],
+    differ.define('table', {
+      name: 'users',
+      indexes: [ { columns: [ 'age' ] } ],
       columns: [
-        { name: 'id', type: 'smallint', primaryKey: true },
+        { name: 'id', type: 'smallint' },
         { name: 'age', type: 'varchar(255)', collate: null },
         { name: 'busy', type: 'varchar(255)', 'default': '1' },
       ],
     })
     await differ.sync()
 
-    differ.define({
-      table: 'users',
-      forceIndexes: [ 'index' ],
+    differ.define('table', {
+      name: 'users',
+      cleanable: {
+        indexes: true
+      },
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },

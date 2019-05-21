@@ -8,10 +8,7 @@
     "prefer-const": ["error", {"destructuring": "all"}],
     "lines-between-class-members": ["error", "always"],
     "no-console": ["error", { "allow": ["warn", "error", "info"] }],
-    "array-bracket-spacing": ["error", "always", {
-      "objectsInArrays": false,
-      "arraysInArrays": false
-    }],
+    "array-bracket-spacing": ["error", "always"],
     "object-curly-spacing": ["error", "always", {
       "arraysInObjects": true,
       "objectsInObjects": true

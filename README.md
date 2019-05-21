@@ -13,9 +13,11 @@
 
 You can find the documentation [on the website](https://av-dev.github.io/postgres-differ/#/)
 
+> If you are using an older version, you can go to the [documentation for v1](https://av-dev.github.io/postgres-differ/v1/#/)
+
 ## Features
 
-  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/model-schema)
+  - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/entities)
   - Creating tables
   - Adding/changing columns
   - Constraint and index support
@@ -28,7 +30,8 @@ You can find the documentation [on the website](https://av-dev.github.io/postgre
   - [x] Force sync tables(drop and create) *v0.1.8*
   - [x] Support rename column(formerNames prop) *v1.0.0*
   - [x] Support seeds *v1.0.0*
-  - [ ] Sequence support as a separate entity *v2.0.0*
+  - [x] Support `check` constraint *v2.0.0*
+  - [x] Sequence support as a separate entity *v2.0.0*
 
 ## Contributing
 

@@ -15,7 +15,7 @@ const chalk = require('chalk')
  * @param callback {function}
  */
 module.exports = function ({ prefix, callback }) {
-  const getTitle = (string) => `----- ${prefix}: ${string} -----`
+  const getTitle = (string) => `${prefix} :: ${string}`
 
   const log = R.curry((type, title, message) => {
     if (callback) {

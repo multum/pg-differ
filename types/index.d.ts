@@ -15,21 +15,11 @@ interface SQL {
 }
 
 interface DifferOptions {
-    dbConfig: object,
+    connectionConfig: object,
     schemaFolder?: string,
-    seedFolder?: string,
     logging?: boolean | Function,
     force?: boolean,
     placeholders?: { [key: string]: string; },
-}
-
-interface ModelOptions {
-    table: string,
-    columns: Array<ColumnOptions>,
-    force?: boolean,
-    indexes?: Array<IndexOptions>,
-    seeds?: Array<Object>,
-    forceIndexes?: Array<IndexType>,
 }
 
 interface ReferenceOptions {
@@ -39,18 +29,27 @@ interface ReferenceOptions {
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
-declare type IndexType = 'primaryKey' | 'index' | 'foreignKey' | 'unique'
+declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE'
+
+declare type CleanExtensionOptions = {
+    primaryKey: boolean,
+    index: boolean,
+    foreignKey: boolean,
+    unique: boolean,
+    check: boolean
+}
 
 declare type ColumnValueType = string | number | Array<any> | Object
 
 interface ForeignKeyOptions {
-    match?: string,
+    columns: Array<string>
+    match?: MatchType,
     onDelete?: ActionType,
     onUpdate?: ActionType,
     references?: ReferenceOptions
 }
 
-interface ColumnOptions extends ForeignKeyOptions {
+interface ColumnOptions {
     name: string,
     type: string,
     nullable?: boolean,
@@ -62,8 +61,7 @@ interface ColumnOptions extends ForeignKeyOptions {
     formerNames?: Array<string>,
 }
 
-interface IndexOptions extends ForeignKeyOptions {
-    type: IndexType,
+interface IndexOptions {
     columns: Array<string>,
 }
 
@@ -76,6 +74,28 @@ interface SequenceOptions {
     cycle?: boolean,
 }
 
+interface CheckOptions {
+    condition: string
+}
+
+interface TableOptions {
+    name: string,
+    columns: Array<ColumnOptions>,
+    cleanable?: CleanExtensionOptions,
+    primaryKeys?: Array<IndexOptions>,
+    unique?: Array<IndexOptions>,
+    indexes?: Array<IndexOptions>,
+    foreignKeys?: Array<ForeignKeyOptions>,
+    checks?: Array<CheckOptions>,
+    force?: boolean,
+    seeds?: Array<Object>,
+}
+
+interface Schema {
+    type: string,
+    properties: TableOptions | SequenceOptions
+}
+
 interface Model {
     // public methods
     addSeeds(seeds: Array<Object>): null
@@ -83,19 +103,28 @@ interface Model {
     // private methods
     _getSqlCreateOrAlterTable(): Promise<SQL>
 
-    _getSqlConstraintChanges(): Promise<SQL>
-
-    _getSchema(): Object
+    _getSqlExtensionChanges(): Promise<SQL>
 
     _getSqlInsertSeeds(): SQL
+
+    _getProperties(): Object
 }
+
+interface Sequence {
+    // private methods
+    _getSqlChanges(): Promise<SQL>
+
+    _getSqlIncrement(): string
+
+    _getProperties(): Object
+}
+
+declare type EntityType = 'table' | 'sequence'
 
 declare class Differ {
     constructor(options: DifferOptions);
 
-    getModel(name: string): Model | undefined
-
-    define(schema: ModelOptions): Model
+    define(entityType: Schema | EntityType, properties?: Schema): Model | Sequence
 
     sync(): Promise<null>
 }
