@@ -59,7 +59,7 @@ module.exports = function (options) {
   const _table = _schema.name
   const [ _schemaName, _tableName ] = parser.separateSchema(_table)
 
-  const _cleanableExtensions = _schema.cleanableExtensions
+  const _cleanable = _schema.cleanable
   const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
 
@@ -151,7 +151,7 @@ module.exports = function (options) {
         sqlCreateOrAlterTable = _createTable({ force: false })
       }
     }
-    if (_cleanableExtensions.check || utils.notEmpty(schema.checks)) {
+    if (_cleanable.check || utils.notEmpty(schema.checks)) {
       const [
         dropQueries = [],
         addQueries = [],
@@ -195,7 +195,7 @@ module.exports = function (options) {
     R.values,
     R.unnest,
     R.filter(({ type, name }) => (
-      _cleanableExtensions[type] && !excludeNames.includes(name)
+      _cleanable[type] && !excludeNames.includes(name)
     )),
     R.map(_dropExtension),
   )(extensions)
@@ -231,10 +231,10 @@ module.exports = function (options) {
       const createQueries = _createTable({ table: tempTableName, temp: true, force: false })
       await client.query(createQueries.join())
 
-      const sql = rows.reduce((acc, row, i) => (
+      const sql = rows.reduce((acc, { condition }, i) => (
         acc.add(_addExtension(
           tempTableName,
-          { type: 'check', name: getConstraintName(i), definition: row },
+          { type: 'check', name: getConstraintName(i), condition },
         ))
       ), new Sql())
 
@@ -242,11 +242,10 @@ module.exports = function (options) {
 
       const { check: dbChecks } = await _fetchConstraints(tempTableName)
 
-      result = rows.map((query, i) => (
-        dbChecks
-          .find(({ name }) => name === getConstraintName(i))
-          .definition
-      ))
+      result = rows.map((_, i) => ({
+        type: 'check',
+        condition: dbChecks.find(({ name }) => name === getConstraintName(i)).condition,
+      }))
       await client.query(`drop table ${tempTableName};`)
     } catch (error) {
       await client.query(`rollback`)
@@ -256,11 +255,12 @@ module.exports = function (options) {
     return result
   }
 
-  const _getCheckChanges = async (rows) => {
-    rows = await _normalizeCheckRows(rows)
-    const extensions = rows.map((query) => ({ type: 'check', definition: query }))
-    return _getExtensionChangesOf({ check: _dbExtensions.check }, extensions)
-  }
+  const _getCheckChanges = async (rows) => (
+    _getExtensionChangesOf(
+      { check: _dbExtensions.check },
+      await _normalizeCheckRows(rows),
+    )
+  )
 
   const _getExtensionChangesOf = (dbExtensions, extensions) => {
     const adding = []
@@ -300,7 +300,7 @@ module.exports = function (options) {
   )
 
   const _addExtension = (table, extension) => {
-    let { type, columns = [], references, onDelete, onUpdate, match, definition, name } = extension
+    let { type, columns = [], references, onDelete, onUpdate, match, condition, name } = extension
     const alterTable = `alter table ${table}`
     const extensionType = parser.encodeExtensionType(type)
 
@@ -320,12 +320,13 @@ module.exports = function (options) {
         match = match ? ` match ${match}` : null
         references = `references ${references.table} (${references.columns.join(',')})`
         const events = `on update ${onUpdate} on delete ${onDelete}`
+        console.log(match)
         return addExtension(`${alterTable} add ${extensionType} (${columns}) ${references}${match} ${events};`)
       }
 
       case 'check': {
         const constraintName = name ? ` constraint ${name}` : ''
-        return addExtension(`${alterTable} add${constraintName} ${extensionType} (${definition});`)
+        return addExtension(`${alterTable} add${constraintName} ${extensionType} (${condition});`)
       }
 
       default:
@@ -359,12 +360,12 @@ module.exports = function (options) {
           let dropPrimaryKey = null
           const primaryKey = _dbExtensions.primaryKey[0]
           if (primaryKey && R.includes(column.name, primaryKey.columns)) {
-            if (_cleanableExtensions.primaryKey) {
+            if (_cleanable.primaryKey) {
               dropPrimaryKey = _dropExtension(primaryKey)
             } else {
               logger.error(
                 `Error setting '${column.name}.nullable = true'. ` +
-                `You need to add 'primaryKey: true' to 'extensions.cleanable'`,
+                `You need to add 'cleanable.primaryKeys: true'`,
               )
               return null
             }

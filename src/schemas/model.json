@@ -4,6 +4,14 @@
     "columns"
   ],
   "definitions": {
+    "check": {
+      "type": "object",
+      "properties": {
+        "condition": {
+          "type": "string"
+        }
+      }
+    },
     "extension": {
       "type": "object",
       "required": [
@@ -125,59 +133,54 @@
         "type": "object"
       }
     },
-    "extensions": {
+    "cleanable": {
       "type": "object",
       "properties": {
-        "cleanable": {
-          "type": "object",
-          "properties": {
-            "foreignKey": {
-              "type": "boolean"
-            },
-            "primaryKey": {
-              "type": "boolean"
-            },
-            "unique": {
-              "type": "boolean"
-            },
-            "index": {
-              "type": "boolean"
-            },
-            "check": {
-              "type": "boolean"
-            }
-          }
-        },
-        "indexes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/extension"
-          }
-        },
-        "unique": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/extension"
-          }
+        "foreignKeys": {
+          "type": "boolean"
         },
         "primaryKeys": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/extension"
-          }
+          "type": "boolean"
         },
-        "foreignKeys": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/foreignKey"
-          }
+        "unique": {
+          "type": "boolean"
+        },
+        "indexes": {
+          "type": "boolean"
         },
         "checks": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "type": "boolean"
         }
+      }
+    },
+    "indexes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/extension"
+      }
+    },
+    "unique": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/extension"
+      }
+    },
+    "primaryKeys": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/extension"
+      }
+    },
+    "foreignKeys": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/foreignKey"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/check"
       }
     },
     "columns": {

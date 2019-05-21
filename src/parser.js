@@ -99,20 +99,33 @@ const _cleanableDefaults = {
   check: false,
 }
 
-const _getExtensionDefaults = (type) => {
+const _encryptedNamesListExtensions = {
+  primaryKeys: 'primaryKey',
+  indexes: 'index',
+  foreignKeys: 'foreignKey',
+  checks: 'check',
+}
+
+const _getExtensionDefaults = (listName) => {
+  const type = _encryptedNamesListExtensions[listName]
   switch (type) {
-    case 'primaryKeys':
-      return { type: 'primaryKey' }
-    case 'indexes':
-      return { type: 'index' }
-    case 'foreignKeys':
-      return {
-        type: 'foreignKey',
-        ...EXTENSIONS.FOREIGN_KEY_DEFAULTS,
-      }
+    case 'foreignKey':
+      return { type, ...EXTENSIONS.FOREIGN_KEY_DEFAULTS }
     default:
       return { type }
   }
+}
+
+const _normalizeCleanableObject = (object) => {
+  if (object) {
+    const encrypted = Object.entries(object)
+      .reduce((acc, [ listName, value ]) => {
+        acc[_encryptedNamesListExtensions[listName]] = value
+        return acc
+      }, {})
+    return { ..._cleanableDefaults, ...encrypted }
+  }
+  return _cleanableDefaults
 }
 
 exports.schema = (schema) => {
@@ -140,36 +153,25 @@ exports.schema = (schema) => {
     })
 
   const extensions = R.pipe(
-    R.ifElse(
-      R.not,
-      R.always([]),
-      R.pipe(
-        R.pick([ 'indexes', 'unique', 'foreignKeys', 'primaryKeys' ]), // without 'checks'
-        R.filter(Boolean),
-        R.toPairs,
-        R.reduce((acc, [ type, elements ]) => (
-          R.concat(acc, elements.map((props) => ({ ..._getExtensionDefaults(type), ...props })))
-        ), []),
-      ),
-    ),
+    R.pick([ 'indexes', 'unique', 'foreignKeys', 'primaryKeys' ]), // without 'checks'
+    R.filter(Boolean),
+    R.toPairs,
+    R.reduce((acc, [ listName, elements ]) => (
+      R.concat(acc, elements.map((props) => ({ ..._getExtensionDefaults(listName), ...props })))
+    ), []),
     R.concat(_getExtensionsFromColumns(columns)),
-  )(schema.extensions)
+  )(schema)
 
-  const cleanableExtensions = {
-    ..._cleanableDefaults,
-    ...R.pathOr({}, [ 'extensions', 'cleanable' ], schema),
-  }
-
-  const checks = R.path([ 'extensions', 'checks' ], schema)
+  const cleanable = _normalizeCleanableObject(schema.cleanable)
 
   return {
     name: schema.name,
     force: schema.force,
     seeds: schema.seeds,
-    checks,
+    checks: schema.checks,
     columns,
     extensions,
-    cleanableExtensions,
+    cleanable,
   }
 }
 
@@ -247,7 +249,7 @@ const extensionDefinitionOptions = (type, definition) => {
      * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
      */
     case 'check': {
-      return { definition: definition.match(/[^(]+(?=\))/)[0] }
+      return { condition: definition.match(/[^(]+(?=\))/)[0] }
     }
 
     default:

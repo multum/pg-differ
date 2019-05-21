@@ -36,13 +36,53 @@ Array of [objects with table column parameters](columns.md)
 
 Array of objects. Key - column name, value - column value
 
-### extensions
+### cleanable
 
-* Type: [extensions object](model-extensions.md)
-* Default: `{ cleanable: { primaryKey: true } }`
+* Type: `Object`
+* Default: `null`
 * Required: `false`
 
-Object with definitions of `constraints` and `indexes`
+Object with types `[ indexes | foreignKeys | unique | primaryKeys, checks ]: Boolean`, which are deleted from the database if they are not defined in the model schema
+
+### indexes
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of objects with parameters of table indexes
+
+### foreignKeys
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](foreign-key.md) of table foreign keys
+
+### unique
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](unique.md) of table unique
+
+### primaryKeys
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](primaryKey.md) of table primary keys
+
+### checks
+
+* Type: `Array<Object>`
+* Default: `null`
+* Required: `false`
+
+Array of [objects with parameters](check.md) of table checks
 
 ## Methods
 

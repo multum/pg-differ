@@ -11,9 +11,7 @@ describe('alter columns', () => {
 
     differ.define('table', {
       name: 'users',
-      extensions: {
-        indexes: [ { columns: [ 'age' ] } ],
-      },
+      indexes: [ { columns: [ 'age' ] } ],
       columns: [
         { name: 'id', type: 'smallint' },
         { name: 'age', type: 'varchar(255)', collate: null },
@@ -24,8 +22,8 @@ describe('alter columns', () => {
 
     differ.define('table', {
       name: 'users',
-      extensions: {
-        cleanable: { index: true },
+      cleanable: {
+        indexes: true
       },
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },

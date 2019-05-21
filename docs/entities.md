@@ -20,18 +20,16 @@ const differ = new Differ({
  
 const model = differ.define('table', {
   name: 'schema_name.table_name',
-  extensions: {
-    cleanable: { foreignKey: true },
-    foreignKeys: [
-      {
-        columns: ['id'],
-        references: {
-          table: 'reference_table_name',
-          columns: ['id']
-        }
+  cleanable: { foreignKeys: true },
+  foreignKeys: [
+    {
+      columns: ['id'],
+      references: {
+        table: 'reference_table_name',
+        columns: ['id']
       }
-    ],
-  },
+    }
+  ],
   columns: [
     {
       name: 'id',

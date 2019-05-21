@@ -39,15 +39,6 @@ declare type CleanExtensionOptions = {
     check: boolean
 }
 
-declare type Extensions = {
-    primaryKeys?: Array<IndexOptions>,
-    unique?: Array<IndexOptions>,
-    indexes?: Array<IndexOptions>,
-    foreignKeys?: Array<ForeignKeyOptions>,
-    checks?: Array<string>,
-    cleanable?: CleanExtensionOptions,
-}
-
 declare type ColumnValueType = string | number | Array<any> | Object
 
 interface ForeignKeyOptions {
@@ -83,10 +74,19 @@ interface SequenceOptions {
     cycle?: boolean,
 }
 
+interface CheckOptions {
+    condition: string
+}
+
 interface TableOptions {
     name: string,
     columns: Array<ColumnOptions>,
-    extensions: Extensions,
+    cleanable?: CleanExtensionOptions,
+    primaryKeys?: Array<IndexOptions>,
+    unique?: Array<IndexOptions>,
+    indexes?: Array<IndexOptions>,
+    foreignKeys?: Array<ForeignKeyOptions>,
+    checks?: Array<CheckOptions>,
     force?: boolean,
     seeds?: Array<Object>,
 }

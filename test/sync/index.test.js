@@ -20,13 +20,11 @@ describe('sync', () => {
       type: 'table',
       properties: {
         name: 'public.blogs',
-        extensions: {
-          cleanable: {
-            'unique': true,
-            'foreignKey': true,
-            'index': true,
-            'primaryKey': true,
-          },
+        cleanable: {
+          'unique': true,
+          'foreignKeys': true,
+          'indexes': true,
+          'primaryKeys': true,
         },
         columns: [
           {
@@ -54,17 +52,15 @@ describe('sync', () => {
       properties: {
         name: 'children',
         force: true,
-        extensions: {
-          foreignKeys: [
-            {
-              'columns': [ 'parent' ],
-              'references': {
-                'table': 'users',
-                'columns': [ 'description' ],
-              },
+        foreignKeys: [
+          {
+            'columns': [ 'parent' ],
+            'references': {
+              'table': 'users',
+              'columns': [ 'description' ],
             },
-          ],
-        },
+          },
+        ],
         columns: [
           {
             'name': 'id',
