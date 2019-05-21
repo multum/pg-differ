@@ -1,9 +1,14 @@
+## 1.3.3
+
+#### Bug Fix
+
+* Added escaping for Object or Array in `column.default` key (or in the value of the column  in `seeds`)
+
 ## 1.3.2
 
 #### Bug Fix
 
 * A single quote in the string for the `column.default` key (or the column value in `seeds`) caused an error. Added escaping for strings
-
 
 ## 1.3.1
 
