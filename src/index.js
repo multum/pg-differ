@@ -219,16 +219,10 @@ module.exports = function Differ (options) {
     return _client.end()
   }
 
-  const getModel = (name) => _models.get(name)
-
-  const getSequence = (name) => _sequences.get(name)
-
   _setup()
 
   return Object.freeze({
     sync,
     define,
-    getModel,
-    getSequence,
   })
 }

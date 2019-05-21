@@ -7,6 +7,5 @@
 * [Entities](entities.md)
     * [Model](model.md)
     * [Sequence](sequence.md)
-
 * [CLI](cli.md)
 
