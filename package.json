@@ -14,7 +14,7 @@
   "scripts": {
     "test": "mocha test/**/*.test.js --no-timeout",
     "test::log": "cross-env TEST_LOGGING=true npm test",
-    "eslint": "eslint --max-warnings=0 '**/*.js'",
+    "eslint": "eslint --max-warnings=0 **/*.js",
     "docs::start": "docsify serve docs"
   },
   "repository": {
@@ -30,7 +30,7 @@
     "ajv": "^6.10.0",
     "chalk": "^2.4.2",
     "minimist": "^1.2.0",
-    "pg": "^7.10.0",
+    "pg": "^7.11.0",
     "ramda": "^0.26.1"
   },
   "devDependencies": {
@@ -44,5 +44,10 @@
     "eslint-plugin-standard": "^4.0.0",
     "husky": "^1.3.1",
     "mocha": "^5.2.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "concurrently \"npm run test\" \"npm run eslint\""
+    }
   }
 }

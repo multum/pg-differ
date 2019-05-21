@@ -320,7 +320,6 @@ module.exports = function (options) {
         match = match ? ` match ${match}` : null
         references = `references ${references.table} (${references.columns.join(',')})`
         const events = `on update ${onUpdate} on delete ${onDelete}`
-        console.log(match)
         return addExtension(`${alterTable} add ${extensionType} (${columns}) ${references}${match} ${events};`)
       }
 
