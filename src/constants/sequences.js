@@ -11,6 +11,7 @@ const DEFAULTS = {
   cycle: false,
   max: '9223372036854775807',
   min: 1,
+  force: false,
 }
 
 const ATTRIBUTES = [ 'start', 'increment', 'min', 'max', 'cycle' ]

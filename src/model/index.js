@@ -24,7 +24,7 @@ const _parseSchema = R.pipe(
   parser.schema,
 )
 
-const _setupSequences = ({ columns, tableName, schemaName, client }) => {
+const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }) => {
   const sequenceColumns = columns.filter(R.prop('autoIncrement'))
   if (sequenceColumns.length) {
     return sequenceColumns.map((column) => {
@@ -34,6 +34,7 @@ const _setupSequences = ({ columns, tableName, schemaName, client }) => {
         properties: {
           name: `${schemaName}.${tableName}_${column.name}_seq`,
           ...properties,
+          force: forceCreate,
         },
       })
       column.default = sequence._getSqlIncrement()
@@ -78,6 +79,7 @@ module.exports = function (options) {
     tableName: _tableName,
     schemaName: _schemaName,
     columns: _schema.columns,
+    forceCreate: _forceCreate,
   })
 
   const _getProperties = () => ({ ..._schema })

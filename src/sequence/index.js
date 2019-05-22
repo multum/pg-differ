@@ -84,11 +84,18 @@ module.exports = function (options) {
   )
 
   const _getSqlChanges = async () => {
-    const dbStructure = await _fetchStructure()
-    const options = dbStructure
-      ? { action: 'alter', ..._getDifference(properties, dbStructure) }
-      : { action: 'create', ...properties }
-    return _buildSql(options)
+    if (properties.force) {
+      return new Sql([
+        Sql.create('drop sequence', `drop sequence if exists ${schema}.${name} cascade;`),
+        ..._buildSql({ action: 'create', ...properties }).getStore(),
+      ])
+    } else {
+      const dbStructure = await _fetchStructure()
+      const options = dbStructure
+        ? { action: 'alter', ..._getDifference(properties, dbStructure) }
+        : { action: 'create', ...properties }
+      return _buildSql(options)
+    }
   }
 
   const _getProperties = () => ({ ...properties })
