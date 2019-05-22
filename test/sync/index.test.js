@@ -21,20 +21,24 @@ describe('sync', () => {
       properties: {
         name: 'public.blogs',
         cleanable: {
-          'unique': true,
-          'foreignKeys': true,
-          'indexes': true,
-          'primaryKeys': true,
+          unique: true,
+          foreignKeys: true,
+          indexes: true,
+          primaryKeys: true,
         },
         columns: [
           {
-            'name': 'id',
-            'type': 'bigint',
-            'nullable': true,
-            'autoIncrement': { 'start': 1 },
+            name: 'id',
+            type: 'bigint',
+            autoIncrement: { 'start': 1, 'name': 'blog_id_seq' },
           },
-          { name: 'large_id', type: 'bigint', primaryKey: true },
-          { 'name': 'deleted', 'type': 'bool' },
+          {
+            name: 'large_id',
+            type: 'bigint',
+            nullable: true, // will be a warning
+            primaryKey: true,
+          },
+          { name: 'deleted', type: 'bool' },
         ],
       },
     })
