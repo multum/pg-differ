@@ -52,11 +52,12 @@
 }
 ```
 * added support `CHECK` constraint
-* **drop and create sequences** by synchronizing the table **with force mode**
+* drop and create **sequences** by synchronizing the table **with force mode**
 * removed unnecessary methods and options
   - `differ.getModel(name: String)`
   - `options.seedFolder`
 * refactored the property `schema.forceIndexes` and renamed it to `schema.cleanable`
+* renamed the `options.dbConfig` option to `options.connectionConfig`
 ```javascript
 // v1.x
 forceIndexes: [ 'foreignKey', 'primaryKey' ]
