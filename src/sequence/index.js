@@ -32,7 +32,7 @@ module.exports = function (options) {
 
   properties = validate.sequence({ ...DEFAULTS, ...properties })
 
-  const [ schema, name ] = parser.separateSchema(properties.name)
+  const [ schema = 'public', name ] = parser.separateSchema(properties.name)
 
   const _fetchStructure = () => (
     client.query(

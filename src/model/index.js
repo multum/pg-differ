@@ -28,12 +28,19 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
   const sequenceColumns = columns.filter(R.prop('autoIncrement'))
   if (sequenceColumns.length) {
     return sequenceColumns.map((column) => {
-      const properties = column.autoIncrement
+      const { autoIncrement: properties } = column
+      let sequenceName
+      if (properties.name) {
+        const [ schema ] = parser.separateSchema(properties.name)
+        sequenceName = `${schema || schemaName}.${properties.name}`
+      } else {
+        sequenceName = `${schemaName}.${tableName}_${column.name}_seq`
+      }
       const sequence = new Sequence({
         client,
         properties: {
-          name: `${schemaName}.${tableName}_${column.name}_seq`,
           ...properties,
+          name: sequenceName,
           force: forceCreate,
         },
       })
@@ -58,7 +65,7 @@ module.exports = function (options) {
 
   const _schema = _parseSchema(schema)
   const _table = _schema.name
-  const [ _schemaName, _tableName ] = parser.separateSchema(_table)
+  const [ _schemaName = 'public', _tableName ] = parser.separateSchema(_table)
 
   const _cleanable = _schema.cleanable
   const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
