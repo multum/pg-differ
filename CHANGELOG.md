@@ -5,6 +5,26 @@
 * optimized schema structure
   - added support for **multiple Postges objects**(table, sequence and more)
   - **indexes and constraints** in the scheme are **separated**
+
+* added support `CHECK` constraint
+* drop and create **sequences** by synchronizing the table **with force mode**
+* removed unnecessary methods and options
+  - `differ.getModel(name: String)`
+  - `options.seedFolder`
+* refactored the property `schema.forceIndexes` and renamed it to `schema.cleanable`
+* renamed the `options.dbConfig` option to `options.connectionConfig`
+
+#### Bug Fix
+
+* fixed postgres-client reconnection error after connection error
+
+#### Internal
+
+* code optimized
+* dependencies updated
+* update and optimized docs
+
+#### Migrating from 1.3.4 to 2.0.0
 ```javascript
 // v1.x
 {
@@ -51,36 +71,18 @@
   },
 }
 ```
-* added support `CHECK` constraint
-* drop and create **sequences** by synchronizing the table **with force mode**
-* removed unnecessary methods and options
-  - `differ.getModel(name: String)`
-  - `options.seedFolder`
-* refactored the property `schema.forceIndexes` and renamed it to `schema.cleanable`
-* renamed the `options.dbConfig` option to `options.connectionConfig`
-```javascript
-// v1.x
-forceIndexes: [ 'foreignKey', 'primaryKey' ]
 
-// v2.0
-cleanable: { foreignKeys: true, primaryKeys: true }
-```
-
-#### Bug Fix
-
-* fixed postgres-client reconnection error after connection error
-
-#### Internal
-
-* code optimized
-* dependencies updated
-* update and optimized docs
-
-## 1.3.3
+## 1.3.4
 
 #### Bug Fix
 
 * added escaping for Object or Array in `column.default` key (or in the value of the column  in `seeds`)
+
+## 1.3.3
+
+#### Internal
+
+* small code refactoring
 
 ## 1.3.2
 
