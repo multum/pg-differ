@@ -325,7 +325,7 @@ exports.quoteLiteral = (value) => {
 exports.separateSchema = (name) => {
   const chunks = name.split('.')
   return [
-    chunks[1] ? chunks[0] : 'public',
+    chunks[1] ? chunks[0] : undefined,
     chunks[1] || chunks[0],
   ]
 }

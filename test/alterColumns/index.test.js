@@ -15,7 +15,7 @@ describe('alter columns', () => {
       columns: [
         { name: 'id', type: 'smallint' },
         { name: 'age', type: 'varchar(255)', collate: null },
-        { name: 'busy', type: 'varchar(255)', 'default': '1' },
+        { name: 'busy', type: 'varchar(255)', default: '1' },
       ],
     })
     await differ.sync()
@@ -23,7 +23,7 @@ describe('alter columns', () => {
     differ.define('table', {
       name: 'users',
       cleanable: {
-        indexes: true
+        indexes: true,
       },
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
@@ -32,5 +32,12 @@ describe('alter columns', () => {
       ],
     })
     await differ.sync()
+
+    differ.define('table', {
+      name: 'users',
+      columns: [
+        { name: 'busy', type: 'smallint' },
+      ],
+    })
   })
 })
