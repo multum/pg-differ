@@ -67,6 +67,7 @@ describe('sync', () => {
             'type': 'bigint',
             'unique': true,
             'primaryKey': true,
+            'autoIncrement': true,
           },
           {
             'name': 'age',
