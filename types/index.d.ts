@@ -124,10 +124,6 @@ declare type EntityType = 'table' | 'sequence'
 declare class Differ {
     constructor(options: DifferOptions);
 
-    getModel(name: string): Model | undefined
-
-    getSequence(name: string): Sequence | undefined
-
     define(entityType: Schema | EntityType, properties?: Schema): Model | Sequence
 
     sync(): Promise<null>

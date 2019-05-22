@@ -13,6 +13,8 @@
 
 You can find the documentation [on the website](https://av-dev.github.io/postgres-differ/#/)
 
+> If you are using an older version, you can go to the [documentation for v1](https://av-dev.github.io/postgres-differ/v1/#/)
+
 ## Features
 
   - Easy to use [schema structure](https://av-dev.github.io/postgres-differ/#/entities)

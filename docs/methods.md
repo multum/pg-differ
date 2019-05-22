@@ -13,18 +13,3 @@ Model definition
 * Returns: `Promise<null>`
 
 Synchronization of previously defined models and their seeds
-
-### getModel
-
-* Arguments: `name: String`
-* Returns: [Model](model.md) | `undefined`
-
-Getting a defined model by table name
-
-
-### getSequence
-
-* Arguments: `name: String`
-* Returns: [Sequence](sequence.md) | `undefined`
-
-Getting a defined sequence by name
