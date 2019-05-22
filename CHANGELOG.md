@@ -1,14 +1,91 @@
+## 2.0.0
+
+#### Enhancement
+
+* optimized schema structure
+  - added support for **multiple Postges objects**(table, sequence and more)
+  - **indexes and constraints** in the scheme are **separated**
+```javascript
+// v1.x
+{
+  table: 'table_name',
+  indexes: [],
+  forceIndexes: [ 'foreignKey', 'primaryKey' ],
+  columns: [
+    {
+      name: 'column_name',
+      primaryKey: true,
+      references: { ... },
+      onUpdate,
+      ....
+    }
+  ]
+}
+
+// v2.0
+{
+  type: 'table',
+  properties: {
+    name: 'table_name',
+    cleanable: {
+      foreignKeys: true,
+      primaryKeys: true,
+    },
+    indexes: [],
+    primaryKeys: [],
+    unique: [],
+    foreignKeys: [
+      {
+        columns: [ 'column_name' ]
+        references: { ... },
+        onUpdate,
+        ....,
+      },
+    ],
+    columns: [
+      {
+        name: 'column_name',
+        primaryKey: true,
+      },
+    ],
+  },
+}
+```
+* added support `CHECK` constraint
+* **drop and create sequences** by synchronizing the table **with force mode**
+* removed unnecessary methods and options
+  - `differ.getModel(name: String)`
+  - `options.seedFolder`
+* refactored the property `schema.forceIndexes` and renamed it to `schema.cleanable`
+```javascript
+// v1.x
+forceIndexes: [ 'foreignKey', 'primaryKey' ]
+
+// v2.0
+cleanable: { foreignKeys: true, primaryKeys: true }
+```
+
+#### Bug Fix
+
+* fixed postgres-client reconnection error after connection error
+
+#### Internal
+
+* code optimized
+* dependencies updated
+* update and optimized docs
+
 ## 1.3.3
 
 #### Bug Fix
 
-* Added escaping for Object or Array in `column.default` key (or in the value of the column  in `seeds`)
+* added escaping for Object or Array in `column.default` key (or in the value of the column  in `seeds`)
 
 ## 1.3.2
 
 #### Bug Fix
 
-* A single quote in the string for the `column.default` key (or the column value in `seeds`) caused an error. Added escaping for strings
+* a single quote in the string for the `column.default` key (or the column value in `seeds`) caused an error. Added escaping for strings
 
 ## 1.3.1
 
