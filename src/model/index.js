@@ -29,18 +29,11 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
   if (sequenceColumns.length) {
     return sequenceColumns.map((column) => {
       const { autoIncrement: properties } = column
-      let sequenceName
-      if (properties.name) {
-        const [ schema ] = parser.separateSchema(properties.name)
-        sequenceName = `${schema || schemaName}.${properties.name}`
-      } else {
-        sequenceName = `${schemaName}.${tableName}_${column.name}_seq`
-      }
       const sequence = new Sequence({
         client,
         properties: {
+          name: `${schemaName}.${tableName}_${column.name}_seq`,
           ...properties,
-          name: sequenceName,
           force: forceCreate,
         },
       })
@@ -513,16 +506,18 @@ module.exports = function (options) {
   const addSeeds = _seeds.add
 
   const _getSqlInsertSeeds = () => {
-    const hasConstraints = _schema.extensions.some(({ type }) => (
-      [ 'unique', 'primaryKey' ].includes(type)
-    ))
-    if (hasConstraints) {
-      const inserts = _seeds.inserts()
-      return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
-    } else {
-      logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
-      return null
+    if (_seeds.size()) {
+      const hasConstraints = _schema.extensions.some(({ type }) => (
+        [ 'unique', 'primaryKey' ].includes(type)
+      ))
+      if (hasConstraints) {
+        const inserts = _seeds.inserts()
+        return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
+      } else {
+        logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
+      }
     }
+    return null
   }
 
   const _getSequences = () => _sequences

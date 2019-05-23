@@ -9,6 +9,7 @@
  * @typedef {object} Seeds
  * @property {function} add
  * @property {function} inserts
+ * @property {function} size
  */
 
 const parser = require('../parser')
@@ -34,5 +35,7 @@ module.exports = function (options) {
     return `insert into ${table} (${keys.join(', ')}) values (${values.join(', ')}) on conflict do nothing;`
   }
 
-  return Object.freeze({ add, inserts })
+  const size = () => _seeds.length
+
+  return Object.freeze({ add, inserts, size })
 }
