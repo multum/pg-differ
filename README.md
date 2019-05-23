@@ -1,4 +1,4 @@
-<img src='https://av-dev.github.io/postgres-differ/logo.svg' width='450' alt='postgres-differ'>
+<img src='https://av-dev.github.io/postgres-differ/readme-logo.svg' width='560' alt='postgres-differ'>
 
 [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
