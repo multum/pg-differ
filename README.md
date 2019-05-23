@@ -1,4 +1,5 @@
-# postgres-differ
+<img src='https://av-dev.github.io/postgres-differ/logo.svg' width='450' alt='postgres-differ'>
+
 [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
