@@ -1,9 +1,15 @@
+## 2.1.0
+
+#### Enhancement
+
+* added `reconnection` config to options
+
 ## 2.0.0
 
 #### Enhancement
 
 * optimized schema structure
-  - added support for **multiple Postges objects**(table, sequence and more)
+  - added support for **multiple Postgres objects**(table, sequence and more)
   - **indexes and constraints** in the scheme are **separated**
 
 * added support `CHECK` constraint
