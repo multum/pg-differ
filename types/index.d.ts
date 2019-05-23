@@ -20,6 +20,10 @@ interface DifferOptions {
     logging?: boolean | Function,
     force?: boolean,
     placeholders?: { [key: string]: string; },
+    reconnection: boolean | {
+        attempts: number,
+        delay: number
+    }
 }
 
 interface ReferenceOptions {
@@ -124,7 +128,7 @@ declare type EntityType = 'table' | 'sequence'
 declare class Differ {
     constructor(options: DifferOptions);
 
-    define(entityType: Schema | EntityType, properties?: Schema): Model | Sequence
+    define(entityType: Schema | EntityType, properties?: TableOptions | SequenceOptions): Model | Sequence
 
     sync(): Promise<null>
 }

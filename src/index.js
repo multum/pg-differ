@@ -24,6 +24,7 @@ const _defaultOptions = {
   schemaFolder: null,
   connectionConfig: null,
   force: false,
+  reconnection: { attempts: Infinity, delay: 5000 },
 }
 
 const _getSchemas = ({ filePattern, pathFolder, placeholders }) => (
@@ -52,7 +53,18 @@ module.exports = function Differ (options) {
     connectionConfig,
   } = options
 
+  let reconnection
   let logging
+
+  if (options.reconnection) {
+    if (typeof options.reconnection === 'boolean') {
+      reconnection = _defaultOptions.reconnection
+    } else {
+      reconnection = { ..._defaultOptions.reconnection, ...options.reconnection }
+    }
+  } else {
+    reconnection = false
+  }
 
   if (options.logging) {
     if (typeof options.logging === 'function') {
@@ -66,7 +78,7 @@ module.exports = function Differ (options) {
 
   const logger = new Logger({ prefix: 'Postgres Differ', callback: logging })
 
-  const _client = new Client(connectionConfig)
+  const _client = new Client(connectionConfig, { reconnection })
   const _models = new Map()
   const _sequences = new Map()
 

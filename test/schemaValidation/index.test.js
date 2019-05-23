@@ -3,7 +3,7 @@ const connectionConfig = require('../pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('schema validation', () => {
-  it('catching schema validation errors', async function (done) {
+  it('catching schema validation errors', function (done) {
     const differ = new Differ({
       connectionConfig,
       logging: logging,
@@ -23,7 +23,7 @@ describe('schema validation', () => {
     }
   })
 
-  it('catching schema type error', async function (done) {
+  it('catching schema type error', function (done) {
     const differ = new Differ({
       connectionConfig,
       logging: logging,
