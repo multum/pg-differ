@@ -9,6 +9,8 @@ describe('sync', () => {
       connectionConfig,
       logging,
       schemaFolder: path.resolve(__dirname, 'schemas'),
+      reconnection: false,
+      force: true,
       placeholders: {
         schema: 'public',
       },
@@ -49,6 +51,7 @@ describe('sync', () => {
   it('force sync', async function () {
     const differ = new Differ({
       connectionConfig,
+      reconnection: true,
       logging,
     })
     differ.define({

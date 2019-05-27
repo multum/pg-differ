@@ -15,9 +15,7 @@ describe('alter columns', () => {
       columns: [
         { name: 'id', type: 'smallint' },
         { name: 'age', type: 'varchar(255)', collate: null },
-        { name: 'busy', type: 'varchar(255)', default: '1' },
       ],
-      seeds: [ { 'id': 1, 'busy': 'some string with quote \'' } ], // will be a warning, missing constraint
     })
     await differ.sync()
 

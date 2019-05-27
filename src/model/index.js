@@ -6,7 +6,6 @@
  */
 
 const R = require('ramda')
-const chalk = require('chalk')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
 const Sequence = require('../sequence')
@@ -63,16 +62,15 @@ module.exports = function (options) {
   const _cleanable = _schema.cleanable
   const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
+  const _hasConstraint = _schema.extensions.some(({ type }) => (
+    [ 'unique', 'primaryKey' ].includes(type)
+  ))
 
   const _seeds = new Seeds({
     table: _table,
   })
 
   const logger = new Logger({ prefix: `Postgres Differ [ '${_table}' ]`, callback: logging })
-
-  if (_schema.seeds) {
-    _seeds.add(_schema.seeds)
-  }
 
   const _sequences = _setupSequences({
     client,
@@ -420,8 +418,7 @@ module.exports = function (options) {
           'drop and add column',
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
         : logger.error(
-          `To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} ` +
-          `you need to set 'force: true' for '${column.name}' column`,
+          `To changing the type '${oldType}' => '${type}' you need to set 'force: true' for '${column.name}' column`,
         )
     } else if (key === 'default') {
       if (utils.isExist(value)) {
@@ -503,19 +500,22 @@ module.exports = function (options) {
     }, {})
   )
 
-  const addSeeds = _seeds.add
+  const addSeeds = (seeds) => {
+    if (_hasConstraint) {
+      _seeds.add(seeds)
+    } else {
+      logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
+    }
+  }
+
+  if (_schema.seeds) {
+    addSeeds(_schema.seeds)
+  }
 
   const _getSqlInsertSeeds = () => {
     if (_seeds.size()) {
-      const hasConstraints = _schema.extensions.some(({ type }) => (
-        [ 'unique', 'primaryKey' ].includes(type)
-      ))
-      if (hasConstraints) {
-        const inserts = _seeds.inserts()
-        return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
-      } else {
-        logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
-      }
+      const inserts = _seeds.inserts()
+      return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
     }
     return null
   }

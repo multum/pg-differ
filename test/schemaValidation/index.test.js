@@ -41,4 +41,25 @@ describe('schema validation', () => {
       done()
     }
   })
+
+  it('missing constraint error', function (done) {
+    const differ = new Differ({
+      connectionConfig,
+      logging: logging,
+    })
+    try {
+      differ.define({
+        type: 'table',
+        properties: {
+          name: 'some_table',
+          columns: [
+            { name: 'id', type: 'smallint' },
+          ],
+          seeds: [ { 'id': 1, 'busy': 'some string with quote \'' } ], // will be a error
+        },
+      })
+    } catch (e) {
+      done()
+    }
+  })
 })
