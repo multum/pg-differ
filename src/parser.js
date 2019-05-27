@@ -136,10 +136,6 @@ exports.schema = (schema) => {
         ...R.pick(COLUMNS.ALL_PROPERTIES, column),
       }
 
-      if (column.primaryKey === true) {
-        column.nullable = false
-      }
-
       const type = exports.normalizeType(column['type'])
       const defaultValue = exports.normalizeValue(column.default)
       const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement)

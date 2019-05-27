@@ -1,5 +1,5 @@
-const Differ = require('../..')
-const connectionConfig = require('../pg.config')
+const Differ = require('../')
+const connectionConfig = require('./pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('schema validation', () => {
@@ -61,5 +61,36 @@ describe('schema validation', () => {
     } catch (e) {
       done()
     }
+  })
+
+  it(`error setting 'nullable: true' for primaryKey`, async function () {
+    const differ = new Differ({
+      connectionConfig,
+      logging: logging,
+    })
+
+    differ.define({
+      type: 'table',
+      properties: {
+        name: 'public.blogs',
+        columns: [
+          { name: 'id', type: 'smallint' },
+          {
+            name: 'large_id',
+            type: 'bigint',
+            nullable: true, // will be a error
+            primaryKey: true,
+          },
+        ],
+      },
+    })
+
+    try {
+      await differ.sync()
+    } catch (e) {
+      return true
+    }
+
+    throw new Error('error test')
   })
 })

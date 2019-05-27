@@ -1,5 +1,5 @@
-const Differ = require('../..')
-const connectionConfig = require('../pg.config')
+const Differ = require('../')
+const connectionConfig = require('./pg.config')
 
 describe('reconnection', () => {
   it('error after 2 attempts', async function () {
@@ -22,5 +22,7 @@ describe('reconnection', () => {
     } catch (e) {
       return true
     }
+
+    throw new Error('test error')
   })
 })

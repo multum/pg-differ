@@ -2,6 +2,7 @@
   "type": "table",
   "properties": {
     "name": "users",
+    "force": true,
     "cleanable": {
       "foreignKeys": true,
       "unique": true

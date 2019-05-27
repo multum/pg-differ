@@ -222,6 +222,7 @@ module.exports = function Differ (options) {
       }
     } catch (error) {
       await _client.query('rollback')
+      await _client.end()
       throw error
     }
 

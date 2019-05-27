@@ -1,5 +1,5 @@
-const Differ = require('../..')
-const connectionConfig = require('../pg.config')
+const Differ = require('../')
+const connectionConfig = require('./pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
@@ -25,7 +25,7 @@ describe('alter columns', () => {
         indexes: true,
       },
       columns: [
-        { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
+        { name: 'id', type: 'bigint', primaryKey: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
         { name: 'busy', type: 'bool', 'default': true },
       ],

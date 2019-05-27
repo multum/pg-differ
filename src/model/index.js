@@ -432,7 +432,7 @@ module.exports = function (options) {
 
   const _shouldBePrimaryKey = (names) => {
     if (_primaryKey) {
-      return R.is(Array)
+      return R.is(Array, names)
         ? R.equals(names, _primaryKey.columns)
         : R.includes(names, _primaryKey.columns)
     } else {
