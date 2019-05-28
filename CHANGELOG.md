@@ -3,6 +3,21 @@
 #### Enhancement
 
 * added `reconnection` config to options
+```javascript
+// default value
+reconnection: { attempts: Infinity, delay: 5000 }
+```
+
+#### Bug Fix
+
+* closing db connection after sync error
+* fixed error of adding a `unique` constraint
+* canceled unnecessary run insert seeds in their absence
+
+#### Internal
+
+* tests are sorted
+* increase test coverage
 
 ## 2.0.0
 
