@@ -1,6 +1,6 @@
-const Differ = require('../..')
+const Differ = require('../')
 const path = require('path')
-const connectionConfig = require('../pg.config')
+const connectionConfig = require('./pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('sync', () => {
@@ -9,6 +9,7 @@ describe('sync', () => {
       connectionConfig,
       logging,
       schemaFolder: path.resolve(__dirname, 'schemas'),
+      reconnection: false,
       placeholders: {
         schema: 'public',
       },
@@ -35,7 +36,6 @@ describe('sync', () => {
           {
             name: 'large_id',
             type: 'bigint',
-            nullable: true, // will be a warning
             primaryKey: true,
           },
           { name: 'deleted', type: 'bool' },
@@ -49,6 +49,7 @@ describe('sync', () => {
   it('force sync', async function () {
     const differ = new Differ({
       connectionConfig,
+      reconnection: true,
       logging,
     })
     differ.define({

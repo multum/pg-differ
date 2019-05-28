@@ -24,12 +24,12 @@ module.exports = function ({ prefix, callback }) {
         case 'warn':
           callback(chalk.yellow(string))
           break
-        case 'error':
-          callback(chalk.red(string))
-          break
         default:
           callback(string)
       }
+    }
+    if (type === 'error') {
+      throw new Error(getTitle(message))
     }
     return null
   })
@@ -38,6 +38,6 @@ module.exports = function ({ prefix, callback }) {
     log,
     info: log('info'),
     warn: log('warn', 'Warning'),
-    error: log('error', 'Error'),
+    error: log('error', undefined),
   }
 }

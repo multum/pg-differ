@@ -39,3 +39,27 @@ Force sync of tables (drop and create)
 * Required: `false`
 
 Object with names and their values to replace placeholders in `schemaFolder` files
+
+### reconnection
+
+* Type: `Object | Boolean`
+* Default: `{ attempts: Infinity, delay: 5000 }`
+* Required: `false`
+
+Configuration for reconnection after connection error
+
+### reconnection.attempts
+
+* Type: `Number`
+* Default: `Infinity`
+* Required: `false`
+
+Number of reconnection attempts before giving up
+
+### reconnection.delay
+
+* Type: `Number`
+* Default: `5000`
+* Required: `false`
+
+How long to initially wait before attempting a new reconnection

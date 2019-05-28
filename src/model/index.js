@@ -6,7 +6,6 @@
  */
 
 const R = require('ramda')
-const chalk = require('chalk')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
 const Sequence = require('../sequence')
@@ -61,18 +60,15 @@ module.exports = function (options) {
   const [ _schemaName = 'public', _tableName ] = parser.separateSchema(_table)
 
   const _cleanable = _schema.cleanable
-  const _primaryKey = _schema.extensions.find(({ type }) => type === 'primaryKey')
+  const _primaryKey = R.path([ 'primaryKey', 0 ], _schema.extensions)
   const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
+  const _hasConstraint = _primaryKey || R.path([ 'unique', 0 ], _schema.extensions)
 
   const _seeds = new Seeds({
     table: _table,
   })
 
   const logger = new Logger({ prefix: `Postgres Differ [ '${_table}' ]`, callback: logging })
-
-  if (_schema.seeds) {
-    _seeds.add(_schema.seeds)
-  }
 
   const _sequences = _setupSequences({
     client,
@@ -193,7 +189,6 @@ module.exports = function (options) {
   }
 
   const _getDropExtensionQueries = (extensions, excludeNames) => R.pipe(
-    // must be drop
     R.values,
     R.unnest,
     R.filter(({ type, name }) => (
@@ -264,20 +259,24 @@ module.exports = function (options) {
     )
   )
 
-  const _getExtensionChangesOf = (dbExtensions, extensions) => {
+  const _getExtensionChangesOf = (dbExtensions, schemaExtensions) => {
     const adding = []
     const excludeDrop = []
-    if (utils.notEmpty(extensions)) {
-      extensions.forEach((extension) => {
-        const { type } = extension
-        const dbExtension = _findExtensionWhere(dbExtensions[type], extension)
-        if (dbExtension) {
-          excludeDrop.push(dbExtension.name)
-        } else {
-          adding.push(_addExtension(_table, extension))
-        }
-      })
-    }
+    R.forEachObjIndexed(
+      R.when(
+        utils.notEmpty,
+        R.forEach((extension) => {
+          const { type } = extension
+          const dbExtension = _findExtensionWhere(dbExtensions[type], extension)
+          if (dbExtension) {
+            excludeDrop.push(dbExtension.name)
+          } else {
+            adding.push(_addExtension(_table, extension))
+          }
+        }),
+      ),
+      schemaExtensions,
+    )
     return [
       _getDropExtensionQueries(dbExtensions, excludeDrop),
       adding,
@@ -420,8 +419,7 @@ module.exports = function (options) {
           'drop and add column',
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
         : logger.error(
-          `To changing the type ${chalk.green(oldType)} => ${chalk.green(type)} ` +
-          `you need to set 'force: true' for '${column.name}' column`,
+          `To changing the type '${oldType}' => '${type}' you need to set 'force: true' for '${column.name}' column`,
         )
     } else if (key === 'default') {
       if (utils.isExist(value)) {
@@ -435,7 +433,7 @@ module.exports = function (options) {
 
   const _shouldBePrimaryKey = (names) => {
     if (_primaryKey) {
-      return R.is(Array)
+      return R.is(Array, names)
         ? R.equals(names, _primaryKey.columns)
         : R.includes(names, _primaryKey.columns)
     } else {
@@ -503,19 +501,22 @@ module.exports = function (options) {
     }, {})
   )
 
-  const addSeeds = _seeds.add
+  const addSeeds = (seeds) => {
+    if (_hasConstraint) {
+      _seeds.add(seeds)
+    } else {
+      logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
+    }
+  }
+
+  if (_schema.seeds) {
+    addSeeds(_schema.seeds)
+  }
 
   const _getSqlInsertSeeds = () => {
     if (_seeds.size()) {
-      const hasConstraints = _schema.extensions.some(({ type }) => (
-        [ 'unique', 'primaryKey' ].includes(type)
-      ))
-      if (hasConstraints) {
-        const inserts = _seeds.inserts()
-        return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
-      } else {
-        logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
-      }
+      const inserts = _seeds.inserts()
+      return new Sql(inserts.map((insert) => Sql.create('insert seed', insert)))
     }
     return null
   }

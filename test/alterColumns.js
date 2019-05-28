@@ -1,5 +1,5 @@
-const Differ = require('../..')
-const connectionConfig = require('../pg.config')
+const Differ = require('../')
+const connectionConfig = require('./pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
@@ -15,9 +15,7 @@ describe('alter columns', () => {
       columns: [
         { name: 'id', type: 'smallint' },
         { name: 'age', type: 'varchar(255)', collate: null },
-        { name: 'busy', type: 'varchar(255)', default: '1' },
       ],
-      seeds: [ { 'id': 1, 'busy': 'some string with quote \'' } ], // will be a warning, missing constraint
     })
     await differ.sync()
 
@@ -27,7 +25,7 @@ describe('alter columns', () => {
         indexes: true,
       },
       columns: [
-        { name: 'id', type: 'bigint', primaryKey: true, nullable: true },
+        { name: 'id', type: 'bigint', primaryKey: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
         { name: 'busy', type: 'bool', 'default': true },
       ],

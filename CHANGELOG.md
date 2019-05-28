@@ -1,9 +1,30 @@
+## 2.1.0
+
+#### Enhancement
+
+* added `reconnection` config to options
+```javascript
+// default value
+reconnection: { attempts: Infinity, delay: 5000 }
+```
+
+#### Bug Fix
+
+* closing db connection after sync error
+* fixed error of adding a `unique` constraint
+* canceled unnecessary run insert seeds in their absence
+
+#### Internal
+
+* tests are sorted
+* increase test coverage
+
 ## 2.0.0
 
 #### Enhancement
 
 * optimized schema structure
-  - added support for **multiple Postges objects**(table, sequence and more)
+  - added support for **multiple Postgres objects**(table, sequence and more)
   - **indexes and constraints** in the scheme are **separated**
 
 * added support `CHECK` constraint

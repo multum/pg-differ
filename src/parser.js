@@ -104,6 +104,7 @@ const _encryptedNamesListExtensions = {
   indexes: 'index',
   foreignKeys: 'foreignKey',
   checks: 'check',
+  unique: 'unique',
 }
 
 const _getExtensionDefaults = (listName) => {
@@ -136,10 +137,6 @@ exports.schema = (schema) => {
         ...R.pick(COLUMNS.ALL_PROPERTIES, column),
       }
 
-      if (column.primaryKey === true) {
-        column.nullable = false
-      }
-
       const type = exports.normalizeType(column['type'])
       const defaultValue = exports.normalizeValue(column.default)
       const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement)
@@ -154,12 +151,15 @@ exports.schema = (schema) => {
 
   const extensions = R.pipe(
     R.pick([ 'indexes', 'unique', 'foreignKeys', 'primaryKeys' ]), // without 'checks'
-    R.filter(Boolean),
     R.toPairs,
-    R.reduce((acc, [ listName, elements ]) => (
-      R.concat(acc, elements.map((props) => ({ ..._getExtensionDefaults(listName), ...props })))
-    ), []),
-    R.concat(_getExtensionsFromColumns(columns)),
+    R.reduce((acc, [ listName, elements ]) => {
+      if (elements) {
+        const defaults = _getExtensionDefaults(listName)
+        acc[defaults.type] = elements.map((props) => ({ ...defaults, ...props }))
+      }
+      return acc
+    }, {}),
+    R.mergeWith(R.concat, _getExtensionsFromColumns(columns)),
   )(schema)
 
   const cleanable = _normalizeCleanableObject(schema.cleanable)
@@ -284,15 +284,18 @@ exports.indexDefinitions = R.map(({ name, definition }) => ({
 }))
 
 const _getExtensionsFromColumns = (
-  R.reduce((acc, column) => (
-    R.pipe(
-      R.pick(COLUMNS.EXTENSIONS),
-      R.toPairs,
-      R.map(([ type, value ]) => value === true ? ({ type, columns: [ column.name ] }) : null),
-      R.filter(Boolean),
-      R.concat(acc),
-    )(column)
-  ), [])
+  R.pipe(
+    R.reduce((acc, column) => (
+      R.pipe(
+        R.pick(COLUMNS.EXTENSIONS),
+        R.toPairs,
+        R.map(([ type, value ]) => value === true ? ({ type, columns: [ column.name ] }) : null),
+        R.filter(Boolean),
+        R.concat(acc),
+      )(column)
+    ), []),
+    R.groupBy(R.prop('type')),
+  )
 )
 
 exports.quoteLiteral = (value) => {

@@ -135,7 +135,7 @@ module.exports = function Differ (options) {
         return sequence
       }
       default:
-        throw new Error(`Invalid schema type: ${type}`)
+        logger.error(`Invalid schema type: ${type}`)
     }
   }
 
@@ -222,6 +222,7 @@ module.exports = function Differ (options) {
       }
     } catch (error) {
       await _client.query('rollback')
+      await _client.end()
       throw error
     }
 
