@@ -42,3 +42,5 @@ select exists (
     and tablename = '${table}'
 )
 `
+
+exports.publicSearchPath = () => `set local search_path to public`

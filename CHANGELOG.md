@@ -1,3 +1,8 @@
+## 2.1.1
+
+#### Bug Fix
+* added reset `search_path` to get complete information about existing foreign keys
+
 ## 2.1.0
 
 #### Enhancement
