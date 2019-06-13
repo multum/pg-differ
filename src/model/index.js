@@ -91,8 +91,10 @@ module.exports = function (options) {
     )
   )
 
-  const _fetchConstraints = (table = _table) => (
-    client.query(
+  const _fetchConstraints = async (table = _table) => {
+    await client.query('begin')
+    await client.query(queries.publicSearchPath())
+    const constraints = await client.query(
       queries.getConstraints(table),
     ).then(
       R.pipe(
@@ -101,7 +103,9 @@ module.exports = function (options) {
         R.groupBy(R.prop('type')),
       ),
     )
-  )
+    await client.query('commit')
+    return constraints
+  }
 
   const _fetchIndexes = () => (
     client.query(
@@ -337,8 +341,7 @@ module.exports = function (options) {
   const _dropExtension = (extension) => {
     const alterTable = `alter table ${_table}`
     if (extension.type === 'index') {
-      const indexName = _schemaName ? `${_schemaName}.${extension.name}` : extension.name
-      return Sql.create(`drop ${extension.type}`, `drop index ${indexName};`)
+      return Sql.create(`drop ${extension.type}`, `drop index ${_schemaName}.${extension.name};`)
     }
     return Sql.create(`drop ${extension.type}`, `${alterTable} drop constraint ${extension.name};`)
   }
