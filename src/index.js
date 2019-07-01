@@ -17,8 +17,6 @@ const Client = require('./postgres-client')
 const Model = require('./model')
 const Sequence = require('./sequence')
 
-const { ORDER_OF_OPERATIONS } = require('./constants/extensions')
-
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
@@ -44,7 +42,7 @@ const _calculateSuccessfulInsets = R.ifElse(
   R.prop('rowCount'),
 )
 
-module.exports = function Differ (options) {
+function Differ (options) {
   options = { ..._defaultOptions, ...options }
   const {
     schemaFolder,
@@ -139,50 +137,29 @@ module.exports = function Differ (options) {
     }
   }
 
-  const _awaitAndUnnestSqlLines = R.pipe(
-    (promises) => Promise.all(promises),
-    R.then(
-      R.pipe(
-        R.filter(Boolean),
-        R.map((sql) => sql.getLines()),
-        R.unnest,
-      ),
-    ),
-  )
+  const _getFlatAndSortedSqlList = async (orderOfOperations, promises) => {
+    const result = await Promise.all(promises)
+    let store = result
+      .filter(Boolean)
+      .map((sql) => sql.getStore())
 
-  const _getSqlCreateOrAlterTable = R.pipe(
-    R.map((model) => model._getSqlCreateOrAlterTable()),
-    _awaitAndUnnestSqlLines,
-  )
+    store = R.unnest(store)
 
-  const _getSqlExtensionChanges = R.pipe(
-    R.map((model) => model._getSqlExtensionChanges()),
-    (promises) => Promise.all(promises),
-    R.then(
-      R.pipe(
-        R.map((sql) => sql.getStore()),
-        R.unnest,
-        utils.sortByList(
-          R.prop('operation'),
-          ORDER_OF_OPERATIONS,
-        ),
-        R.map(R.prop('value')),
-      ),
-    ),
-  )
+    if (orderOfOperations) {
+      store = utils.sortByList(
+        R.prop('operation'),
+        orderOfOperations,
+        store,
+      )
+    }
 
-  const _getSeedSql = R.pipe(
-    R.map((model) => model._getSqlInsertSeeds()),
-    _awaitAndUnnestSqlLines,
-  )
+    return store.map(R.prop('value'))
+  }
 
-  const _getSqlSequenceChanges = R.pipe(
-    R.map((sequence) => sequence._getSqlChanges()),
-    _awaitAndUnnestSqlLines,
-  )
-
-  const _entitySync = async (entity, promise) => {
-    const sql = Sql.joinUniqueQueries(await promise)
+  const _entitySync = async ({ entity, orderOfOperations, promises }) => {
+    const sql = Sql.joinUniqueQueries(
+      await _getFlatAndSortedSqlList(orderOfOperations, promises),
+    )
     if (sql) {
       logger.info(`Start sync ${chalk.green(entity)} with...`, sql)
       const result = await _client.query(sql)
@@ -201,23 +178,47 @@ module.exports = function Differ (options) {
     await _client.query('begin')
 
     try {
-      const sequenceChanges = await _entitySync('sequences', _getSqlSequenceChanges(sequences))
-      const createOrAlterQueries = await _entitySync('tables', _getSqlCreateOrAlterTable(models))
-      const extensionQueries = await _entitySync('extensions', _getSqlExtensionChanges(models))
-      let insertSeedCount = 0
+      const queries = [
+        await _entitySync({
+          entity: 'sequences',
+          orderOfOperations: null,
+          promises: sequences.map((sequence) => sequence._getSqlChanges()),
+        }),
+        await _entitySync({
+          entity: 'tables',
+          orderOfOperations: null,
+          promises: models.map((model) => model._getSqlCreateOrAlterTable()),
+        }),
+        await _entitySync({
+          entity: 'extensions',
+          orderOfOperations: [
+            'drop foreignKey',
+            'drop primaryKey',
+            'drop unique',
+            'delete rows',
+            'add unique',
+          ],
+          promises: models.map((model) => model._getSqlExtensionChanges()),
+        }),
+      ]
 
+      let insertSeedCount = 0
       if (await _supportSeeds()) {
-        const insertSeedQueries = Sql.joinUniqueQueries(await _getSeedSql(models))
+        const insertSeedQueries = await _entitySync({
+          entity: 'seeds',
+          orderOfOperations: null,
+          promises: models.map((model) => model._getSqlInsertSeeds()),
+        })
         if (insertSeedQueries) {
-          logger.info(`Start sync table ${chalk.green('seeds')}`, null)
-          insertSeedCount = _calculateSuccessfulInsets(await _client.query(insertSeedQueries))
+          insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries)
           logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
+          queries.push(insertSeedCount)
         }
       } else {
         logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
       }
 
-      if (!sequenceChanges && !createOrAlterQueries && !extensionQueries && insertSeedCount === 0) {
+      if (queries.filter(Boolean).length === 0) {
         logger.info('Tables do not need structure synchronization', null)
       }
     } catch (error) {
@@ -239,3 +240,5 @@ module.exports = function Differ (options) {
     define,
   })
 }
+
+module.exports = Differ
