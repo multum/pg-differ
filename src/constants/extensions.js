@@ -18,11 +18,3 @@ exports.TYPES = {
   INDEX: 'INDEX',
   CHECK: 'CHECK',
 }
-
-exports.ORDER_OF_OPERATIONS = [
-  'drop foreignKey',
-  'drop primaryKey',
-  'drop unique',
-  'delete rows',
-  'add unique',
-]
