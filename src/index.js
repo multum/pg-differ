@@ -11,7 +11,6 @@ const chalk = require('chalk')
 const R = require('ramda')
 const utils = require('./utils')
 
-const Sql = require('./sql')
 const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
@@ -157,15 +156,16 @@ function Differ (options) {
   }
 
   const _entitySync = async ({ entity, orderOfOperations, promises }) => {
-    const sql = Sql.joinUniqueQueries(
-      await _getFlatAndSortedSqlList(orderOfOperations, promises),
-    )
-    if (sql) {
-      logger.info(`Start sync ${chalk.green(entity)} with...`, sql)
-      const result = await _client.query(sql)
-      logger.info(`End sync ${chalk.green(entity)}`, null)
-      return result
+    let sql = await _getFlatAndSortedSqlList(orderOfOperations, promises)
+    if (R.isEmpty(sql)) {
+      return false
     } else {
+      sql = R.uniq(sql)
+      logger.info(`Start sync ${chalk.green(entity)} with...`, sql.join('\n'))
+      for (let i = 0; i < sql.length; i++) {
+        await _client.query(sql[i])
+      }
+      logger.info(`End sync ${chalk.green(entity)}`, null)
       return null
     }
   }
@@ -221,16 +221,16 @@ function Differ (options) {
       if (queries.filter(Boolean).length === 0) {
         logger.info('Tables do not need structure synchronization', null)
       }
+
+      await _client.query('commit')
+      logger.info(chalk.green('Sync end'), null)
+
+      return _client.end()
     } catch (error) {
       await _client.query('rollback')
       await _client.end()
       throw error
     }
-
-    await _client.query('commit')
-    logger.info(chalk.green('Sync end'), null)
-
-    return _client.end()
   }
 
   _setup()
