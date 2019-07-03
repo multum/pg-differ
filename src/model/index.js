@@ -92,7 +92,7 @@ module.exports = function (options) {
   )
 
   const _fetchConstraints = async (table = _table) => {
-    await client.query('begin')
+    await client.query('savepoint temp_search_path')
     await client.query(queries.publicSearchPath())
     const constraints = await client.query(
       queries.getConstraints(table),
@@ -103,7 +103,7 @@ module.exports = function (options) {
         R.groupBy(R.prop('type')),
       ),
     )
-    await client.query('commit')
+    await client.query('rollback to savepoint temp_search_path')
     return constraints
   }
 
