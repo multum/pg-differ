@@ -66,7 +66,7 @@ Array of previous column names that is used to rename
 
 ### autoIncrement
 
-* Type: `Boolean` | [sequence object](sequence.md)
+* Type: `Boolean` | [autoIncrement object](auto-increment.md)
 * Default: `false`
 * Required: `false`
  
