@@ -32,11 +32,12 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
         client,
         properties: {
           name: `${schemaName}.${tableName}_${column.name}_seq`,
-          ...properties,
           force: forceCreate,
+          ...properties,
+          columnUses: column.name,
         },
       })
-      column.default = sequence._getSqlIncrement()
+      column.default = sequence._getQueryIncrement()
       return sequence
     })
   }
@@ -517,12 +518,34 @@ module.exports = function (options) {
 
   const _getSequences = () => _sequences
 
+  const _getSqlSequenceActualize = async () => {
+    if (!(_sequences && _sequences.length)) {
+      return null
+    }
+    const sql = new Sql()
+    for (let i = 0; i < _sequences.length; i++) {
+      const sequence = _sequences[i]
+      const { actual = true, columnUses, min, max } = sequence._getProperties()
+      if (actual) {
+        const sequenceCurValue = await sequence._getCurrentValue()
+        const { rows: [ { max: valueForRestart } ] } = await client.query(
+          queries.getMaxValueForRestartSequence(_schemaName, _tableName, columnUses, min, max, sequenceCurValue),
+        )
+        if (utils.isExist(valueForRestart)) {
+          sql.add(Sql.create('sequence restart', sequence._getQueryRestart(valueForRestart)))
+        }
+      }
+    }
+    return sql
+  }
+
   return Object.freeze({
     _getSqlCreateOrAlterTable,
     _getSqlExtensionChanges,
     _getSqlInsertSeeds,
     _getSequences,
     _getProperties,
+    _getSqlSequenceActualize,
     addSeeds,
   })
 }

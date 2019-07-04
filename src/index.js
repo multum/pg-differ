@@ -155,18 +155,18 @@ function Differ (options) {
     return store.map(R.prop('value'))
   }
 
-  const _entitySync = async ({ entity, orderOfOperations, promises }) => {
+  const _entitySync = async ({ entity, orderOfOperations, promises, logging = true }) => {
     let sql = await _getFlatAndSortedSqlList(orderOfOperations, promises)
     if (R.isEmpty(sql)) {
       return false
     } else {
       sql = R.uniq(sql)
-      logger.info(`Start sync ${chalk.green(entity)} with...`, sql.join('\n'))
+      logging && logger.info(`Start sync ${chalk.green(entity)} with...`, sql.join('\n'))
       for (let i = 0; i < sql.length; i++) {
         await _client.query(sql[i])
       }
-      logger.info(`End sync ${chalk.green(entity)}`, null)
-      return null
+      logging && logger.info(`End sync ${chalk.green(entity)}`, null)
+      return true
     }
   }
 
@@ -208,8 +208,10 @@ function Differ (options) {
           entity: 'seeds',
           orderOfOperations: null,
           promises: models.map((model) => model._getSqlInsertSeeds()),
+          logging: false,
         })
         if (insertSeedQueries) {
+          logger.info(`Start sync ${chalk.green('seeds')}...`)
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries)
           logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
           queries.push(insertSeedCount)
@@ -217,6 +219,14 @@ function Differ (options) {
       } else {
         logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
       }
+
+      queries.push(
+        await _entitySync({
+          entity: 'sequence values',
+          orderOfOperations: null,
+          promises: models.map((model) => model._getSqlSequenceActualize()),
+        }),
+      )
 
       if (queries.filter(Boolean).length === 0) {
         logger.info('Tables do not need structure synchronization', null)
