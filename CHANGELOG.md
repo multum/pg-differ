@@ -7,7 +7,6 @@
 * fixed `out of shared memory` error by sending SQL-queries one at a time
 * nested transaction removed
 
-
 ## 2.1.1
 
 #### Bug Fix

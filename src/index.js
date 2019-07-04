@@ -161,12 +161,13 @@ function Differ (options) {
       return false
     } else {
       sql = R.uniq(sql)
+      const result = []
       logging && logger.info(`Start sync ${chalk.green(entity)} with...`, sql.join('\n'))
       for (let i = 0; i < sql.length; i++) {
-        await _client.query(sql[i])
+        result.push(await _client.query(sql[i]))
       }
       logging && logger.info(`End sync ${chalk.green(entity)}`, null)
-      return true
+      return result
     }
   }
 
@@ -211,9 +212,8 @@ function Differ (options) {
           logging: false,
         })
         if (insertSeedQueries) {
-          logger.info(`Start sync ${chalk.green('seeds')}...`)
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries)
-          logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
+          logger.info(`${chalk.green('Seeds')} were inserted: ${chalk.green(insertSeedCount)}`, null)
           queries.push(insertSeedCount)
         }
       } else {
