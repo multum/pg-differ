@@ -1,3 +1,13 @@
+## 2.2.0
+
+#### Enhancement
+* added new property `autoIncrement.actual` for restart the sequence to the largest column value
+
+#### Bug Fix
+* fixed `out of shared memory` error by sending SQL-queries one at a time
+* nested transaction removed
+
+
 ## 2.1.1
 
 #### Bug Fix
