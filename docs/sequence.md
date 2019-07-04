@@ -5,7 +5,7 @@
 ### name
 
 * Type: `String`
-* Default: `'<tableName>_<columnName>_seq'`
+* Default: `null`
 * Required: `true`
 
 Sequence name
