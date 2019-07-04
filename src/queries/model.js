@@ -44,3 +44,17 @@ select exists (
 `
 
 exports.publicSearchPath = () => `set local search_path to public`
+
+exports.getMaxValueForRestartSequence = (
+  schema,
+  table,
+  column,
+  min,
+  max,
+  sequenceCurValue,
+) => `
+select max(${column}) as max
+  from ${schema}.${table}
+where ${column} between ${min} and ${max}
+  and ${column} > ${sequenceCurValue}
+`

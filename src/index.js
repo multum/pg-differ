@@ -11,7 +11,6 @@ const chalk = require('chalk')
 const R = require('ramda')
 const utils = require('./utils')
 
-const Sql = require('./sql')
 const Logger = require('./logger')
 const Client = require('./postgres-client')
 const Model = require('./model')
@@ -156,17 +155,18 @@ function Differ (options) {
     return store.map(R.prop('value'))
   }
 
-  const _entitySync = async ({ entity, orderOfOperations, promises }) => {
-    const sql = Sql.joinUniqueQueries(
-      await _getFlatAndSortedSqlList(orderOfOperations, promises),
-    )
-    if (sql) {
-      logger.info(`Start sync ${chalk.green(entity)} with...`, sql)
-      const result = await _client.query(sql)
-      logger.info(`End sync ${chalk.green(entity)}`, null)
-      return result
+  const _entitySync = async ({ entity, orderOfOperations, promises, logging = true }) => {
+    let sql = await _getFlatAndSortedSqlList(orderOfOperations, promises)
+    if (R.isEmpty(sql)) {
+      return false
     } else {
-      return null
+      sql = R.uniq(sql)
+      logging && logger.info(`Start sync ${chalk.green(entity)} with...`, sql.join('\n'))
+      for (let i = 0; i < sql.length; i++) {
+        await _client.query(sql[i])
+      }
+      logging && logger.info(`End sync ${chalk.green(entity)}`, null)
+      return true
     }
   }
 
@@ -208,8 +208,10 @@ function Differ (options) {
           entity: 'seeds',
           orderOfOperations: null,
           promises: models.map((model) => model._getSqlInsertSeeds()),
+          logging: false,
         })
         if (insertSeedQueries) {
+          logger.info(`Start sync ${chalk.green('seeds')}...`)
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries)
           logger.info(`Seeds were inserted: ${chalk.green(insertSeedCount)}`, null)
           queries.push(insertSeedCount)
@@ -218,19 +220,27 @@ function Differ (options) {
         logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
       }
 
+      queries.push(
+        await _entitySync({
+          entity: 'sequence values',
+          orderOfOperations: null,
+          promises: models.map((model) => model._getSqlSequenceActualize()),
+        }),
+      )
+
       if (queries.filter(Boolean).length === 0) {
         logger.info('Tables do not need structure synchronization', null)
       }
+
+      await _client.query('commit')
+      logger.info(chalk.green('Sync end'), null)
+
+      return _client.end()
     } catch (error) {
       await _client.query('rollback')
       await _client.end()
       throw error
     }
-
-    await _client.query('commit')
-    logger.info(chalk.green('Sync end'), null)
-
-    return _client.end()
   }
 
   _setup()

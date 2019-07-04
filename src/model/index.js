@@ -32,11 +32,12 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
         client,
         properties: {
           name: `${schemaName}.${tableName}_${column.name}_seq`,
-          ...properties,
           force: forceCreate,
+          ...properties,
+          columnUses: column.name,
         },
       })
-      column.default = sequence._getSqlIncrement()
+      column.default = sequence._getQueryIncrement()
       return sequence
     })
   }
@@ -92,7 +93,7 @@ module.exports = function (options) {
   )
 
   const _fetchConstraints = async (table = _table) => {
-    await client.query('begin')
+    await client.query('savepoint temp_search_path')
     await client.query(queries.publicSearchPath())
     const constraints = await client.query(
       queries.getConstraints(table),
@@ -103,7 +104,7 @@ module.exports = function (options) {
         R.groupBy(R.prop('type')),
       ),
     )
-    await client.query('commit')
+    await client.query('rollback to savepoint temp_search_path')
     return constraints
   }
 
@@ -223,37 +224,28 @@ module.exports = function (options) {
   }
 
   const _normalizeCheckRows = async (rows) => {
-    let result
     const getConstraintName = (id) => `temp_constraint_check_${id}`
     const tempTableName = `temp_${_tableName}`
 
-    await client.query('begin')
-    try {
-      const createQueries = _createTable({ table: tempTableName, temp: true, force: false })
-      await client.query(createQueries.join())
+    const createQueries = _createTable({ table: tempTableName, temp: true, force: false })
+    await client.query(createQueries.join())
 
-      const sql = rows.reduce((acc, { condition }, i) => (
-        acc.add(_addExtension(
-          tempTableName,
-          { type: 'check', name: getConstraintName(i), condition },
-        ))
-      ), new Sql())
+    const sql = rows.reduce((acc, { condition }, i) => (
+      acc.add(_addExtension(
+        tempTableName,
+        { type: 'check', name: getConstraintName(i), condition },
+      ))
+    ), new Sql())
 
-      await client.query(sql.join())
+    await client.query(sql.join())
 
-      const { check: dbChecks } = await _fetchConstraints(tempTableName)
+    const { check: dbChecks } = await _fetchConstraints(tempTableName)
+    await client.query(`drop table ${tempTableName};`)
 
-      result = rows.map((_, i) => ({
-        type: 'check',
-        condition: dbChecks.find(({ name }) => name === getConstraintName(i)).condition,
-      }))
-      await client.query(`drop table ${tempTableName};`)
-    } catch (error) {
-      await client.query(`rollback`)
-      throw error
-    }
-    await client.query('commit')
-    return result
+    return rows.map((_, i) => ({
+      type: 'check',
+      condition: dbChecks.find(({ name }) => name === getConstraintName(i)).condition,
+    }))
   }
 
   const _getCheckChanges = async (rows) => (
@@ -526,12 +518,34 @@ module.exports = function (options) {
 
   const _getSequences = () => _sequences
 
+  const _getSqlSequenceActualize = async () => {
+    if (!(_sequences && _sequences.length)) {
+      return null
+    }
+    const sql = new Sql()
+    for (let i = 0; i < _sequences.length; i++) {
+      const sequence = _sequences[i]
+      const { actual = true, columnUses, min, max } = sequence._getProperties()
+      if (actual) {
+        const sequenceCurValue = await sequence._getCurrentValue()
+        const { rows: [ { max: valueForRestart } ] } = await client.query(
+          queries.getMaxValueForRestartSequence(_schemaName, _tableName, columnUses, min, max, sequenceCurValue),
+        )
+        if (utils.isExist(valueForRestart)) {
+          sql.add(Sql.create('sequence restart', sequence._getQueryRestart(valueForRestart)))
+        }
+      }
+    }
+    return sql
+  }
+
   return Object.freeze({
     _getSqlCreateOrAlterTable,
     _getSqlExtensionChanges,
     _getSqlInsertSeeds,
     _getSequences,
     _getProperties,
+    _getSqlSequenceActualize,
     addSeeds,
   })
 }

@@ -51,10 +51,4 @@ const Sql = function (sql) {
 
 Sql.create = R.curry((operation, value) => value ? { operation, value } : null)
 
-Sql.joinUniqueQueries = R.ifElse(
-  R.isEmpty,
-  R.always(null),
-  R.pipe(R.uniq, R.join('\n')),
-)
-
 module.exports = Sql

@@ -16,7 +16,9 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
 /**
  * @typedef {object} Sequence
  * @property {function} _getSqlChanges
- * @property {function} _getSqlIncrement
+ * @property {function} _getQueryIncrement
+ * @property {function} _getQueryRestart
+ * @property {function} _getCurrentValue
  */
 
 /**
@@ -100,7 +102,16 @@ module.exports = function (options) {
 
   const _getProperties = () => ({ ...properties })
 
-  const _getSqlIncrement = () => `nextval('${schema}.${name}'::regclass)`
+  const _getQueryIncrement = () => queries.increment(schema, name)
 
-  return Object.freeze({ _getSqlChanges, _getSqlIncrement, _getProperties })
+  const _getQueryRestart = (value) => queries.restart(schema, name, value)
+
+  const _getCurrentValue = async () => {
+    const { rows: [ { currentValue } ] } = await client.query(
+      queries.getCurrentValue(schema, name),
+    )
+    return currentValue
+  }
+
+  return Object.freeze({ _getSqlChanges, _getQueryIncrement, _getProperties, _getQueryRestart, _getCurrentValue })
 }

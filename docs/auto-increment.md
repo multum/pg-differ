@@ -1,12 +1,10 @@
-# Sequence
-
-## Properties
+# autoIncrement
 
 ### name
 
 * Type: `String`
 * Default: `'<tableName>_<columnName>_seq'`
-* Required: `true`
+* Required: `false`
 
 Sequence name
 
@@ -50,11 +48,18 @@ Sequence looping when max value is reached
 
 Determines which number will be added to the current value of the sequence
 
+### actual
+
+* Type: `Boolean`
+* Default: `true`
+* Required: `false`
+
+Restart the sequence to the largest column value that uses this sequence
+
 ### force
 
 * Type: `Boolean`
 * Default: `false`
 * Required: `false`
 
-Force sync of sequence (drop and create)
-
+Force sync of sequence (drop and create). Priority over the `schema.force`
