@@ -1,4 +1,4 @@
-<img src='https://av-dev.github.io/postgres-differ/readme-logo.svg' width='560' alt='postgres-differ'>
+[<img src='https://av-dev.github.io/postgres-differ/readme-logo.svg' width='560' alt='postgres-differ'>](https://av-dev.github.io/postgres-differ/#/)
 
 [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
@@ -6,8 +6,8 @@
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)
 
 ![](https://img.shields.io/travis/com/av-dev/postgres-differ.svg?style=flat-square)
-![](https://img.shields.io/npm/l/pg-differ.svg?style=flat-square)
-![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)
+[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat-square)](https://github.com/av-dev/postgres-differ/blob/master/LICENSE)
+[![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)](https://www.npmjs.com/package/pg-differ)
 ![](https://img.shields.io/codecov/c/github/av-dev/postgres-differ.svg?style=flat-square)
 
 ## Documentation
