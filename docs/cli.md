@@ -3,7 +3,7 @@
 ### connectionString
 * Alias: `-c`
 * Default: `null`
-* Required: `true`
+* Required: `false`
 * Example: [Connection URI](https://node-postgres.com/features/connecting#connection-uri)
 
 Connection URI to database

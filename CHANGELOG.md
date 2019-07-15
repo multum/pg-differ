@@ -1,3 +1,12 @@
+## 2.2.1
+
+Enhancement
+* `--connectionString` removed from the list of required parameters for CLI
+
+#### Bug Fix
+* end-of-line normalization introduced ([issue #49](https://github.com/av-dev/postgres-differ/issues/49))
+* fixed error logging the number of inserted seeds
+
 ## 2.2.0
 
 #### Enhancement
@@ -195,7 +204,7 @@ Column value definitions (column.default and seed values)
 ## 1.1.0
 
 #### Enhancement
- * Added object/array syntax support for fields of type JSON ([#23](https://github.com/av-dev/postgres-differ/issues/23))
+ * Added object/array syntax support for fields of type JSON ([issue #23](https://github.com/av-dev/postgres-differ/issues/23))
  * Refactoring the postgres query manager
  * Removed unnecessary parameter 'logger'
 
@@ -241,8 +250,8 @@ differ.define({
 ## 1.0.2
 
 #### Enhancement
- * Added declaration file index.d.ts ([#20](https://github.com/av-dev/postgres-differ/pull/20))
- * Concatenated the logger arguments into one ([#19](https://github.com/av-dev/postgres-differ/pull/19))
+ * Added declaration file index.d.ts ([pull #20](https://github.com/av-dev/postgres-differ/pull/20))
+ * Concatenated the logger arguments into one ([pull #19](https://github.com/av-dev/postgres-differ/pull/19))
  
 ## 1.0.1
 
