@@ -22,7 +22,7 @@
     "url": "https://github.com/av-dev/pg-differ.git"
   },
   "bin": {
-    "pg-differ": "./bin/pg-differ"
+    "pg-differ": "./bin/cli.js"
   },
   "author": "Andrey Vereshchak",
   "license": "MIT",
