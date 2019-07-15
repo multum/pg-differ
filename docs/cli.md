@@ -35,7 +35,7 @@ Force sync of tables (drop and create)
 * Default: `./schemas`
 * Required: `false`
 
-Path to the folder with * .schema.json files
+Path to the folder with *.schema.json files
 
 ### version
 * Alias: `-v`

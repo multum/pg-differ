@@ -28,25 +28,19 @@ if (argv.version) {
 
 const logOptions = () => {
   console.error(`Usage: pg-differ [options]
-  --connectionString,-c     Connection URI to database
-  --schemaFolder,-s         Path to the folder with * .schema.json files. Default value is './schemas'
-  --placeholders,-p         An string with names and their values to replace placeholders in 'schemaFolder' files
-  --logging,-l              Option to enable logging in the console
-  --force,-f                Force synchronization of table (drop and create)
-  --version,-v              Print out the installed version
-  --help                    Show this help
+  --connectionString, -c     Connection URI to database
+  --schemaFolder, -s         Path to the folder with *.schema.json files. Default value is './schemas'
+  --placeholders, -p         An string with names and their values to replace placeholders in 'schemaFolder' files
+  --logging, -l              Option to enable logging in the console
+  --force, -f                Force synchronization of table (drop and create)
+  --version, -v              Print out the installed version
+  --help                     Show this help
   `)
 }
 
 if (argv.help) {
   logOptions()
   process.exit(0)
-}
-
-if (!argv.connectionString) {
-  console.error(`You need to define a required parameter 'connectionString' for postgres connection`)
-  logOptions()
-  process.exit(1)
 }
 
 const getPlaceholders = () => (
