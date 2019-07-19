@@ -116,9 +116,9 @@ function Differ (options) {
           logging,
         })
         const sequences = model._getSequences()
-        sequences && sequences.forEach((seq) => {
-          const { name } = seq._getProperties()
-          _sequences.set(name, seq)
+        sequences && sequences.forEach(([ , sequence ]) => {
+          const { name } = sequence._getProperties()
+          _sequences.set(name, sequence)
         })
         _models.set(properties.name, model)
         return model

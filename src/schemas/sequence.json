@@ -1,6 +1,10 @@
 {
   "type": "object",
+  "additionalProperties": false,
   "properties": {
+    "name": {
+      "type": "string"
+    },
     "start": {
       "type": [
         "number",
@@ -26,6 +30,12 @@
       ]
     },
     "cycle": {
+      "type": "boolean"
+    },
+    "actual": {
+      "type": "boolean"
+    },
+    "force": {
       "type": "boolean"
     }
   }

@@ -8,6 +8,7 @@
 const R = require('ramda')
 const parser = require('../parser')
 const Sql = require('../sql')
+const utils = require('../utils')
 const queries = require('../queries/sequence')
 const validate = require('../validate')
 
@@ -33,7 +34,6 @@ module.exports = function (options) {
   } = options
 
   properties = validate.sequence({ ...DEFAULTS, ...properties })
-
   const [ schema = 'public', name ] = parser.separateSchema(properties.name)
 
   const _fetchStructure = () => (
@@ -60,6 +60,9 @@ module.exports = function (options) {
           break
         case 'cycle':
           value ? chunks.push('cycle') : chunks.push('no cycle')
+          break
+        case 'current':
+          utils.isExist(value) && chunks.push(`restart with ${value}`)
           break
         default:
           break
@@ -93,10 +96,20 @@ module.exports = function (options) {
       ])
     } else {
       const dbStructure = await _fetchStructure()
-      const options = dbStructure
-        ? { action: 'alter', ..._getDifference(properties, dbStructure) }
-        : { action: 'create', ...properties }
-      return _buildSql(options)
+      if (dbStructure) {
+        const diff = _getDifference(properties, dbStructure)
+        if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
+          const { rows: [ { correct } ] } = await client.query(
+            queries.hasCorrectCurrValue(schema, name, properties.min, properties.max),
+          )
+          if (!correct) {
+            diff.current = properties.min
+          }
+        }
+        return _buildSql({ action: 'alter', ...diff })
+      } else {
+        return _buildSql({ action: 'create', ...properties })
+      }
     }
   }
 
