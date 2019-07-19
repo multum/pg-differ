@@ -1,6 +1,14 @@
+## 2.2.2
+
+#### Enhancement
+* added adjustment of `currval` when changing `[min, max]` sequence
+
+#### Internal
+* more detailed file `package.json`
+
 ## 2.2.1
 
-Enhancement
+#### Enhancement
 * `--connectionString` removed from the list of required parameters for CLI
 
 #### Bug Fix

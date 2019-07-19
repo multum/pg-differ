@@ -34,11 +34,10 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
           name: `${schemaName}.${tableName}_${column.name}_seq`,
           force: forceCreate,
           ...properties,
-          columnUses: column.name,
         },
       })
       column.default = sequence._getQueryIncrement()
-      return sequence
+      return [ column.name, sequence ]
     })
   }
 }
@@ -524,8 +523,8 @@ module.exports = function (options) {
     }
     const sql = new Sql()
     for (let i = 0; i < _sequences.length; i++) {
-      const sequence = _sequences[i]
-      const { actual = true, columnUses, min, max } = sequence._getProperties()
+      const [ columnUses, sequence ] = _sequences[i]
+      const { actual = true, min, max } = sequence._getProperties()
       if (actual) {
         const sequenceCurValue = await sequence._getCurrentValue()
         const { rows: [ { max: valueForRestart } ] } = await client.query(

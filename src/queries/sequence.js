@@ -18,3 +18,10 @@ exports.increment = (schema, name) => `nextval('${schema}.${name}'::regclass)`
 exports.restart = (schema, name, value) => `alter sequence ${schema}.${name} restart with ${value}`
 
 exports.getCurrentValue = (schema, name) => `select last_value as "currentValue" from ${schema}.${name}`
+
+exports.hasCorrectCurrValue = (schema, name, min, max) => `
+select exists ( 
+  select last_value from ${schema}.${name}
+    where last_value between ${min} and ${max}
+) as correct
+`
