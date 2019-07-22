@@ -27,7 +27,7 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
  * @param {object} options
  * @returns {Sequence}
  */
-module.exports = function (options) {
+function Sequence (options) {
   let {
     properties,
     client,
@@ -128,3 +128,5 @@ module.exports = function (options) {
 
   return Object.freeze({ _getSqlChanges, _getQueryIncrement, _getProperties, _getQueryRestart, _getCurrentValue })
 }
+
+module.exports = Sequence

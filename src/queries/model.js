@@ -5,13 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-exports.getConstraints = (table) => `
+exports.getConstraints = (schema, table) => `
 select
   conname as name,
   c.contype as type,
   pg_catalog.pg_get_constraintdef(c.oid, true) as definition
 from pg_catalog.pg_constraint as c
-  where c.conrelid = '${table}'::regclass order by 1
+  where c.conrelid = '${schema ? `${schema}.${table}` : table}'::regclass order by 1
 `
 
 exports.getColumns = (schema, table) => `

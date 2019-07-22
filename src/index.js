@@ -243,11 +243,25 @@ function Differ (options) {
     }
   }
 
+  const read = ({ type, name }) => {
+    switch (type) {
+      case 'table': {
+        return Model._read(name, { client: _client })
+      }
+      case 'sequence': {
+        return {}
+      }
+      default:
+        logger.error(`Invalid schema type: ${type}`)
+    }
+  }
+
   _setup()
 
   return Object.freeze({
     sync,
     define,
+    read,
   })
 }
 

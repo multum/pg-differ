@@ -12,6 +12,8 @@ exports.isExist = R.compose(R.not, R.isNil)
 
 exports.notEmpty = R.compose(R.not, R.isEmpty)
 
+exports.omitInObject = R.curry((keys, arrayOfObjects) => arrayOfObjects.map(R.omit(keys)))
+
 exports.findByName = (array, name, formerNames) => R.find((el) => {
   if (el.name === name) {
     return true
