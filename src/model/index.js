@@ -536,6 +536,12 @@ Differ._read = async (name, options) => {
 
     await client.query('commit')
 
+    columns.forEach((column) => {
+      if (column.default) {
+        column.default = parser.decodeValue(column.default, column.type)
+      }
+    })
+
     return {
       type: 'table',
       properties: {

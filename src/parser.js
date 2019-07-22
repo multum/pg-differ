@@ -64,7 +64,7 @@ exports.normalizeAutoIncrement = (target) => {
   return target
 }
 
-exports.normalizeValue = (target) => {
+exports.encodeValue = (target) => {
   switch (typeof target) {
     case 'number' :
       return target
@@ -79,6 +79,25 @@ exports.normalizeValue = (target) => {
     default: {
       return R.is(Object, target) ? exports.quoteLiteral(JSON.stringify(target)) : target
     }
+  }
+}
+
+exports.decodeValue = (target, type) => {
+  if (typeof target === 'string') {
+    const bracketsContent = /[^']+(?='$)/
+    const typeGroup = exports.getTypeGroup(type)
+    switch (typeGroup) {
+      case TYPES.GROUPS.JSON: {
+        const match = target.match(bracketsContent)
+        return match ? JSON.parse(match[0]) : target
+      }
+      default: {
+        const match = target.match(bracketsContent)
+        return match ? match[0] : `${target}::sql`
+      }
+    }
+  } else {
+    return target
   }
 }
 
@@ -138,7 +157,7 @@ exports.schema = (schema) => {
       }
 
       const type = exports.normalizeType(column['type'])
-      const defaultValue = exports.normalizeValue(column.default)
+      const defaultValue = exports.encodeValue(column.default)
       const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement)
 
       return {
