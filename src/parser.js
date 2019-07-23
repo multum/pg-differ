@@ -13,7 +13,7 @@ exports.getTypeGroup = (type) => {
   if (type) {
     type = exports.trimType(type)
     return Object.values(TYPES.GROUPS)
-      .find((group) => R.includes(type, group)) || null
+      .find((group) => group.includes(type))
   }
 }
 
@@ -34,51 +34,84 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.defaultValueInformationSchema = (target, currentSchema) => {
-  switch (typeof target) {
+exports.defaultValueInformationSchema = (value, currentSchema) => {
+  switch (typeof value) {
     case 'string': {
       // adding the current scheme in case of its absence
-      target = target.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
+      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
       //
-      const regExp = /::((?![')]).)*$/
-      if (target.match(regExp)) {
-        return target.replace(regExp, '')
+      const regExp = /::[a-zA-Z]+$/
+      if (value.match(regExp)) {
+        return value.replace(regExp, '')
       } else {
-        return target
+        return value
       }
     }
     default: {
-      return target
+      return value
     }
   }
 }
-exports.normalizeAutoIncrement = (target) => {
-  if (R.is(Object, target)) {
+exports.normalizeAutoIncrement = (value) => {
+  if (R.is(Object, value)) {
     return {
       ...SEQUENCES.DEFAULTS,
-      ...target,
+      ...value,
     }
-  } else if (target) {
+  } else if (value) {
     return { ...SEQUENCES.DEFAULTS }
   }
-  return target
+  return value
 }
 
-exports.normalizeValue = (target) => {
-  switch (typeof target) {
+exports.encodeValue = (value) => {
+  switch (typeof value) {
     case 'number' :
-      return target
+      return value
     case 'string': {
       const regExp = /::sql$/
-      if (target.match(regExp)) {
-        return target.replace(regExp, '')
+      if (value.match(regExp)) {
+        return value.replace(regExp, '')
       } else {
-        return exports.quoteLiteral(target)
+        return exports.quoteLiteral(value)
       }
     }
     default: {
-      return R.is(Object, target) ? exports.quoteLiteral(JSON.stringify(target)) : target
+      return R.is(Object, value) ? exports.quoteLiteral(JSON.stringify(value)) : value
     }
+  }
+}
+
+exports.decodeValue = (value, type) => {
+  if (typeof value === 'string') {
+    const bracketsContent = /(?<=^').*(?='$)/
+    const typeGroup = exports.getTypeGroup(type)
+    const defaultValue = `${value}::sql`
+    switch (typeGroup) {
+      case TYPES.GROUPS.JSON: {
+        const match = value.match(bracketsContent)
+        return match ? JSON.parse(match[0]) : defaultValue
+      }
+      case TYPES.GROUPS.INTEGER: {
+        const match = value.match(/^[0-9]*$/)
+        return match ? match[0] : defaultValue
+      }
+      case TYPES.GROUPS.BOOLEAN: {
+        if (value === 'true') {
+          return true
+        } else if (value === 'false') {
+          return false
+        } else {
+          return defaultValue
+        }
+      }
+      default: {
+        const match = value.match(bracketsContent)
+        return match ? match[0] : defaultValue
+      }
+    }
+  } else {
+    return value
   }
 }
 
@@ -109,11 +142,10 @@ const _encryptedNamesListExtensions = {
 
 const _getExtensionDefaults = (listName) => {
   const type = _encryptedNamesListExtensions[listName]
-  switch (type) {
-    case 'foreignKey':
-      return { type, ...EXTENSIONS.FOREIGN_KEY_DEFAULTS }
-    default:
-      return { type }
+  if (type === 'foreignKey') {
+    return { type, ...EXTENSIONS.FOREIGN_KEY_DEFAULTS }
+  } else {
+    return { type }
   }
 }
 
@@ -138,7 +170,7 @@ exports.schema = (schema) => {
       }
 
       const type = exports.normalizeType(column['type'])
-      const defaultValue = exports.normalizeValue(column.default)
+      const defaultValue = exports.encodeValue(column.default)
       const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement)
 
       return {

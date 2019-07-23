@@ -8,6 +8,7 @@
 const R = require('ramda')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
+const Info = require('./info')
 const Sequence = require('../sequence')
 const Logger = require('../logger')
 
@@ -50,7 +51,7 @@ const _defaultExtensions = {
   index: [],
 }
 
-module.exports = function (options) {
+function Model (options) {
   const { client, force, schema, logging } = options
 
   let _dbExtensions = { ..._defaultExtensions }
@@ -68,6 +69,8 @@ module.exports = function (options) {
     table: _table,
   })
 
+  const info = new Info({ client, schema: _schemaName, name: _tableName })
+
   const logger = new Logger({ prefix: `Postgres Differ [ '${_table}' ]`, callback: logging })
 
   const _sequences = _setupSequences({
@@ -80,51 +83,13 @@ module.exports = function (options) {
 
   const _getProperties = () => ({ ..._schema })
 
-  const _fetchColumns = async () => (
-    client.query(
-      queries.getColumns(_schemaName, _tableName),
-    ).then(
-      R.pipe(
-        R.prop('rows'),
-        parser.dbColumns(_schemaName),
-      ),
-    )
-  )
-
-  const _fetchConstraints = async (table = _table) => {
-    await client.query('savepoint temp_search_path')
-    await client.query(queries.publicSearchPath())
-    const constraints = await client.query(
-      queries.getConstraints(table),
-    ).then(
-      R.pipe(
-        R.prop('rows'),
-        parser.extensionDefinitions,
-        R.groupBy(R.prop('type')),
-      ),
-    )
-    await client.query('rollback to savepoint temp_search_path')
-    return constraints
-  }
-
-  const _fetchIndexes = () => (
-    client.query(
-      queries.getIndexes(_schemaName, _tableName),
-    ).then(
-      R.pipe(
-        R.prop('rows'),
-        parser.indexDefinitions,
-      ),
-    )
-  )
-
   /**
    *  Database extension structure
    */
   const _fetchAllExtensions = async () => {
     const [ constraints, index ] = await Promise.all([
-      _fetchConstraints(),
-      _fetchIndexes(),
+      info.getConstraints(),
+      info.getIndexes(),
     ])
     _dbExtensions = {
       ..._defaultExtensions,
@@ -174,9 +139,11 @@ module.exports = function (options) {
         const dbColumn = utils.findByName(dbColumns, column.name, column.formerNames)
         if (dbColumn) {
           const diff = _getColumnAttributeDiffs(column, dbColumn)
-          return diff && utils.notEmpty(diff)
-            ? { ...column, diff }
-            : null
+          return (
+            Boolean(diff) && utils.notEmpty(diff)
+              ? { ...column, diff }
+              : null
+          )
         } else {
           return column
         }
@@ -202,7 +169,7 @@ module.exports = function (options) {
   )(extensions)
 
   const _getSQLColumnChanges = async () => {
-    const dbColumns = await _fetchColumns()
+    const dbColumns = await info.getColumns()
     const sql = new Sql()
     const differences = _getColumnDifferences(dbColumns, _schema.columns)
     if (utils.notEmpty(differences)) {
@@ -223,6 +190,10 @@ module.exports = function (options) {
   }
 
   const _normalizeCheckRows = async (rows) => {
+    if (R.isEmpty(rows)) {
+      return rows
+    }
+
     const getConstraintName = (id) => `temp_constraint_check_${id}`
     const tempTableName = `temp_${_tableName}`
 
@@ -238,7 +209,7 @@ module.exports = function (options) {
 
     await client.query(sql.join())
 
-    const { check: dbChecks } = await _fetchConstraints(tempTableName)
+    const { check: dbChecks } = await info.getConstraints(null, tempTableName)
     await client.query(`drop table ${tempTableName};`)
 
     return rows.map((_, i) => ({
@@ -250,7 +221,7 @@ module.exports = function (options) {
   const _getCheckChanges = async (rows) => (
     _getExtensionChangesOf(
       { check: _dbExtensions.check },
-      await _normalizeCheckRows(rows),
+      { check: await _normalizeCheckRows(rows) },
     )
   )
 
@@ -548,3 +519,35 @@ module.exports = function (options) {
     addSeeds,
   })
 }
+
+Model._read = async (name, options) => {
+  const { client } = options
+  const [ _schemaName = 'public', _tableName ] = parser.separateSchema(name)
+  const info = new Info({ client, schema: _schemaName, name: _tableName })
+
+  const removeTypeAndNames = utils.omitInObject([ 'type', 'name' ])
+
+  const indexes = await info.getIndexes()
+  const columns = await info.getColumns()
+  const { foreignKey = [], unique = [], check = [] } = await info.getConstraints()
+
+  columns.forEach((column) => {
+    if (column.default) {
+      column.default = parser.decodeValue(column.default, column.type)
+    }
+  })
+
+  return {
+    type: 'table',
+    properties: {
+      name: `${_schemaName}.${_tableName}`,
+      columns,
+      indexes: removeTypeAndNames(indexes),
+      foreignKeys: removeTypeAndNames(foreignKey),
+      unique: removeTypeAndNames(unique),
+      checks: removeTypeAndNames(check),
+    },
+  }
+}
+
+module.exports = Model

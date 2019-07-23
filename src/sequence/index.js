@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const R = require('ramda')
 const parser = require('../parser')
 const Sql = require('../sql')
+const Info = require('./info')
 const utils = require('../utils')
 const queries = require('../queries/sequence')
 const validate = require('../validate')
@@ -27,7 +27,7 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
  * @param {object} options
  * @returns {Sequence}
  */
-module.exports = function (options) {
+function Sequence (options) {
   let {
     properties,
     client,
@@ -36,11 +36,7 @@ module.exports = function (options) {
   properties = validate.sequence({ ...DEFAULTS, ...properties })
   const [ schema = 'public', name ] = parser.separateSchema(properties.name)
 
-  const _fetchStructure = () => (
-    client.query(
-      queries.getSequence(schema, name),
-    ).then(R.path([ 'rows', 0 ])).then(parser.dbSequence)
-  )
+  const info = new Info({ client, schema, name })
 
   const _buildSql = ({ action, ...rest }) => {
     const chunks = []
@@ -95,7 +91,7 @@ module.exports = function (options) {
         ..._buildSql({ action: 'create', ...properties }).getStore(),
       ])
     } else {
-      const dbStructure = await _fetchStructure()
+      const dbStructure = await info.getProperties()
       if (dbStructure) {
         const diff = _getDifference(properties, dbStructure)
         if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
@@ -126,5 +122,27 @@ module.exports = function (options) {
     return currentValue
   }
 
-  return Object.freeze({ _getSqlChanges, _getQueryIncrement, _getProperties, _getQueryRestart, _getCurrentValue })
+  return Object.freeze({
+    _getSqlChanges,
+    _getQueryIncrement,
+    _getProperties,
+    _getQueryRestart,
+    _getCurrentValue,
+  })
 }
+
+Sequence._read = async (name, options) => {
+  const { client } = options
+  const [ _schemaName = 'public', _sequenceName ] = parser.separateSchema(name)
+  const info = new Info({ client, schema: _schemaName, name: _sequenceName })
+
+  return {
+    type: 'sequence',
+    properties: {
+      ...await info.getProperties(),
+      name: `${_schemaName}.${_sequenceName}`,
+    },
+  }
+}
+
+module.exports = Sequence

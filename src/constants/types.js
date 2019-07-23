@@ -64,6 +64,10 @@ const GROUPS = {
   BOOLEAN: [
     'boolean',
   ],
+  JSON: [
+    'json',
+    'jsonb',
+  ],
 }
 
 module.exports = {
