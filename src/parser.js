@@ -40,7 +40,7 @@ exports.defaultValueInformationSchema = (value, currentSchema) => {
       // adding the current scheme in case of its absence
       value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
       //
-      const regExp = /::[^']+$/
+      const regExp = /::[a-zA-Z]+$/
       if (value.match(regExp)) {
         return value.replace(regExp, '')
       } else {

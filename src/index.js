@@ -249,7 +249,7 @@ function Differ (options) {
         return Model._read(name, { client: _client })
       }
       case 'sequence': {
-        return {}
+        return Sequence._read(name, { client: _client })
       }
       default:
         logger.error(`Invalid schema type: ${type}`)

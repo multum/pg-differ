@@ -11,7 +11,7 @@ const queries = require('../queries/model')
 const parser = require('../parser')
 
 /**
- * @typedef {object} ModelStructure
+ * @typedef {object} ModelInfo
  * @property {function} getColumns
  * @property {function} getConstraints
  * @property {function} getIndexes
@@ -20,10 +20,10 @@ const parser = require('../parser')
 /**
  *
  * @param {object} options
- * @returns {ModelStructure}
+ * @returns {ModelInfo}
  */
 
-function ModelStructure (options) {
+function ModelInfo (options) {
   const { client, schema, name } = options
 
   const getColumns = async () => (
@@ -71,4 +71,4 @@ function ModelStructure (options) {
   })
 }
 
-module.exports = ModelStructure
+module.exports = ModelInfo

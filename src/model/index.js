@@ -8,7 +8,7 @@
 const R = require('ramda')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
-const Structure = require('./structure')
+const Info = require('./info')
 const Sequence = require('../sequence')
 const Logger = require('../logger')
 
@@ -51,7 +51,7 @@ const _defaultExtensions = {
   index: [],
 }
 
-function Differ (options) {
+function Model (options) {
   const { client, force, schema, logging } = options
 
   let _dbExtensions = { ..._defaultExtensions }
@@ -69,7 +69,7 @@ function Differ (options) {
     table: _table,
   })
 
-  const structure = new Structure({ client, schema: _schemaName, name: _tableName })
+  const info = new Info({ client, schema: _schemaName, name: _tableName })
 
   const logger = new Logger({ prefix: `Postgres Differ [ '${_table}' ]`, callback: logging })
 
@@ -88,8 +88,8 @@ function Differ (options) {
    */
   const _fetchAllExtensions = async () => {
     const [ constraints, index ] = await Promise.all([
-      structure.getConstraints(),
-      structure.getIndexes(),
+      info.getConstraints(),
+      info.getIndexes(),
     ])
     _dbExtensions = {
       ..._defaultExtensions,
@@ -169,7 +169,7 @@ function Differ (options) {
   )(extensions)
 
   const _getSQLColumnChanges = async () => {
-    const dbColumns = await structure.getColumns()
+    const dbColumns = await info.getColumns()
     const sql = new Sql()
     const differences = _getColumnDifferences(dbColumns, _schema.columns)
     if (utils.notEmpty(differences)) {
@@ -209,7 +209,7 @@ function Differ (options) {
 
     await client.query(sql.join())
 
-    const { check: dbChecks } = await structure.getConstraints(null, tempTableName)
+    const { check: dbChecks } = await info.getConstraints(null, tempTableName)
     await client.query(`drop table ${tempTableName};`)
 
     return rows.map((_, i) => ({
@@ -520,19 +520,19 @@ function Differ (options) {
   })
 }
 
-Differ._read = async (name, options) => {
+Model._read = async (name, options) => {
   const { client } = options
   const [ _schemaName = 'public', _tableName ] = parser.separateSchema(name)
-  const structure = new Structure({ client, schema: _schemaName, name: _tableName })
+  const info = new Info({ client, schema: _schemaName, name: _tableName })
 
   const removeTypeAndNames = utils.omitInObject([ 'type', 'name' ])
 
   client.query('begin')
 
   try {
-    const indexes = await structure.getIndexes()
-    const columns = await structure.getColumns()
-    const { foreignKey = [], unique = [], check = [] } = await structure.getConstraints()
+    const indexes = await info.getIndexes()
+    const columns = await info.getColumns()
+    const { foreignKey = [], unique = [], check = [] } = await info.getConstraints()
 
     await client.query('commit')
 
@@ -559,4 +559,4 @@ Differ._read = async (name, options) => {
   }
 }
 
-module.exports = Differ
+module.exports = Model
