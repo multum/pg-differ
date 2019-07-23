@@ -243,16 +243,28 @@ function Differ (options) {
     }
   }
 
-  const read = ({ type, name }) => {
-    switch (type) {
-      case 'table': {
-        return Model._read(name, { client: _client })
+  const read = async ({ type, name }) => {
+    let result
+    _client.query('begin')
+    try {
+      switch (type) {
+        case 'table': {
+          result = await Model._read(name, { client: _client })
+          break
+        }
+        case 'sequence': {
+          result = await Sequence._read(name, { client: _client })
+          break
+        }
+        default:
+          logger.error(`Invalid schema type: ${type}`)
       }
-      case 'sequence': {
-        return Sequence._read(name, { client: _client })
-      }
-      default:
-        logger.error(`Invalid schema type: ${type}`)
+      _client.query('commit')
+      await _client.end()
+      return result
+    } catch (error) {
+      await _client.query('rollback')
+      throw error
     }
   }
 

@@ -527,35 +527,26 @@ Model._read = async (name, options) => {
 
   const removeTypeAndNames = utils.omitInObject([ 'type', 'name' ])
 
-  client.query('begin')
+  const indexes = await info.getIndexes()
+  const columns = await info.getColumns()
+  const { foreignKey = [], unique = [], check = [] } = await info.getConstraints()
 
-  try {
-    const indexes = await info.getIndexes()
-    const columns = await info.getColumns()
-    const { foreignKey = [], unique = [], check = [] } = await info.getConstraints()
-
-    await client.query('commit')
-
-    columns.forEach((column) => {
-      if (column.default) {
-        column.default = parser.decodeValue(column.default, column.type)
-      }
-    })
-
-    return {
-      type: 'table',
-      properties: {
-        name: `${_schemaName}.${_tableName}`,
-        columns,
-        indexes: removeTypeAndNames(indexes),
-        foreignKeys: removeTypeAndNames(foreignKey),
-        unique: removeTypeAndNames(unique),
-        checks: removeTypeAndNames(check),
-      },
+  columns.forEach((column) => {
+    if (column.default) {
+      column.default = parser.decodeValue(column.default, column.type)
     }
-  } catch (error) {
-    await client.query('rollback')
-    throw error
+  })
+
+  return {
+    type: 'table',
+    properties: {
+      name: `${_schemaName}.${_tableName}`,
+      columns,
+      indexes: removeTypeAndNames(indexes),
+      foreignKeys: removeTypeAndNames(foreignKey),
+      unique: removeTypeAndNames(unique),
+      checks: removeTypeAndNames(check),
+    },
   }
 }
 

@@ -136,21 +136,12 @@ Sequence._read = async (name, options) => {
   const [ _schemaName = 'public', _sequenceName ] = parser.separateSchema(name)
   const info = new Info({ client, schema: _schemaName, name: _sequenceName })
 
-  client.query('begin')
-
-  try {
-    await client.query('commit')
-
-    return {
-      type: 'sequence',
-      properties: {
-        ...await info.getProperties(),
-        name: `${_schemaName}.${_sequenceName}`,
-      },
-    }
-  } catch (error) {
-    await client.query('rollback')
-    throw error
+  return {
+    type: 'sequence',
+    properties: {
+      ...await info.getProperties(),
+      name: `${_schemaName}.${_sequenceName}`,
+    },
   }
 }
 
