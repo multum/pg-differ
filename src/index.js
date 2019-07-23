@@ -264,6 +264,7 @@ function Differ (options) {
       return result
     } catch (error) {
       await _client.query('rollback')
+      await _client.end()
       throw error
     }
   }
