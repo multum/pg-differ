@@ -235,7 +235,7 @@ function Differ (options) {
       await _client.query('commit')
       logger.info(chalk.green('Sync end'), null)
 
-      return _client.end()
+      await _client.end()
     } catch (error) {
       await _client.query('rollback')
       await _client.end()
@@ -245,7 +245,7 @@ function Differ (options) {
 
   const read = async ({ type, name }) => {
     let result
-    _client.query('begin')
+    await _client.query('begin')
     try {
       switch (type) {
         case 'table': {
@@ -259,7 +259,7 @@ function Differ (options) {
         default:
           logger.error(`Invalid schema type: ${type}`)
       }
-      _client.query('commit')
+      await _client.query('commit')
       await _client.end()
       return result
     } catch (error) {
