@@ -9,9 +9,9 @@ const R = require('ramda')
 const Ajv = require('ajv')
 
 const TYPES = {
-  MODEL_DEFINITION: 'define.model',
+  TABLE_DEFINITION: 'define.table',
   SEQUENCE_DEFINITION: 'define.sequence',
-  MODEL_READING: 'read.model',
+  TABLE_READING: 'read.table',
   SEQUENCE_READING: 'read.sequence',
 }
 
@@ -39,8 +39,8 @@ const validate = R.curry((validateType, object) => {
 })
 
 module.exports = {
-  modelDefinition: validate(TYPES.MODEL_DEFINITION),
+  tableDefinition: validate(TYPES.TABLE_DEFINITION),
   sequenceDefinition: validate(TYPES.SEQUENCE_DEFINITION),
-  modelReading: validate(TYPES.MODEL_READING),
+  tableReading: validate(TYPES.TABLE_READING),
   sequenceReading: validate(TYPES.SEQUENCE_READING),
 }

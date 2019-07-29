@@ -25,7 +25,7 @@ const path = require('path')
 const setup = async () => {
   const differ = new Differ({
     connectionConfig: {},
-    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
+    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method,
     logging: true,
     placeholders: {
       schema: 'schema_name'

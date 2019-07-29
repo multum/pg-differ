@@ -12,7 +12,7 @@ const Info = require('./info')
 const Sequence = require('../sequence')
 const Logger = require('../logger')
 
-const queries = require('../queries/model')
+const queries = require('../queries/table')
 const utils = require('../utils')
 const parser = require('../parser')
 const { COLUMNS, TYPES } = require('../constants')
@@ -20,7 +20,7 @@ const { COLUMNS, TYPES } = require('../constants')
 const validate = require('../validate')
 
 const _parseSchema = R.pipe(
-  validate.modelDefinition,
+  validate.tableDefinition,
   parser.schema,
 )
 
@@ -51,7 +51,7 @@ const _defaultExtensions = {
   index: [],
 }
 
-function Model (options) {
+function Table (options) {
   const { client, force, schema, logging } = options
 
   let _dbExtensions = { ..._defaultExtensions }
@@ -514,7 +514,7 @@ function Model (options) {
   })
 }
 
-Model._read = async (client, options) => {
+Table._read = async (client, options) => {
   const [ _schemaName = 'public', _tableName ] = parser.separateSchema(options.name)
   const info = new Info({ client, schema: _schemaName, name: _tableName })
 
@@ -555,4 +555,4 @@ Model._read = async (client, options) => {
   return properties
 }
 
-module.exports = Model
+module.exports = Table

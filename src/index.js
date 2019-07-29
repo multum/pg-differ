@@ -14,7 +14,7 @@ const validate = require('./validate')
 
 const Logger = require('./logger')
 const Client = require('./postgres-client')
-const Model = require('./model')
+const Table = require('./table')
 const Sequence = require('./sequence')
 
 const _defaultOptions = {
@@ -77,7 +77,7 @@ function Differ (options) {
   const logger = new Logger({ prefix: 'Postgres Differ', callback: logging })
 
   const _client = new Client(connectionConfig, { reconnection })
-  const _models = new Map()
+  const _tables = new Map()
   const _sequences = new Map()
 
   const _getDatabaseVersion = async () => {
@@ -110,19 +110,19 @@ function Differ (options) {
 
     switch (type) {
       case 'table': {
-        const model = new Model({
+        const table = new Table({
           client: _client,
           schema: properties,
           force,
           logging,
         })
-        const sequences = model._getSequences()
+        const sequences = table._getSequences()
         sequences && sequences.forEach(([ , sequence ]) => {
           const { name } = sequence._getProperties()
           _sequences.set(name, sequence)
         })
-        _models.set(properties.name, model)
-        return model
+        _tables.set(properties.name, table)
+        return table
       }
       case 'sequence': {
         const sequence = new Sequence({
@@ -173,7 +173,7 @@ function Differ (options) {
   }
 
   const sync = async () => {
-    const models = [ ..._models.values() ]
+    const tables = [ ..._tables.values() ]
     const sequences = [ ..._sequences.values() ]
 
     logger.info(chalk.green('Sync start'), null)
@@ -189,7 +189,7 @@ function Differ (options) {
         await _entitySync({
           entity: 'tables',
           orderOfOperations: null,
-          promises: models.map((model) => model._getSqlCreateOrAlterTable()),
+          promises: tables.map((table) => table._getSqlCreateOrAlterTable()),
         }),
         await _entitySync({
           entity: 'extensions',
@@ -200,7 +200,7 @@ function Differ (options) {
             'delete rows',
             'add unique',
           ],
-          promises: models.map((model) => model._getSqlExtensionChanges()),
+          promises: tables.map((table) => table._getSqlExtensionChanges()),
         }),
       ]
 
@@ -209,7 +209,7 @@ function Differ (options) {
         const insertSeedQueries = await _entitySync({
           entity: 'seeds',
           orderOfOperations: null,
-          promises: models.map((model) => model._getSqlInsertSeeds()),
+          promises: tables.map((table) => table._getSqlInsertSeeds()),
           logging: false,
         })
         if (insertSeedQueries) {
@@ -225,7 +225,7 @@ function Differ (options) {
         await _entitySync({
           entity: 'sequence values',
           orderOfOperations: null,
-          promises: models.map((model) => model._getSqlSequenceActualize()),
+          promises: tables.map((table) => table._getSqlSequenceActualize()),
         }),
       )
 
@@ -250,8 +250,8 @@ function Differ (options) {
     try {
       switch (type) {
         case 'table': {
-          validate.modelReading(options)
-          properties = await Model._read(_client, options)
+          validate.tableReading(options)
+          properties = await Table._read(_client, options)
           break
         }
         case 'sequence': {

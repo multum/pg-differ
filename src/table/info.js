@@ -7,11 +7,11 @@
 
 const R = require('ramda')
 
-const queries = require('../queries/model')
+const queries = require('../queries/table')
 const parser = require('../parser')
 
 /**
- * @typedef {object} ModelInfo
+ * @typedef {object} TableInfo
  * @property {function} getColumns
  * @property {function} getConstraints
  * @property {function} getIndexes
@@ -22,10 +22,10 @@ const parser = require('../parser')
 /**
  *
  * @param {object} options
- * @returns {ModelInfo}
+ * @returns {TableInfo}
  */
 
-function ModelInfo (options) {
+function TableInfo (options) {
   const { client, schema, name } = options
 
   const getColumns = async () => (
@@ -91,4 +91,4 @@ function ModelInfo (options) {
   })
 }
 
-module.exports = ModelInfo
+module.exports = TableInfo

@@ -122,7 +122,7 @@ interface Schema {
     properties: TableSchemaOptions | SequenceSchemaOptions
 }
 
-interface Model {
+interface Table {
     // public methods
     addSeeds(seeds: Array<Object>): null
 
@@ -150,7 +150,7 @@ declare type EntityType = 'table' | 'sequence'
 declare class Differ {
     constructor(options: DifferOptions);
 
-    define(entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Model | Sequence
+    define(entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Table | Sequence
 
     sync(): Promise<null>
 
