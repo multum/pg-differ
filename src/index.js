@@ -10,6 +10,7 @@ const path = require('path')
 const chalk = require('chalk')
 const R = require('ramda')
 const utils = require('./utils')
+const validate = require('./validate')
 
 const Logger = require('./logger')
 const Client = require('./postgres-client')
@@ -243,30 +244,35 @@ function Differ (options) {
     }
   }
 
-  const read = async ({ type, name }) => {
-    let result
+  const _read = async (type, options) => {
+    let properties
     await _client.query('begin')
     try {
       switch (type) {
         case 'table': {
-          result = await Model._read(name, { client: _client })
+          validate.modelReading(options)
+          properties = await Model._read(_client, options)
           break
         }
         case 'sequence': {
-          result = await Sequence._read(name, { client: _client })
+          validate.sequenceReading(options)
+          properties = await Sequence._read(_client, options)
           break
         }
-        default:
-          logger.error(`Invalid schema type: ${type}`)
       }
       await _client.query('commit')
       await _client.end()
-      return result
+      return properties
     } catch (error) {
       await _client.query('rollback')
       await _client.end()
       throw error
     }
+  }
+
+  const read = {
+    table: (options) => _read('table', options),
+    sequence: (options) => _read('sequence', options),
   }
 
   _setup()

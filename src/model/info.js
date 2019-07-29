@@ -15,6 +15,8 @@ const parser = require('../parser')
  * @property {function} getColumns
  * @property {function} getConstraints
  * @property {function} getIndexes
+ * @property {function} getRows
+ * @property {function} exists
  */
 
 /**
@@ -64,10 +66,28 @@ function ModelInfo (options) {
     )
   )
 
+  const getRows = (orderBy, range) => (
+    client.query(
+      queries.getRows(schema, name, orderBy, range),
+    ).then(
+      R.pipe(
+        R.prop('rows'),
+      ),
+    )
+  )
+
+  const exists = () => (
+    client.query(
+      queries.tableExist(schema, name),
+    ).then(R.path([ 'rows', 0, 'exists' ]))
+  )
+
   return Object.freeze({
     getColumns,
     getConstraints,
     getIndexes,
+    getRows,
+    exists,
   })
 }
 

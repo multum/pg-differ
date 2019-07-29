@@ -17,30 +17,27 @@ describe('sync', () => {
 
     await differ.sync()
 
-    differ.define({
-      type: 'table',
-      properties: {
-        name: 'public.blogs',
-        cleanable: {
-          unique: true,
-          foreignKeys: true,
-          indexes: true,
-          primaryKeys: true,
-        },
-        columns: [
-          {
-            name: 'id',
-            type: 'bigint',
-            autoIncrement: { 'start': 1, 'name': 'blog_id_seq' },
-          },
-          {
-            name: 'large_id',
-            type: 'bigint',
-            primaryKey: true,
-          },
-          { name: 'deleted', type: 'bool' },
-        ],
+    differ.define('table', {
+      name: 'public.blogs',
+      cleanable: {
+        unique: true,
+        foreignKeys: true,
+        indexes: true,
+        primaryKeys: true,
       },
+      columns: [
+        {
+          name: 'id',
+          type: 'bigint',
+          autoIncrement: { 'start': 1, 'name': 'blog_id_seq' },
+        },
+        {
+          name: 'large_id',
+          type: 'bigint',
+          primaryKey: true,
+        },
+        { name: 'deleted', type: 'bool' },
+      ],
     })
 
     await differ.sync()
@@ -52,39 +49,36 @@ describe('sync', () => {
       reconnection: true,
       logging,
     })
-    differ.define({
-      type: 'table',
-      properties: {
-        name: 'children',
-        force: true,
-        foreignKeys: [
-          {
-            'columns': [ 'parent' ],
-            'references': {
-              'table': 'users',
-              'columns': [ 'description' ],
-            },
+    differ.define('table', {
+      name: 'children',
+      force: true,
+      foreignKeys: [
+        {
+          'columns': [ 'parent' ],
+          'references': {
+            'table': 'users',
+            'columns': [ 'description' ],
           },
-        ],
-        columns: [
-          {
-            'name': 'id',
-            'type': 'bigint',
-            'unique': true,
-            'primaryKey': true,
-            'autoIncrement': true,
-          },
-          {
-            'name': 'age',
-            'type': 'bigint',
-            'default': 18,
-          },
-          {
-            'name': 'parent',
-            'type': 'varchar(255)',
-          },
-        ],
-      },
+        },
+      ],
+      columns: [
+        {
+          'name': 'id',
+          'type': 'bigint',
+          'unique': true,
+          'primaryKey': true,
+          'autoIncrement': true,
+        },
+        {
+          'name': 'age',
+          'type': 'bigint',
+          'default': 18,
+        },
+        {
+          'name': 'parent',
+          'type': 'varchar(255)',
+        },
+      ],
     })
     await differ.sync()
   })

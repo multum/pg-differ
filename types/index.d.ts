@@ -61,7 +61,7 @@ interface ColumnOptions {
     primaryKey?: boolean,
     unique?: boolean,
     default?: ColumnValueType,
-    autoIncrement?: boolean | SequenceOptions,
+    autoIncrement?: boolean | AutoIncrementOptions,
     formerNames?: Array<string>,
 }
 
@@ -69,7 +69,21 @@ interface IndexOptions {
     columns: Array<string>,
 }
 
-interface SequenceOptions {
+interface SequenceReadOptions {
+    name: string
+}
+
+
+interface SequenceSchemaOptions {
+    name: string,
+    start?: string | number,
+    min?: string | number,
+    max?: string | number,
+    increment?: string | number,
+    cycle?: boolean,
+}
+
+interface AutoIncrementOptions {
     name?: string,
     start?: string | number,
     min?: string | number,
@@ -82,7 +96,7 @@ interface CheckOptions {
     condition: string
 }
 
-interface TableOptions {
+interface TableSchemaOptions {
     name: string,
     columns: Array<ColumnOptions>,
     cleanable?: CleanExtensionOptions,
@@ -95,9 +109,17 @@ interface TableOptions {
     seeds?: Array<Object>,
 }
 
+interface TableReadOptions {
+    name: string,
+    seeds?: boolean | {
+        orderBy?: string,
+        range?: Array<string | number>
+    }
+}
+
 interface Schema {
     type: string,
-    properties: TableOptions | SequenceOptions
+    properties: TableSchemaOptions | SequenceSchemaOptions
 }
 
 interface Model {
@@ -128,9 +150,14 @@ declare type EntityType = 'table' | 'sequence'
 declare class Differ {
     constructor(options: DifferOptions);
 
-    define(entityType: Schema | EntityType, properties?: TableOptions | SequenceOptions): Model | Sequence
+    define(entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Model | Sequence
 
     sync(): Promise<null>
+
+    read: {
+        table(options: TableReadOptions): Promise<TableSchemaOptions>,
+        sequence(options: SequenceReadOptions): Promise<SequenceSchemaOptions>,
+    }
 }
 
 export = Differ;

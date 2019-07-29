@@ -20,7 +20,7 @@ const { COLUMNS, TYPES } = require('../constants')
 const validate = require('../validate')
 
 const _parseSchema = R.pipe(
-  validate.model,
+  validate.modelDefinition,
   parser.schema,
 )
 
@@ -99,19 +99,13 @@ function Model (options) {
     return _dbExtensions
   }
 
-  const _tableExist = (schema, table) => (
-    client.query(
-      queries.tableExist(schema, table),
-    ).then(R.path([ 'rows', 0, 'exists' ]))
-  )
-
   const _getSqlCreateOrAlterTable = async () => {
     let sqlCreateOrAlterTable
 
     if (_forceCreate) {
       sqlCreateOrAlterTable = _createTable({ force: true })
     } else {
-      if (await _tableExist(_schemaName, _tableName)) {
+      if (await info.exists()) {
         await _fetchAllExtensions()
         sqlCreateOrAlterTable = await _getSQLColumnChanges()
       } else {
@@ -520,10 +514,13 @@ function Model (options) {
   })
 }
 
-Model._read = async (name, options) => {
-  const { client } = options
-  const [ _schemaName = 'public', _tableName ] = parser.separateSchema(name)
+Model._read = async (client, options) => {
+  const [ _schemaName = 'public', _tableName ] = parser.separateSchema(options.name)
   const info = new Info({ client, schema: _schemaName, name: _tableName })
+
+  if (!await info.exists()) {
+    return undefined
+  }
 
   const removeTypeAndNames = utils.omitInObject([ 'type', 'name' ])
 
@@ -537,17 +534,25 @@ Model._read = async (name, options) => {
     }
   })
 
-  return {
-    type: 'table',
-    properties: {
-      name: `${_schemaName}.${_tableName}`,
-      columns,
-      indexes: removeTypeAndNames(indexes),
-      foreignKeys: removeTypeAndNames(foreignKey),
-      unique: removeTypeAndNames(unique),
-      checks: removeTypeAndNames(check),
-    },
+  const properties = {
+    name: `${_schemaName}.${_tableName}`,
+    columns,
+    indexes: removeTypeAndNames(indexes),
+    foreignKeys: removeTypeAndNames(foreignKey),
+    unique: removeTypeAndNames(unique),
+    checks: removeTypeAndNames(check),
   }
+
+  if (options.seeds) {
+    if (R.is(Object, options.seeds)) {
+      const { orderBy, range } = options.seeds
+      properties.seeds = await info.getRows(orderBy, range)
+    } else {
+      properties.seeds = await info.getRows()
+    }
+  }
+
+  return properties
 }
 
 module.exports = Model

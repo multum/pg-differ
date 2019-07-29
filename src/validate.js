@@ -9,36 +9,38 @@ const R = require('ramda')
 const Ajv = require('ajv')
 
 const TYPES = {
-  MODEL: 'model',
-  SEQUENCE: 'sequence',
+  MODEL_DEFINITION: 'define.model',
+  SEQUENCE_DEFINITION: 'define.sequence',
+  MODEL_READING: 'read.model',
+  SEQUENCE_READING: 'read.sequence',
 }
 
 const ajv = new Ajv({
   schemas: (
     Object.values(TYPES).map((schemaPath) => {
-      const json = require(`./schemas/${schemaPath}`)
+      const json = require(`./schemas/${schemaPath}.json`)
       json.$id = schemaPath
       return json
     })
   ),
 })
 
-const formatErrors = R.pipe(
-  R.map(({ dataPath, message }) => `[ ${dataPath} ] - ${message}`),
-  R.prepend('Schema validation error'),
-  R.join('\n'),
-)
+const formatErrors = (validateType, errors) => `${validateType}\n\t${
+  errors.map(({ dataPath, message }) => `${dataPath ? `[ ${dataPath} ] ` : ''}${message}`).join('\n\t')}
+`
 
-const validate = R.curry((schemaName, target) => {
-  const validate = ajv.getSchema(schemaName)
-  if (validate(target)) {
-    return target
+const validate = R.curry((validateType, object) => {
+  const validate = ajv.getSchema(validateType)
+  if (validate(object)) {
+    return object
   } else {
-    throw new Error(formatErrors(validate.errors))
+    throw new Error(formatErrors(validateType, validate.errors))
   }
 })
 
 module.exports = {
-  model: validate(TYPES.MODEL),
-  sequence: validate(TYPES.SEQUENCE),
+  modelDefinition: validate(TYPES.MODEL_DEFINITION),
+  sequenceDefinition: validate(TYPES.SEQUENCE_DEFINITION),
+  modelReading: validate(TYPES.MODEL_READING),
+  sequenceReading: validate(TYPES.SEQUENCE_READING),
 }
