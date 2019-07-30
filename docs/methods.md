@@ -16,14 +16,14 @@ Synchronization of previously defined tables and their seeds
 
 ### read.table
 
-* Arguments: [read.table options](read-table.md)
+* Arguments: (options: [read.table options](read-table.md))
 * Returns: Promise<[table properties](table.md#properties)> 
 
 Getting the schema of an existing table
 
 ### read.sequence
 
-* Arguments: [read.sequence options](read-sequence.md)
+* Arguments: (options: [read.sequence options](read-sequence.md))
 * Returns: Promise<[sequence properties](sequence.md#properties)> 
 
 Getting the schema of an existing sequence

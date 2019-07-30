@@ -2,7 +2,7 @@
 
 ## addSeeds
 
-* Arguments: `seeds: Array<Object>`
+* Arguments: (seeds: `Array<Object>`)
 * Returns: `null`
 
 Seed definitions

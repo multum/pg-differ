@@ -88,7 +88,7 @@ Array of [objects with parameters](check.md) of table checks
 
 ### addSeeds
 
-* Arguments: `seeds: Array<Object>`
+* Arguments: (seeds: `Array<Object>`)
 * Returns: `null`
 
 Seed definitions
