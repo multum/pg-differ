@@ -25,6 +25,7 @@ You can find the documentation [on the website](https://av-dev.github.io/postgre
   - Seed support
   - Force changing column types *(with `force: true`)*
   - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
+  - Sequence support
   - Change logging
 
 ## In future
@@ -32,7 +33,8 @@ You can find the documentation [on the website](https://av-dev.github.io/postgre
   - [x] Support rename column(formerNames prop) *v1.0.0*
   - [x] Support seeds *v1.0.0*
   - [x] Support `check` constraint *v2.0.0*
-  - [x] Sequence support as a separate entity *v2.0.0*
+  - [x] Sequence support *v2.0.0*
+  - [x] Reading entity structure/properties *v2.3.0*
 
 ## Contributing
 

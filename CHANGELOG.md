@@ -1,3 +1,12 @@
+## 2.3.0
+
+#### Enhancement
+* added ability to **read the structure/properties** of existing entities
+
+#### Internal
+* increase test coverage
+* improved regular expressions for parsing values from `information_schema`
+
 ## 2.2.2
 
 #### Enhancement
