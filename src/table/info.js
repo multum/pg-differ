@@ -7,23 +7,25 @@
 
 const R = require('ramda')
 
-const queries = require('../queries/model')
+const queries = require('../queries/table')
 const parser = require('../parser')
 
 /**
- * @typedef {object} ModelInfo
+ * @typedef {object} TableInfo
  * @property {function} getColumns
  * @property {function} getConstraints
  * @property {function} getIndexes
+ * @property {function} getRows
+ * @property {function} exists
  */
 
 /**
  *
  * @param {object} options
- * @returns {ModelInfo}
+ * @returns {TableInfo}
  */
 
-function ModelInfo (options) {
+function TableInfo (options) {
   const { client, schema, name } = options
 
   const getColumns = async () => (
@@ -64,11 +66,29 @@ function ModelInfo (options) {
     )
   )
 
+  const getRows = (orderBy, range) => (
+    client.query(
+      queries.getRows(schema, name, orderBy, range),
+    ).then(
+      R.pipe(
+        R.prop('rows'),
+      ),
+    )
+  )
+
+  const exists = () => (
+    client.query(
+      queries.tableExist(schema, name),
+    ).then(R.path([ 'rows', 0, 'exists' ]))
+  )
+
   return Object.freeze({
     getColumns,
     getConstraints,
     getIndexes,
+    getRows,
+    exists,
   })
 }
 
-module.exports = ModelInfo
+module.exports = TableInfo

@@ -22,14 +22,29 @@ After that you can run the module or use the [CLI](cli.md)
 const Differ = require('pg-differ')
 const path = require('path')
 
-const differ = new Differ({
-   connectionConfig: {},
-   schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model,
-   logging: true,
-   placeholders: {
-     schema: 'schema_name'
-   }
-})
- 
-differ.sync()
+const setup = async () => {
+  const differ = new Differ({
+    connectionConfig: {},
+    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method,
+    logging: true,
+    placeholders: {
+      schema: 'schema_name'
+    }
+  })
+
+  const users = await differ.read.table({ name: 'users' })
+  if (!users || users.properties.columns.length !== 1) {
+    differ.define('table', {
+      name: 'users',
+      columns: [
+        { name: 'id', type: 'bigint', primaryKey: true },
+        { name: 'name', type: 'varchar(255)' }
+      ]
+    })
+  }
+
+  return differ.sync()
+}
+
+setup()
 ```

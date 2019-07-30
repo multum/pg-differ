@@ -69,20 +69,17 @@ describe('schema validation', () => {
       logging: logging,
     })
 
-    differ.define({
-      type: 'table',
-      properties: {
-        name: 'public.blogs',
-        columns: [
-          { name: 'id', type: 'smallint' },
-          {
-            name: 'large_id',
-            type: 'bigint',
-            nullable: true, // will be a error
-            primaryKey: true,
-          },
-        ],
-      },
+    differ.define('table', {
+      name: 'public.blogs',
+      columns: [
+        { name: 'id', type: 'smallint' },
+        {
+          name: 'large_id',
+          type: 'bigint',
+          nullable: true, // will be a error
+          primaryKey: true,
+        },
+      ],
     })
 
     try {

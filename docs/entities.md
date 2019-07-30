@@ -1,6 +1,6 @@
 # Entities {docsify-ignore-all}
 
-* [Model](model.md)
+* [Table](table.md)
 * [Sequence](sequence.md)
 
 ## Example
@@ -11,14 +11,14 @@ const path = require('path')
 
 const differ = new Differ({
   connectionConfig: {},
-  schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method to add model
+  schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method
   logging: true, // default value of console.log
   placeholders: {
     schema: 'schema_name'
   }
 })
  
-const model = differ.define('table', {
+const table = differ.define('table', {
   name: 'schema_name.table_name',
   cleanable: { foreignKeys: true },
   foreignKeys: [
@@ -61,7 +61,7 @@ differ.define('sequence', {
 
 // ...
  
-model.addSeeds([
+table.addSeeds([
   { id: 4, description: 'fourth seed', body: { ... } },
   { id: 5, description: 'fifth seed', body: { ... } },
 ])

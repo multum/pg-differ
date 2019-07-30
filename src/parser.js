@@ -40,7 +40,7 @@ exports.defaultValueInformationSchema = (value, currentSchema) => {
       // adding the current scheme in case of its absence
       value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
       //
-      const regExp = /::[a-zA-Z]+$/
+      const regExp = /::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/
       if (value.match(regExp)) {
         return value.replace(regExp, '')
       } else {
@@ -283,9 +283,6 @@ const extensionDefinitionOptions = (type, definition) => {
     case 'check': {
       return { condition: definition.match(/[^(]+(?=\))/)[0] }
     }
-
-    default:
-      return {}
   }
 }
 
@@ -302,8 +299,6 @@ exports.extensionDefinitions = R.map(({ name, definition, type }) => {
       break
     case 'c':
       type = 'check'
-      break
-    default:
       break
   }
   return { name, type, ...extensionDefinitionOptions(type, definition) }

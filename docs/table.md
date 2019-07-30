@@ -1,4 +1,4 @@
-# Model
+# Table
 
 ## Properties
 
@@ -42,7 +42,7 @@ Array of objects. Key - column name, value - column value
 * Default: `null`
 * Required: `false`
 
-Object with types `[ indexes | foreignKeys | unique | primaryKeys, checks ]: Boolean`, which are deleted from the database if they are not defined in the model schema
+Object with types `[ indexes | foreignKeys | unique | primaryKeys, checks ]: Boolean`, which are deleted from the database if they are not defined in the table schema
 
 ### indexes
 
@@ -88,7 +88,7 @@ Array of [objects with parameters](check.md) of table checks
 
 ### addSeeds
 
-* Arguments: `seeds: Array<Object>`
+* Arguments: (seeds: `Array<Object>`)
 * Returns: `null`
 
 Seed definitions

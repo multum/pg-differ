@@ -5,7 +5,7 @@
 * [Configuration](configuration.md)
 * [Methods](methods.md)
 * [Entities](entities.md)
-    * [Model](model.md)
+    * [Table](table.md)
     * [Sequence](sequence.md)
 * [CLI](cli.md)
 

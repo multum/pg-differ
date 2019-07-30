@@ -33,7 +33,7 @@ function Sequence (options) {
     client,
   } = options
 
-  properties = validate.sequence({ ...DEFAULTS, ...properties })
+  properties = validate.sequenceDefinition({ ...DEFAULTS, ...properties })
   const [ schema = 'public', name ] = parser.separateSchema(properties.name)
 
   const info = new Info({ client, schema, name })
@@ -131,17 +131,15 @@ function Sequence (options) {
   })
 }
 
-Sequence._read = async (name, options) => {
-  const { client } = options
-  const [ _schemaName = 'public', _sequenceName ] = parser.separateSchema(name)
+Sequence._read = async (client, options) => {
+  const [ _schemaName = 'public', _sequenceName ] = parser.separateSchema(options.name)
   const info = new Info({ client, schema: _schemaName, name: _sequenceName })
-
-  return {
-    type: 'sequence',
-    properties: {
-      ...await info.getProperties(),
+  const properties = await info.getProperties()
+  if (properties) {
+    return {
+      ...properties,
       name: `${_schemaName}.${_sequenceName}`,
-    },
+    }
   }
 }
 

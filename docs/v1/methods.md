@@ -2,14 +2,14 @@
 
 ## getModel
 
-* Arguments: `name: String`
+* Arguments: (name: `String`)
 * Returns: [Model](model-schema.md) | `undefined`
 
 Getting a defined model by table name
 
 ## define
 
-* Arguments: [schema](model-schema.md)
+* Arguments: (name: [schema](model-schema.md))
 * Returns: [Model](model-schema.md)
 
 Model definition

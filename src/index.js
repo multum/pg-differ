@@ -10,10 +10,11 @@ const path = require('path')
 const chalk = require('chalk')
 const R = require('ramda')
 const utils = require('./utils')
+const validate = require('./validate')
 
 const Logger = require('./logger')
 const Client = require('./postgres-client')
-const Model = require('./model')
+const Table = require('./table')
 const Sequence = require('./sequence')
 
 const _defaultOptions = {
@@ -76,7 +77,7 @@ function Differ (options) {
   const logger = new Logger({ prefix: 'Postgres Differ', callback: logging })
 
   const _client = new Client(connectionConfig, { reconnection })
-  const _models = new Map()
+  const _tables = new Map()
   const _sequences = new Map()
 
   const _getDatabaseVersion = async () => {
@@ -96,10 +97,7 @@ function Differ (options) {
     }
   }
 
-  const _supportSeeds = async () => {
-    const version = await _getDatabaseVersion()
-    return version >= 9.5
-  }
+  const _supportSeeds = async (currentVersion) => currentVersion >= 9.5
 
   const define = (type, properties) => {
     if (typeof type === 'object') {
@@ -109,19 +107,19 @@ function Differ (options) {
 
     switch (type) {
       case 'table': {
-        const model = new Model({
+        const table = new Table({
           client: _client,
           schema: properties,
           force,
           logging,
         })
-        const sequences = model._getSequences()
+        const sequences = table._getSequences()
         sequences && sequences.forEach(([ , sequence ]) => {
           const { name } = sequence._getProperties()
           _sequences.set(name, sequence)
         })
-        _models.set(properties.name, model)
-        return model
+        _tables.set(properties.name, table)
+        return table
       }
       case 'sequence': {
         const sequence = new Sequence({
@@ -172,10 +170,12 @@ function Differ (options) {
   }
 
   const sync = async () => {
-    const models = [ ..._models.values() ]
+    const tables = [ ..._tables.values() ]
     const sequences = [ ..._sequences.values() ]
+    const databaseVersion = await _getDatabaseVersion()
 
     logger.info(chalk.green('Sync start'), null)
+    logger.info(chalk.green(`Current version PostgreSQL: ${databaseVersion}`), null)
     await _client.query('begin')
 
     try {
@@ -188,7 +188,7 @@ function Differ (options) {
         await _entitySync({
           entity: 'tables',
           orderOfOperations: null,
-          promises: models.map((model) => model._getSqlCreateOrAlterTable()),
+          promises: tables.map((table) => table._getSqlCreateOrAlterTable()),
         }),
         await _entitySync({
           entity: 'extensions',
@@ -199,16 +199,16 @@ function Differ (options) {
             'delete rows',
             'add unique',
           ],
-          promises: models.map((model) => model._getSqlExtensionChanges()),
+          promises: tables.map((table) => table._getSqlExtensionChanges()),
         }),
       ]
 
       let insertSeedCount = 0
-      if (await _supportSeeds()) {
+      if (_supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _entitySync({
           entity: 'seeds',
           orderOfOperations: null,
-          promises: models.map((model) => model._getSqlInsertSeeds()),
+          promises: tables.map((table) => table._getSqlInsertSeeds()),
           logging: false,
         })
         if (insertSeedQueries) {
@@ -217,14 +217,14 @@ function Differ (options) {
           queries.push(insertSeedCount)
         }
       } else {
-        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
+        logger.warn(`For Seeds need a PostgreSQL v9.5 or more`)
       }
 
       queries.push(
         await _entitySync({
           entity: 'sequence values',
           orderOfOperations: null,
-          promises: models.map((model) => model._getSqlSequenceActualize()),
+          promises: tables.map((table) => table._getSqlSequenceActualize()),
         }),
       )
 
@@ -243,30 +243,35 @@ function Differ (options) {
     }
   }
 
-  const read = async ({ type, name }) => {
-    let result
+  const _read = async (type, options) => {
+    let properties
     await _client.query('begin')
     try {
       switch (type) {
         case 'table': {
-          result = await Model._read(name, { client: _client })
+          validate.tableReading(options)
+          properties = await Table._read(_client, options)
           break
         }
         case 'sequence': {
-          result = await Sequence._read(name, { client: _client })
+          validate.sequenceReading(options)
+          properties = await Sequence._read(_client, options)
           break
         }
-        default:
-          logger.error(`Invalid schema type: ${type}`)
       }
       await _client.query('commit')
       await _client.end()
-      return result
+      return properties
     } catch (error) {
       await _client.query('rollback')
       await _client.end()
       throw error
     }
+  }
+
+  const read = {
+    table: (options) => _read('table', options),
+    sequence: (options) => _read('sequence', options),
   }
 
   _setup()

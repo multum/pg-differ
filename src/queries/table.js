@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const utils = require('../utils')
+
 exports.getConstraints = (schema, table) => `
 select
   conname as name,
@@ -65,3 +67,17 @@ select max(${column}) as max
 where ${column} between ${min} and ${max}
   and ${column} > ${sequenceCurValue}
 `
+
+exports.getRows = (schema, table, orderBy, range) => {
+  const chunks = [ `select * from ${schema}.${table}` ]
+  if (orderBy) {
+    chunks.push(`order by ${orderBy}`)
+  }
+  if (range) {
+    chunks.push(`offset (${range[0]} - 1) rows`)
+    if (utils.isExist(range[1])) {
+      chunks.push(`fetch first (${range[1]} - ${range[0]} + 1) row only`)
+    }
+  }
+  return chunks.join(' ')
+}
