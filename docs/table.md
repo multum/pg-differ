@@ -1,8 +1,15 @@
 # Table
 
-## Properties
+## Usage example {docsify-ignore}
 
-> parameters of the `differ.define` method or the `*.schema.json` file structure for `options.schemaFolder`
+```javascript
+const differ = new Differ(...)
+const table = differ.define('table', properties)
+table.addSeeds([...])
+differ.sync().then(() => console.log('database ready'))
+```
+
+## Properties
 
 ### name
 

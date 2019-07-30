@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 interface SQL {
     add(line: Array<Object> | Object): this,
 
@@ -72,7 +71,6 @@ interface IndexOptions {
 interface SequenceReadOptions {
     name: string
 }
-
 
 interface SequenceSchemaOptions {
     name: string,

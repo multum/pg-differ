@@ -3,7 +3,7 @@
 * [Table](table.md)
 * [Sequence](sequence.md)
 
-## Example
+## Usage example
 
 ```javascript
 const Differ = require('pg-differ')

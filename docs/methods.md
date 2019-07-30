@@ -2,7 +2,7 @@
 
 ### define
 
-* Arguments: (type: `'table' | 'sequence'` , properties: Object)
+* Arguments: (type: `'table'` | `'sequence'`, properties: [`TableProperties`](table.md#properties) | [`SequenceProperties`](sequence.md#properties))
 * Returns: [Table](table.md) | [Sequence](sequence.md) 
 
 Table definition
@@ -17,13 +17,13 @@ Synchronization of previously defined tables and their seeds
 ### read.table
 
 * Arguments: (options: [read.table options](read-table.md))
-* Returns: Promise<[table properties](table.md#properties)> 
+* Returns: [`Promise<TableProperties>`](table.md#properties)
 
 Getting the schema of an existing table
 
 ### read.sequence
 
 * Arguments: (options: [read.sequence options](read-sequence.md))
-* Returns: Promise<[sequence properties](sequence.md#properties)> 
+* Returns: [`Promise<SequenceProperties>`](sequence.md#properties)
 
 Getting the schema of an existing sequence

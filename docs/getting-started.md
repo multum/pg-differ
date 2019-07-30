@@ -46,5 +46,5 @@ const setup = async () => {
   return differ.sync()
 }
 
-setup()
+setup().then(() => console.log('database ready'))
 ```

@@ -1,5 +1,13 @@
 # Sequence
 
+## Usage example {docsify-ignore}
+
+```javascript
+const differ = new Differ(...)
+const sequence = differ.define('sequence', properties)
+differ.sync().then(() => console.log('database ready'))
+```
+
 ## Properties
 
 ### name
