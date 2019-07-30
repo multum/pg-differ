@@ -1,7 +1,7 @@
 const Differ = require('../')
 const path = require('path')
 const connectionConfig = require('./pg.config')
-const logging = Boolean(process.env.TEST_LOGGING)
+const logging = Boolean(process.env.TEST_LOGGING) && console.info
 
 describe('sync', () => {
   it('sync schemas', async function () {

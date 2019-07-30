@@ -288,9 +288,6 @@ function Table (options) {
         const constraintName = name ? ` constraint ${name}` : ''
         return addExtension(`${alterTable} add${constraintName} ${extensionType} (${condition});`)
       }
-
-      default:
-        return null
     }
   }
 
@@ -529,9 +526,7 @@ Table._read = async (client, options) => {
   const { foreignKey = [], unique = [], check = [] } = await info.getConstraints()
 
   columns.forEach((column) => {
-    if (column.default) {
-      column.default = parser.decodeValue(column.default, column.type)
-    }
+    column.default = parser.decodeValue(column.default, column.type)
   })
 
   const properties = {

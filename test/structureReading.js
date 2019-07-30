@@ -16,7 +16,7 @@ describe('reading structure', function () {
       columns: [
         { name: 'id', type: 'bigint', autoIncrement: true, primaryKey: true },
         { name: 'age', type: 'smallint', default: 18 },
-        { name: 'description', type: 'varchar(255)' },
+        { name: 'description', type: 'varchar(255)', default: 'some user' },
         { name: 'deleted', type: 'bool', default: false },
         { name: 'valid', type: 'bool', default: true },
         { name: 'document', type: 'json', default: { type: 'passport', properties: {} } },
@@ -87,5 +87,10 @@ describe('reading structure', function () {
       return true
     }
     throw new Error('the error is not caught')
+  })
+
+  it('undefined table', async function () {
+    const undefinedTable = await differ.read.table({ name: 'public.undefined_table' })
+    return expect(undefinedTable).to.be.undefined
   })
 })

@@ -97,10 +97,7 @@ function Differ (options) {
     }
   }
 
-  const _supportSeeds = async () => {
-    const version = await _getDatabaseVersion()
-    return version >= 9.5
-  }
+  const _supportSeeds = async (currentVersion) => currentVersion >= 9.5
 
   const define = (type, properties) => {
     if (typeof type === 'object') {
@@ -175,8 +172,10 @@ function Differ (options) {
   const sync = async () => {
     const tables = [ ..._tables.values() ]
     const sequences = [ ..._sequences.values() ]
+    const databaseVersion = await _getDatabaseVersion()
 
     logger.info(chalk.green('Sync start'), null)
+    logger.info(chalk.green(`Current version PostgreSQL: ${databaseVersion}`), null)
     await _client.query('begin')
 
     try {
@@ -205,7 +204,7 @@ function Differ (options) {
       ]
 
       let insertSeedCount = 0
-      if (await _supportSeeds()) {
+      if (_supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _entitySync({
           entity: 'seeds',
           orderOfOperations: null,
@@ -218,7 +217,7 @@ function Differ (options) {
           queries.push(insertSeedCount)
         }
       } else {
-        logger.warn(`For Seeds need a PostgreSQL server v9.5 or more`)
+        logger.warn(`For Seeds need a PostgreSQL v9.5 or more`)
       }
 
       queries.push(
