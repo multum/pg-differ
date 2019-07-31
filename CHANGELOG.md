@@ -2,6 +2,11 @@
 
 #### Enhancement
 * added ability to **read the structure/properties** of existing entities
+```javascript
+const differ = new Differ(...)
+const users = await differ.read.table({ name: 'public.users', seeds: true })
+console.log(users) // { name: 'public.users', columns: [...], foreignKeys: [...], seeds: [...], ... }
+```
 
 #### Internal
 * increase test coverage
