@@ -29,7 +29,7 @@ describe('sync', () => {
         {
           name: 'id',
           type: 'bigint',
-          autoIncrement: { 'start': 1, 'name': 'blog_id_seq' },
+          autoIncrement: { start: 1, name: 'blog_id_seq' },
         },
         {
           name: 'large_id',
@@ -54,29 +54,29 @@ describe('sync', () => {
       force: true,
       foreignKeys: [
         {
-          'columns': [ 'parent' ],
-          'references': {
-            'table': 'users',
-            'columns': [ 'description' ],
+          columns: [ 'parent' ],
+          references: {
+            table: 'users',
+            columns: [ 'description' ],
           },
         },
       ],
       columns: [
         {
-          'name': 'id',
-          'type': 'bigint',
-          'unique': true,
-          'primaryKey': true,
-          'autoIncrement': true,
+          name: 'id',
+          type: 'bigint',
+          unique: true,
+          primaryKey: true,
+          autoIncrement: true,
         },
         {
-          'name': 'age',
-          'type': 'bigint',
-          'default': 18,
+          name: 'age',
+          type: 'bigint',
+          default: 18,
         },
         {
-          'name': 'parent',
-          'type': 'varchar(255)',
+          name: 'parent',
+          type: 'varchar(255)',
         },
       ],
     })

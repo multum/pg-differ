@@ -8,7 +8,7 @@
 const R = require('ramda')
 
 const parser = require('../parser')
-const queries = require('../queries/sequence')
+const queries = require('./queries')
 
 /**
  * @typedef {object} SequenceInfo
@@ -18,6 +18,9 @@ const queries = require('../queries/sequence')
 /**
  *
  * @param {object} options
+ * @param {PostgresClient} options.client
+ * @param {string} options.schema
+ * @param {string} options.name
  * @returns {SequenceInfo}
  */
 
@@ -31,7 +34,7 @@ function SequenceInfo (options) {
   )
 
   return Object.freeze({
-    getProperties
+    getProperties,
   })
 }
 

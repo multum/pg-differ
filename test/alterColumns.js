@@ -27,7 +27,7 @@ describe('alter columns', () => {
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
-        { name: 'busy', type: 'bool', 'default': true },
+        { name: 'busy', type: 'bool', default: true },
       ],
     })
     await differ.sync()

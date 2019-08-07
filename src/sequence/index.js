@@ -9,7 +9,7 @@ const parser = require('../parser')
 const Sql = require('../sql')
 const Info = require('./info')
 const utils = require('../utils')
-const queries = require('../queries/sequence')
+const queries = require('./queries')
 const validate = require('../validate')
 
 const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
@@ -25,6 +25,7 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences')
 /**
  *
  * @param {object} options
+ * @param {PostgresClient} options.client
  * @returns {Sequence}
  */
 function Sequence (options) {

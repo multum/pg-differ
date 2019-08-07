@@ -8,12 +8,14 @@
 const utils = require('../utils')
 
 exports.getConstraints = (schema, table) => `
+${exports.publicSearchPath()};
 select
   conname as name,
   c.contype as type,
   pg_catalog.pg_get_constraintdef(c.oid, true) as definition
 from pg_catalog.pg_constraint as c
-  where c.conrelid = '${schema ? `${schema}.${table}` : table}'::regclass order by 1
+  where c.conrelid = '${schema ? `${schema}.${table}` : table}'::regclass order by 1;
+${exports.resetSearchPath()};
 `
 
 exports.getColumns = (schema, table) => `
@@ -52,7 +54,8 @@ select exists (
 )
 `
 
-exports.publicSearchPath = () => `set local search_path to public`
+exports.publicSearchPath = () => 'set local search_path to public'
+exports.resetSearchPath = () => 'set local search_path to default'
 
 exports.getMaxValueForRestartSequence = (
   schema,

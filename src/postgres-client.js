@@ -47,7 +47,10 @@ module.exports = function (connectionConfig, { reconnection }) {
   }
 
   const end = async () => {
-    client && await client.end()
+    if (client) {
+      await client.end()
+    }
+    // eslint-disable-next-line require-atomic-updates
     client = null
   }
 
