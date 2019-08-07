@@ -7,7 +7,7 @@
 
 const R = require('ramda')
 
-const queries = require('../queries/table')
+const queries = require('./queries')
 const parser = require('../parser')
 
 /**
@@ -22,6 +22,9 @@ const parser = require('../parser')
 /**
  *
  * @param {object} options
+ * @param {PostgresClient} options.client
+ * @param {string} options.schema
+ * @param {string} options.name
  * @returns {TableInfo}
  */
 
@@ -39,21 +42,18 @@ function TableInfo (options) {
     )
   )
 
-  const getConstraints = async (s = schema, table = name) => {
-    await client.query('savepoint temp_search_path')
-    await client.query(queries.publicSearchPath())
-    const constraints = await client.query(
+  const getConstraints = (s = schema, table = name) => (
+    client.query(
       queries.getConstraints(s, table),
     ).then(
       R.pipe(
-        R.prop('rows'),
+        // `1` is the result of executing sql-query to get constraints
+        R.path([ 1, 'rows' ]),
         parser.extensionDefinitions,
         R.groupBy(R.prop('type')),
       ),
     )
-    await client.query('rollback to savepoint temp_search_path')
-    return constraints
-  }
+  )
 
   const getIndexes = () => (
     client.query(

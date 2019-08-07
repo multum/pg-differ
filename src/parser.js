@@ -116,11 +116,11 @@ exports.decodeValue = (value, type) => {
 }
 
 const _encodeExtensionTypes = {
-  'primaryKey': EXTENSIONS.TYPES.PRIMARY_KEY,
-  'unique': EXTENSIONS.TYPES.UNIQUE,
-  'foreignKey': EXTENSIONS.TYPES.FOREIGN_KEY,
-  'index': EXTENSIONS.TYPES.INDEX,
-  'check': EXTENSIONS.TYPES.CHECK,
+  primaryKey: EXTENSIONS.TYPES.PRIMARY_KEY,
+  unique: EXTENSIONS.TYPES.UNIQUE,
+  foreignKey: EXTENSIONS.TYPES.FOREIGN_KEY,
+  index: EXTENSIONS.TYPES.INDEX,
+  check: EXTENSIONS.TYPES.CHECK,
 }
 
 exports.encodeExtensionType = (key) => _encodeExtensionTypes[key] || null

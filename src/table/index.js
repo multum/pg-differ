@@ -12,7 +12,7 @@ const Info = require('./info')
 const Sequence = require('../sequence')
 const Logger = require('../logger')
 
-const queries = require('../queries/table')
+const queries = require('./queries')
 const utils = require('../utils')
 const parser = require('../parser')
 const { COLUMNS, TYPES } = require('../constants')

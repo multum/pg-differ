@@ -55,7 +55,7 @@ describe('schema validation', () => {
           columns: [
             { name: 'id', type: 'smallint' },
           ],
-          seeds: [ { 'id': 1, 'busy': 'some string with quote \'' } ], // will be a error
+          seeds: [ { id: 1, busy: 'some string with quote \'' } ], // will be a error
         },
       })
     } catch (e) {
