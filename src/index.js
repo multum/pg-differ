@@ -97,7 +97,7 @@ function Differ (options) {
     }
   }
 
-  const _supportSeeds = async (currentVersion) => currentVersion >= 9.5
+  const _supportSeeds = (currentVersion) => currentVersion >= 9.5
 
   const define = (type, properties) => {
     if (typeof type === 'object') {
