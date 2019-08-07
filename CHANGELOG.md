@@ -1,3 +1,11 @@
+## 2.3.1
+
+#### Bug Fix
+* the use of `savepoint` and `rollback savepoint` in the method of reading constraints is removed, which sometimes led to the rollback of changes in parallel synchronization processes
+
+#### Internal
+* devDependencies updated
+
 ## 2.3.0
 
 #### Enhancement
