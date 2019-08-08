@@ -4,7 +4,7 @@
 
 ```javascript
 const differ = new Differ(...)
-const table = differ.define('table', properties)
+const table = differ.define.table(properties)
 table.addSeeds([...])
 differ.sync().then(() => console.log('database ready'))
 ```

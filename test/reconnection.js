@@ -13,7 +13,7 @@ describe('reconnection', () => {
         reconnection: { attempts: 2, delay: 500 },
       })
 
-      differ.define('table', {
+      differ.define.table({
         name: 'users',
         columns: [ { name: 'id', type: 'smallint' } ],
       })

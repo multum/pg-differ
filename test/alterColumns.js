@@ -9,7 +9,7 @@ describe('alter columns', () => {
       logging: logging,
     })
 
-    differ.define('table', {
+    differ.define.table({
       name: 'users',
       indexes: [ { columns: [ 'age' ] } ],
       columns: [
@@ -19,7 +19,7 @@ describe('alter columns', () => {
     })
     await differ.sync()
 
-    differ.define('table', {
+    differ.define.table({
       name: 'users',
       cleanable: {
         indexes: true,
@@ -32,7 +32,7 @@ describe('alter columns', () => {
     })
     await differ.sync()
 
-    differ.define('table', {
+    differ.define.table({
       name: 'users',
       columns: [
         { name: 'busy', type: 'smallint' },

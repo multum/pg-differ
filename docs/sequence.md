@@ -4,7 +4,7 @@
 
 ```javascript
 const differ = new Differ(...)
-const sequence = differ.define('sequence', properties)
+const sequence = differ.define.sequence(properties)
 differ.sync().then(() => console.log('database ready'))
 ```
 

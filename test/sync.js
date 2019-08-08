@@ -17,7 +17,7 @@ describe('sync', () => {
 
     await differ.sync()
 
-    differ.define('table', {
+    differ.define.table({
       name: 'public.blogs',
       cleanable: {
         unique: true,
@@ -49,7 +49,7 @@ describe('sync', () => {
       reconnection: true,
       logging,
     })
-    differ.define('table', {
+    differ.define.table({
       name: 'children',
       force: true,
       foreignKeys: [

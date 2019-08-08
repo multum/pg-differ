@@ -160,13 +160,23 @@ declare type EntityType = 'table' | 'sequence'
 declare class Differ {
     constructor(options: DifferOptions);
 
-    define(entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Table | Sequence
-
     sync(): Promise<null>
 
+    define: {
+        /**
+         *
+         * @deprecated
+         */
+        (entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Table | Sequence
+
+        table(properties: TableSchemaOptions): Table
+
+        sequence(properties: SequenceSchemaOptions): Sequence
+    };
+
     read: {
-        table(options: TableReadOptions): Promise<TableSchemaOptions>,
-        sequence(options: SequenceReadOptions): Promise<SequenceSchemaOptions>,
+        table(options: TableReadOptions): Promise<TableSchemaOptions>
+        sequence(options: SequenceReadOptions): Promise<SequenceSchemaOptions>
     }
 }
 

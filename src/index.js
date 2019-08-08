@@ -86,20 +86,20 @@ function Differ (options) {
     return version ? Number(version[0]) : null
   }
 
-  const _setup = async () => {
+  const _setup = () => {
     if (schemaFolder) {
       const schemas = _getSchemas({
         placeholders,
         pathFolder: schemaFolder,
         filePattern: /^.*\.schema.json$/,
       })
-      schemas.forEach(define)
+      schemas.forEach(_define)
     }
   }
 
   const _supportSeeds = (currentVersion) => currentVersion >= 9.5
 
-  const define = (type, properties) => {
+  const _define = (type, properties) => {
     if (typeof type === 'object') {
       properties = type.properties
       type = type.type
@@ -273,6 +273,18 @@ function Differ (options) {
     table: (options) => _read('table', options),
     sequence: (options) => _read('sequence', options),
   }
+
+  const define = (type, properties) => {
+    logger.warn(
+      `The method 'define(type, properties)' is deprecated.` +
+      ` Use 'define.table(properties)' or 'define.sequence(properties)'`,
+    )
+    return _define(type, properties)
+  }
+
+  define.table = (properties) => _define('table', properties)
+
+  define.sequence = (properties) => _define('sequence', properties)
 
   _setup()
 
