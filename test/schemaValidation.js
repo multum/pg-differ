@@ -10,13 +10,10 @@ describe('schema validation', () => {
     })
 
     try {
-      differ.define({
-        type: 'table',
-        properties: {
-          columns: [
-            { name: 'id', type: 'smallint' },
-          ],
-        },
+      differ.define.table({
+        columns: [
+          { name: 'id', type: 'smallint' },
+        ],
       })
     } catch (e) {
       done()
@@ -48,15 +45,12 @@ describe('schema validation', () => {
       logging: logging,
     })
     try {
-      differ.define({
-        type: 'table',
-        properties: {
-          name: 'some_table',
-          columns: [
-            { name: 'id', type: 'smallint' },
-          ],
-          seeds: [ { id: 1, busy: 'some string with quote \'' } ], // will be a error
-        },
+      differ.define.table({
+        name: 'some_table',
+        columns: [
+          { name: 'id', type: 'smallint' },
+        ],
+        seeds: [ { id: 1, busy: 'some string with quote \'' } ], // will be a error
       })
     } catch (e) {
       done()
@@ -69,7 +63,7 @@ describe('schema validation', () => {
       logging: logging,
     })
 
-    differ.define('table', {
+    differ.define.table({
       name: 'public.blogs',
       columns: [
         { name: 'id', type: 'smallint' },

@@ -34,7 +34,7 @@ const setup = async () => {
 
   const users = await differ.read.table({ name: 'users' })
   if (!users || users.columns.length !== 1) {
-    differ.define('table', {
+    differ.define.table({
       name: 'users',
       columns: [
         { name: 'id', type: 'bigint', primaryKey: true },

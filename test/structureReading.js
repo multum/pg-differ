@@ -11,7 +11,7 @@ describe('reading structure', function () {
   })
 
   it('table', async function () {
-    differ.define('table', {
+    differ.define.table({
       name: 'users',
       columns: [
         { name: 'id', type: 'bigint', autoIncrement: true, primaryKey: true },
@@ -71,7 +71,7 @@ describe('reading structure', function () {
 
   it('sequence', async function () {
     const properties = { name: 'public.users_id_seq', start: '10', min: '10', max: '20' }
-    differ.define('sequence', properties)
+    differ.define.sequence(properties)
 
     await differ.sync()
     const sequence = await differ.read.sequence({ name: properties.name })

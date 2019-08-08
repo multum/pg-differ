@@ -18,7 +18,7 @@ const differ = new Differ({
   }
 })
  
-const table = differ.define('table', {
+const table = differ.define.table({
   name: 'schema_name.table_name',
   cleanable: { foreignKeys: true },
   foreignKeys: [
@@ -54,7 +54,7 @@ const table = differ.define('table', {
   ]
 })
 
-differ.define('sequence', {
+differ.define.sequence({
   name: 'schema_name.table_name_id',
   start: 100
 })
