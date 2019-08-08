@@ -40,6 +40,8 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
       column.default = sequence._getQueryIncrement()
       return [ column.name, sequence ]
     })
+  } else {
+    return null
   }
 }
 

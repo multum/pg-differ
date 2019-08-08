@@ -1,7 +1,7 @@
 ## 2.3.1
 
 #### Bug Fix
-* the use of `savepoint` and `rollback savepoint` in the method of reading constraints is removed, which sometimes led to the rollback of changes in parallel synchronization processes
+* the use of `savepoint` and `rollback savepoint` in the method of reading constraints is removed, which sometimes led to the rollback of changes in parallel synchronization processes ([issue #58](https://github.com/av-dev/pg-differ/issues/58))
 
 #### Internal
 * devDependencies updated
@@ -34,7 +34,7 @@ console.log(users) // { name: 'public.users', columns: [...], foreignKeys: [...]
 * `--connectionString` removed from the list of required parameters for CLI
 
 #### Bug Fix
-* end-of-line normalization introduced ([issue #49](https://github.com/av-dev/postgres-differ/issues/49))
+* end-of-line normalization introduced ([issue #49](https://github.com/av-dev/pg-differ/issues/49))
 * fixed error logging the number of inserted seeds
 
 ## 2.2.0
@@ -187,7 +187,7 @@ reconnection: { attempts: Infinity, delay: 5000 }
 
 * code optimized
 * increased test coverage
-* documentation migrated to [GitHub Pages](https://av-dev.github.io/postgres-differ/#/)
+* documentation migrated to [GitHub Pages](https://av-dev.github.io/pg-differ/#/)
 
 ## 1.2.0
 
@@ -234,7 +234,7 @@ Column value definitions (column.default and seed values)
 ## 1.1.0
 
 #### Enhancement
- * Added object/array syntax support for fields of type JSON ([issue #23](https://github.com/av-dev/postgres-differ/issues/23))
+ * Added object/array syntax support for fields of type JSON ([issue #23](https://github.com/av-dev/pg-differ/issues/23))
  * Refactoring the postgres query manager
  * Removed unnecessary parameter 'logger'
 
@@ -280,8 +280,8 @@ differ.define({
 ## 1.0.2
 
 #### Enhancement
- * Added declaration file index.d.ts ([pull #20](https://github.com/av-dev/postgres-differ/pull/20))
- * Concatenated the logger arguments into one ([pull #19](https://github.com/av-dev/postgres-differ/pull/19))
+ * Added declaration file index.d.ts ([pull #20](https://github.com/av-dev/pg-differ/pull/20))
+ * Concatenated the logger arguments into one ([pull #19](https://github.com/av-dev/pg-differ/pull/19))
  
 ## 1.0.1
 
@@ -292,6 +292,6 @@ differ.define({
 ## 1.0.0
 
 #### Enhancement
- * Seed support ([issue #15](https://github.com/av-dev/postgres-differ/issues/15))
- * Converting values without removing them when changing the type of the column 'boolean' => 'integer' and 'integer' => 'boolean' ([issue #14](https://github.com/av-dev/postgres-differ/issues/14))
- * Ability to rename table columns ([issue #10](https://github.com/av-dev/postgres-differ/issues/10))
+ * Seed support ([issue #15](https://github.com/av-dev/pg-differ/issues/15))
+ * Converting values without removing them when changing the type of the column 'boolean' => 'integer' and 'integer' => 'boolean' ([issue #14](https://github.com/av-dev/pg-differ/issues/14))
+ * Ability to rename table columns ([issue #10](https://github.com/av-dev/pg-differ/issues/10))

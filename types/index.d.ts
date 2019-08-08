@@ -6,11 +6,15 @@
  */
 
 interface SQL {
-    add(line: Array<Object> | Object): this,
+    add(line: Array<Object> | Object): this
 
-    getLines(): Array<string>,
+    getLines(): Array<string>
 
     getSize(): number
+
+    getStore(): Array<{ operation: string, value: string }>
+
+    join(): String
 }
 
 interface DifferOptions {
@@ -19,7 +23,7 @@ interface DifferOptions {
     logging?: boolean | Function,
     force?: boolean,
     placeholders?: { [key: string]: string; },
-    reconnection: boolean | {
+    reconnection?: boolean | {
         attempts: number,
         delay: number
     }
@@ -35,11 +39,11 @@ declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE'
 
 declare type CleanExtensionOptions = {
-    primaryKey: boolean,
-    index: boolean,
-    foreignKey: boolean,
-    unique: boolean,
-    check: boolean
+    primaryKeys?: boolean,
+    indexes?: boolean,
+    foreignKeys?: boolean,
+    unique?: boolean,
+    checks?: boolean
 }
 
 declare type ColumnValueType = string | number | Array<any> | Object
@@ -49,7 +53,7 @@ interface ForeignKeyOptions {
     match?: MatchType,
     onDelete?: ActionType,
     onUpdate?: ActionType,
-    references?: ReferenceOptions
+    references: ReferenceOptions
 }
 
 interface ColumnOptions {
@@ -116,7 +120,7 @@ interface TableReadOptions {
 }
 
 interface Schema {
-    type: string,
+    type: EntityType,
     properties: TableSchemaOptions | SequenceSchemaOptions
 }
 
@@ -131,16 +135,24 @@ interface Table {
 
     _getSqlInsertSeeds(): SQL
 
+    _getSequences(): Array<Sequence> | null
+
     _getProperties(): Object
+
+    _getSqlSequenceActualize(): Promise<SQL | null>
 }
 
 interface Sequence {
     // private methods
     _getSqlChanges(): Promise<SQL>
 
-    _getSqlIncrement(): string
+    _getQueryIncrement(): string
 
     _getProperties(): Object
+
+    _getQueryRestart(): string
+
+    _getCurrentValue(): Promise<String>
 }
 
 declare type EntityType = 'table' | 'sequence'
