@@ -1,18 +1,26 @@
 # Methods 
 
-### define
-
-* Arguments: (type: `'table'` | `'sequence'`, properties: [`TableProperties`](table.md#properties) | [`SequenceProperties`](sequence.md#properties))
-* Returns: [Table](table.md) | [Sequence](sequence.md) 
-
-Table definition
-
 ### sync
 
 * Arguments: (options?: [sync options](sync.md))
 * Returns: `Promise<null>`
 
 Synchronization of previously defined tables and their seeds
+
+### define.table
+
+* Arguments: (properties: [TableProperties](table.md#properties))
+* Returns: [Table](table.md)
+
+Table definition
+
+
+### define.sequence
+
+* Arguments: (properties: [SequenceProperties](sequence.md#properties))
+* Returns: [Sequence](sequence.md) 
+
+Sequence definition
 
 ### read.table
 
