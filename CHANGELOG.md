@@ -1,3 +1,17 @@
+## 2.4.0
+
+#### Enhancement
+* added `transaction` parameter to `differ.sync` method ([docs](https://av-dev.github.io/pg-differ/#/sync))
+* the `define(type, properties)` method is **deprecated**
+* added `define.table(properties)` and `define.sequence(properties)`
+
+#### Bug Fix
+* fixed bug of `_supportSeeds` function that returned a promise instead of a result
+
+#### Internal
+* repo renamed
+* typos fixed in `types/index.d.ts`
+
 ## 2.3.1
 
 #### Bug Fix
