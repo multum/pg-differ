@@ -25,6 +25,10 @@ const _defaultOptions = {
   reconnection: { attempts: Infinity, delay: 5000 },
 }
 
+const _defaultSyncOptions = {
+  transaction: true,
+}
+
 const _getSchemas = ({ filePattern, pathFolder, placeholders }) => (
   fs.readdirSync(pathFolder)
     .filter((file) => filePattern.test(file))
@@ -169,14 +173,17 @@ function Differ (options) {
     }
   }
 
-  const sync = async () => {
+  const sync = async (options = _defaultSyncOptions) => {
+    const { transaction } = options
+
     const tables = [ ..._tables.values() ]
     const sequences = [ ..._sequences.values() ]
     const databaseVersion = await _getDatabaseVersion()
 
     logger.info(chalk.green('Sync start'), null)
     logger.info(chalk.green(`Current version PostgreSQL: ${databaseVersion}`), null)
-    await _client.query('begin')
+
+    transaction && await _client.query('begin')
 
     try {
       const queries = [
@@ -232,12 +239,12 @@ function Differ (options) {
         logger.info('Tables do not need structure synchronization', null)
       }
 
-      await _client.query('commit')
+      transaction && await _client.query('commit')
       logger.info(chalk.green('Sync end'), null)
 
       await _client.end()
     } catch (error) {
-      await _client.query('rollback')
+      transaction && await _client.query('rollback')
       await _client.end()
       throw error
     }

@@ -9,7 +9,7 @@ Table definition
 
 ### sync
 
-* Arguments: `null`
+* Arguments: (options?: [sync options](sync.md))
 * Returns: `Promise<null>`
 
 Synchronization of previously defined tables and their seeds

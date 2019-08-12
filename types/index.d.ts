@@ -155,12 +155,16 @@ interface Sequence {
     _getCurrentValue(): Promise<String>
 }
 
+interface SyncOptions {
+    transaction?: boolean
+}
+
 declare type EntityType = 'table' | 'sequence'
 
 declare class Differ {
     constructor(options: DifferOptions);
 
-    sync(): Promise<null>
+    sync(options?: SyncOptions): Promise<null>
 
     define: {
         /**

@@ -3,12 +3,12 @@ const connectionConfig = require('./pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('schema validation', () => {
+  const differ = new Differ({
+    connectionConfig,
+    logging: logging,
+    schemaFolder: null,
+  })
   it('catching schema validation errors', function (done) {
-    const differ = new Differ({
-      connectionConfig,
-      logging: logging,
-    })
-
     try {
       differ.define.table({
         columns: [
@@ -21,10 +21,6 @@ describe('schema validation', () => {
   })
 
   it('catching schema type error', function (done) {
-    const differ = new Differ({
-      connectionConfig,
-      logging: logging,
-    })
     try {
       differ.define({
         type: 't', // invalid type
@@ -40,10 +36,6 @@ describe('schema validation', () => {
   })
 
   it('missing constraint error', function (done) {
-    const differ = new Differ({
-      connectionConfig,
-      logging: logging,
-    })
     try {
       differ.define.table({
         name: 'some_table',
@@ -58,11 +50,6 @@ describe('schema validation', () => {
   })
 
   it(`error setting 'nullable: true' for primaryKey`, async function () {
-    const differ = new Differ({
-      connectionConfig,
-      logging: logging,
-    })
-
     differ.define.table({
       name: 'public.blogs',
       columns: [

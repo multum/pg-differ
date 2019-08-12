@@ -3,12 +3,12 @@ const connectionConfig = require('./pg.config')
 const logging = Boolean(process.env.TEST_LOGGING)
 
 describe('alter columns', () => {
+  const differ = new Differ({
+    connectionConfig,
+    logging: logging,
+    schemaFolder: null,
+  })
   it('alter columns', async function () {
-    const differ = new Differ({
-      connectionConfig,
-      logging: logging,
-    })
-
     differ.define.table({
       name: 'users',
       indexes: [ { columns: [ 'age' ] } ],
