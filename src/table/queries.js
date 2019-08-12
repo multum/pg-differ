@@ -54,8 +54,8 @@ select exists (
 )
 `
 
-exports.publicSearchPath = () => 'set local search_path to public'
-exports.resetSearchPath = () => 'set local search_path to default'
+exports.publicSearchPath = () => 'set search_path to public'
+exports.resetSearchPath = () => 'set search_path to default'
 
 exports.getMaxValueForRestartSequence = (
   schema,

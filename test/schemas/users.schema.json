@@ -28,7 +28,8 @@
         "type": "bigint",
         "unique": true,
         "primaryKey": true,
-        "autoIncrement": true
+        "autoIncrement": true,
+        "nullable": false
       },
       {
         "name": "age",

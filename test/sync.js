@@ -15,7 +15,7 @@ describe('sync', () => {
       },
     })
 
-    await differ.sync()
+    await differ.sync({ transaction: false })
 
     differ.define.table({
       name: 'public.blogs',
@@ -45,6 +45,7 @@ describe('sync', () => {
 
   it('force sync', async function () {
     const differ = new Differ({
+      schemaFolder: null,
       connectionConfig,
       reconnection: true,
       logging,
