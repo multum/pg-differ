@@ -164,11 +164,12 @@ function Differ (options) {
     } else {
       sql = R.uniq(sql)
       const result = []
-      logging && logger.info(`Start sync ${chalk.green(entity)} with...`, sql.join('\n'))
+      entity = `[ ${chalk.green(entity)} ]`
+      logging && logger.info(`${entity} updating...`, sql.join('\n'))
       for (let i = 0; i < sql.length; i++) {
         result.push(await _client.query(sql[i]))
       }
-      logging && logger.info(`End sync ${chalk.green(entity)}`, null)
+      logging && logger.info(`${entity} updated successfully`, null)
       return result
     }
   }
@@ -180,7 +181,7 @@ function Differ (options) {
     const sequences = [ ..._sequences.values() ]
     const databaseVersion = await _getDatabaseVersion()
 
-    logger.info(chalk.green('Sync start'), null)
+    logger.info(chalk.green('Sync started'), null)
     logger.info(chalk.green(`Current version PostgreSQL: ${databaseVersion}`), null)
 
     options.transaction && await _client.query('begin')
@@ -188,17 +189,17 @@ function Differ (options) {
     try {
       const queries = [
         await _entitySync({
-          entity: 'sequences',
+          entity: 'Sequences',
           orderOfOperations: null,
           promises: sequences.map((sequence) => sequence._getSqlChanges()),
         }),
         await _entitySync({
-          entity: 'tables',
+          entity: 'Tables',
           orderOfOperations: null,
           promises: tables.map((table) => table._getSqlCreateOrAlterTable()),
         }),
         await _entitySync({
-          entity: 'extensions',
+          entity: 'Extensions',
           orderOfOperations: [
             'drop foreignKey',
             'drop primaryKey',
@@ -213,14 +214,14 @@ function Differ (options) {
       let insertSeedCount = 0
       if (_supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _entitySync({
-          entity: 'seeds',
+          entity: 'Seeds',
           orderOfOperations: null,
           promises: tables.map((table) => table._getSqlInsertSeeds()),
           logging: false,
         })
         if (insertSeedQueries) {
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries)
-          logger.info(`${chalk.green('Seeds')} were inserted: ${chalk.green(insertSeedCount)}`, null)
+          logger.info(`Inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`, null)
           queries.push(insertSeedCount)
         }
       } else {
@@ -229,18 +230,18 @@ function Differ (options) {
 
       queries.push(
         await _entitySync({
-          entity: 'sequence values',
+          entity: 'Sequence values',
           orderOfOperations: null,
           promises: tables.map((table) => table._getSqlSequenceActualize()),
         }),
       )
 
       if (queries.filter(Boolean).length === 0) {
-        logger.info('Tables do not need structure synchronization', null)
+        logger.info('Database does not need updating', null)
       }
 
       options.transaction && await _client.query('commit')
-      logger.info(chalk.green('Sync end'), null)
+      logger.info(chalk.green('Sync successful!'), null)
 
       await _client.end()
     } catch (error) {
