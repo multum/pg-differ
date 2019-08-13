@@ -21,9 +21,7 @@
   - Dropping of unnecessary constraints/indexes
   - Change logging
 
-<p align='center'>
-<img src='https://av-dev.github.io/pg-differ/screencast.svg' width='600px'/>
-</p>
+<img src='https://av-dev.github.io/pg-differ/screencast.svg' width='640px'/>
 
 ## Documentation
 
