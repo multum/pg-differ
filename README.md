@@ -10,31 +10,26 @@
 [![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)](https://www.npmjs.com/package/pg-differ)
 ![](https://img.shields.io/codecov/c/github/av-dev/pg-differ.svg?style=flat-square)
 
+## Features
+
+  - Easy to use [schema structure](https://av-dev.github.io/pg-differ/#/entities)
+  - Table support
+  - Sequence support
+  - Adding/changing columns
+  - Constraint and index support
+  - Seed support
+  - Dropping of unnecessary constraints/indexes
+  - Change logging
+
+<p align='center'>
+<img src='https://av-dev.github.io/pg-differ/screencast.svg' width='600px'/>
+</p>
+
 ## Documentation
 
 You can find the documentation [on the website](https://av-dev.github.io/pg-differ/#/)
 
 > If you are using an older version, you can go to the [documentation for v1](https://av-dev.github.io/pg-differ/v1/#/)
-
-## Features
-
-  - Easy to use [schema structure](https://av-dev.github.io/pg-differ/#/entities)
-  - Creating tables
-  - Adding/changing columns
-  - Constraint and index support
-  - Seed support
-  - Force changing column types *(with `force: true`)*
-  - Dropping of unnecessary constraints/indexes *(those that are absent in the schema)*
-  - Sequence support
-  - Change logging
-
-## In future
-  - [x] Force sync tables(drop and create) *v0.1.8*
-  - [x] Support rename column(formerNames prop) *v1.0.0*
-  - [x] Support seeds *v1.0.0*
-  - [x] Support `check` constraint *v2.0.0*
-  - [x] Sequence support *v2.0.0*
-  - [x] Reading entity structure/properties *v2.3.0*
 
 ## Contributing
 

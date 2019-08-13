@@ -430,11 +430,11 @@ function Table (options) {
   const _createTable = ({ table = _table, columns = _schema.columns, force, temp }) => {
     columns = columns
       .map(_getColumnDescription)
-      .join(',\n\t')
+      .join(',\n  ')
     temp = temp ? ' temporary' : ''
     return new Sql([
       force ? Sql.create('drop table', `drop table if exists ${table} cascade;`) : null,
-      Sql.create('create table', `create${temp} table ${table} (\n\t${columns}\n);`),
+      Sql.create('create table', `create${temp} table ${table} (\n  ${columns}\n);`),
     ])
   }
 
