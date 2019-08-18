@@ -157,19 +157,19 @@ function Differ (options) {
     return store.map(R.prop('value'))
   }
 
-  const _entitySync = async ({ entity, orderOfOperations, promises, logging = true }) => {
+  const _sync = async ({ process, orderOfOperations, promises, logging = true }) => {
     let sql = await _getFlatAndSortedSqlList(orderOfOperations, promises)
     if (R.isEmpty(sql)) {
-      return false
+      return null
     } else {
       sql = R.uniq(sql)
       const result = []
-      entity = `[ ${chalk.green(entity)} ]`
-      logging && logger.info(`${entity} updating...`, sql.join('\n'))
+      process = `[ ${chalk.green(process)} ]`
+      logging && logger.info(`${process} started`, sql.join('\n'))
       for (let i = 0; i < sql.length; i++) {
         result.push(await _client.query(sql[i]))
       }
-      logging && logger.info(`${entity} updated successfully`, null)
+      logging && logger.info(`${process} successfully`, null)
       return result
     }
   }
@@ -188,40 +188,43 @@ function Differ (options) {
 
     try {
       const queries = [
-        await _entitySync({
-          entity: 'Sequences',
+        await _sync({
+          process: 'updating sequences',
           orderOfOperations: null,
           promises: sequences.map((sequence) => sequence._getSqlChanges()),
         }),
-        await _entitySync({
-          entity: 'Tables',
-          orderOfOperations: null,
-          promises: tables.map((table) => table._getSqlCreateOrAlterTable()),
-        }),
-        await _entitySync({
-          entity: 'Extensions',
+        await _sync({
+          process: 'cleaning extensions',
           orderOfOperations: [
             'drop foreignKey',
             'drop primaryKey',
             'drop unique',
-            'delete rows',
-            'add unique',
           ],
-          promises: tables.map((table) => table._getSqlExtensionChanges()),
+          promises: tables.map((table) => table._getSqlCleaningExtensions()),
+        }),
+        await _sync({
+          process: 'updating tables',
+          orderOfOperations: null,
+          promises: tables.map((table) => table._getSqlCreateOrAlterTable()),
+        }),
+        await _sync({
+          process: 'adding extensions',
+          orderOfOperations: [ 'add unique' ],
+          promises: tables.map((table) => table._getSqlAddingExtensions()),
         }),
       ]
 
       let insertSeedCount = 0
       if (_supportSeeds(databaseVersion)) {
-        const insertSeedQueries = await _entitySync({
-          entity: 'Seeds',
+        const insertSeedQueries = await _sync({
+          process: 'inserting seeds',
           orderOfOperations: null,
           promises: tables.map((table) => table._getSqlInsertSeeds()),
           logging: false,
         })
         if (insertSeedQueries) {
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries)
-          logger.info(`Inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`, null)
+          logger.info(`inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`, null)
           queries.push(insertSeedCount)
         }
       } else {
@@ -229,8 +232,8 @@ function Differ (options) {
       }
 
       queries.push(
-        await _entitySync({
-          entity: 'Sequence values',
+        await _sync({
+          process: 'updating sequence values',
           orderOfOperations: null,
           promises: tables.map((table) => table._getSqlSequenceActualize()),
         }),
@@ -253,7 +256,6 @@ function Differ (options) {
 
   const _read = async (type, options) => {
     let properties
-    await _client.query('begin')
     try {
       switch (type) {
         case 'table': {
@@ -267,11 +269,9 @@ function Differ (options) {
           break
         }
       }
-      await _client.query('commit')
       await _client.end()
       return properties
     } catch (error) {
-      await _client.query('rollback')
       await _client.end()
       throw error
     }

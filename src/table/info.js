@@ -16,7 +16,7 @@ const parser = require('../parser')
  * @property {function} getConstraints
  * @property {function} getIndexes
  * @property {function} getRows
- * @property {function} exists
+ * @property {function} isExist
  */
 
 /**
@@ -76,7 +76,7 @@ function TableInfo (options) {
     )
   )
 
-  const exists = () => (
+  const isExist = () => (
     client.query(
       queries.tableExist(schema, name),
     ).then(R.path([ 'rows', 0, 'exists' ]))
@@ -87,7 +87,7 @@ function TableInfo (options) {
     getConstraints,
     getIndexes,
     getRows,
-    exists,
+    isExist,
   })
 }
 

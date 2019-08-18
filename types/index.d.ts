@@ -131,7 +131,9 @@ interface Table {
     // private methods
     _getSqlCreateOrAlterTable(): Promise<SQL>
 
-    _getSqlExtensionChanges(): Promise<SQL>
+    _getSqlAddingExtensions(): Promise<SQL>
+
+    _getSqlCleaningExtensions(): Promise<SQL>
 
     _getSqlInsertSeeds(): SQL
 

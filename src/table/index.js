@@ -54,17 +54,15 @@ const _defaultExtensions = {
 }
 
 function Table (options) {
-  const { client, force, schema, logging } = options
+  const { client, logging } = options
 
-  let _dbExtensions = { ..._defaultExtensions }
-
-  const _schema = _parseSchema(schema)
+  const _schema = _parseSchema(options.schema)
   const _table = _schema.name
   const [ _schemaName = 'public', _tableName ] = parser.separateSchema(_table)
 
   const _cleanable = _schema.cleanable
   const _primaryKey = R.path([ 'primaryKey', 0 ], _schema.extensions)
-  const _forceCreate = R.isNil(_schema.force) ? force : _schema.force
+  const _forceCreate = R.isNil(_schema.force) ? options.force : _schema.force
   const _hasConstraint = _primaryKey || R.path([ 'unique', 0 ], _schema.extensions)
 
   const _seeds = new Seeds({
@@ -85,48 +83,28 @@ function Table (options) {
 
   const _getProperties = () => ({ ..._schema })
 
-  /**
-   *  Database extension structure
-   */
-  const _fetchAllExtensions = async () => {
+  const _fetchExtensions = async () => {
     const [ constraints, index ] = await Promise.all([
       info.getConstraints(),
       info.getIndexes(),
     ])
-    _dbExtensions = {
+    return {
       ..._defaultExtensions,
       ...constraints,
       index,
     }
-    return _dbExtensions
   }
 
   const _getSqlCreateOrAlterTable = async () => {
-    let sqlCreateOrAlterTable
-
     if (_forceCreate) {
-      sqlCreateOrAlterTable = _createTable({ force: true })
+      return _createTable({ force: true })
     } else {
-      if (await info.exists()) {
-        await _fetchAllExtensions()
-        sqlCreateOrAlterTable = await _getSQLColumnChanges()
+      if (await info.isExist()) {
+        return _getSQLColumnChanges()
       } else {
-        sqlCreateOrAlterTable = _createTable({ force: false })
+        return _createTable({ force: false })
       }
     }
-    if (_cleanable.check || utils.notEmpty(schema.checks)) {
-      const [
-        dropQueries = [],
-        addQueries = [],
-      ] = await _getCheckChanges(schema.checks || [])
-      return new Sql([
-        ...dropQueries,
-        ...sqlCreateOrAlterTable.getStore(),
-        ...addQueries,
-      ])
-    }
-
-    return sqlCreateOrAlterTable
   }
 
   const _getColumnDifferences = (dbColumns, schemaColumns) => (
@@ -147,13 +125,9 @@ function Table (options) {
       .filter(Boolean)
   )
 
-  const _findExtensionWhere = (extensions, props) => {
-    const { columns } = props
-    if (columns && R.isEmpty(columns)) {
-      return null
-    }
-    return extensions && extensions.find(R.whereEq(props))
-  }
+  const _findExtensionWhere = (extensions, props) => (
+    extensions && extensions.find(R.whereEq(props))
+  )
 
   const _getDropExtensionQueries = (extensions, excludeNames) => R.pipe(
     R.values,
@@ -185,9 +159,9 @@ function Table (options) {
     return sql
   }
 
-  const _normalizeCheckRows = async (rows) => {
-    if (R.isEmpty(rows)) {
-      return rows
+  const _normalizeCheckRows = R.memoizeWith(R.identity, async (rows) => {
+    if (!rows || R.isEmpty(rows)) {
+      return rows || []
     }
 
     const getConstraintName = (id) => `temp_constraint_check_${id}`
@@ -212,47 +186,42 @@ function Table (options) {
       type: 'check',
       condition: dbChecks.find(({ name }) => name === getConstraintName(i)).condition,
     }))
+  })
+
+  const _eachExtension = async (resolver) => {
+    const existingExtensions = await _fetchExtensions()
+    const schemaExtensions = {
+      ..._schema.extensions,
+      check: await _normalizeCheckRows(_schema.checks),
+    }
+    Object.values(schemaExtensions)
+      .reduce((acc, array) => {
+        array.forEach((extension) => {
+          const existing = _findExtensionWhere(existingExtensions[extension.type], extension)
+          resolver(extension, existing)
+        })
+        return acc
+      }, [])
+    return [ schemaExtensions, existingExtensions ]
   }
 
-  const _getCheckChanges = async (rows) => (
-    _getExtensionChangesOf(
-      { check: _dbExtensions.check },
-      { check: await _normalizeCheckRows(rows) },
-    )
-  )
-
-  const _getExtensionChangesOf = (dbExtensions, schemaExtensions) => {
-    const adding = []
-    const excludeDrop = []
-    R.forEachObjIndexed(
-      R.when(
-        utils.notEmpty,
-        R.forEach((extension) => {
-          const { type } = extension
-          const dbExtension = _findExtensionWhere(dbExtensions[type], extension)
-          if (dbExtension) {
-            excludeDrop.push(dbExtension.name)
-          } else {
-            adding.push(_addExtension(_table, extension))
-          }
-        }),
-      ),
-      schemaExtensions,
-    )
-    return [
-      _getDropExtensionQueries(dbExtensions, excludeDrop),
-      adding,
-    ]
+  const _getSqlAddingExtensions = async () => {
+    const sql = new Sql()
+    await _eachExtension((schemaExtension, existingExtension) => {
+      !existingExtension && sql.add(_addExtension(_table, schemaExtension))
+    })
+    return sql
   }
 
-  const _getSqlExtensionChanges = async () => {
-    await _fetchAllExtensions()
-    return new Sql(
-      R.unnest(_getExtensionChangesOf(
-        R.omit([ 'check' ], _dbExtensions),
-        _schema.extensions,
-      )),
-    )
+  const _getSqlCleaningExtensions = async () => {
+    if (_forceCreate || !info.isExist()) {
+      return null
+    }
+    const exclude = []
+    const [ , existingExtensions ] = await _eachExtension((schemaExtension, existingExtension) => {
+      existingExtension && exclude.push(existingExtension.name)
+    })
+    return new Sql(_getDropExtensionQueries(existingExtensions, exclude))
   }
 
   const _addColumn = (column) => (
@@ -312,26 +281,10 @@ function Table (options) {
         if (_shouldBePrimaryKey(column.name)) {
           logger.error(
             `Error setting '${column.name}.nullable = true'. ` +
-            `'${column.name}' is primaryKey`,
+            `'${column.name}' is the primaryKey`,
           )
         } else {
-          let dropPrimaryKey = null
-          const primaryKey = _dbExtensions.primaryKey[0]
-          if (primaryKey && R.includes(column.name, primaryKey.columns)) {
-            if (_cleanable.primaryKey) {
-              dropPrimaryKey = _dropExtension(primaryKey)
-            } else {
-              logger.error(
-                `Error setting '${column.name}.nullable = true'. ` +
-                `You need to add 'cleanable.primaryKeys: true'`,
-              )
-              return null
-            }
-          }
-          return [
-            dropPrimaryKey,
-            Sql.create('drop not null', `${alterTable} alter column ${column.name} drop not null;`),
-          ]
+          return Sql.create('drop not null', `${alterTable} alter column ${column.name} drop not null;`)
         }
       } else {
         const setValues = column.default ? Sql.create(
@@ -416,14 +369,6 @@ function Table (options) {
       chunks.push('not null')
     }
 
-    if (column.primaryKey) {
-      chunks.push('primary key')
-    }
-
-    if (column.unique) {
-      chunks.push('unique')
-    }
-
     return chunks.join(' ')
   }
 
@@ -504,7 +449,8 @@ function Table (options) {
 
   return Object.freeze({
     _getSqlCreateOrAlterTable,
-    _getSqlExtensionChanges,
+    _getSqlAddingExtensions,
+    _getSqlCleaningExtensions,
     _getSqlInsertSeeds,
     _getSequences,
     _getProperties,
@@ -517,7 +463,7 @@ Table._read = async (client, options) => {
   const [ _schemaName = 'public', _tableName ] = parser.separateSchema(options.name)
   const info = new Info({ client, schema: _schemaName, name: _tableName })
 
-  if (!await info.exists()) {
+  if (!await info.isExist()) {
     return undefined
   }
 
