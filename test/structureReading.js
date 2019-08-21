@@ -44,8 +44,9 @@ describe('reading structure', function () {
       columnExpect({ name: 'document', default: { type: 'passport', properties: {} } })
       //
     }
-    {
-      // seed check
+
+    // seed check
+    if (await differ._supportSeeds()) {
       const users = await differ.read.table({
         name: 'public.users',
         seeds: { orderBy: 'id', range: [ 2, 10 ] },
