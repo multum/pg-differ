@@ -1,9 +1,11 @@
+dist: trusty
 language: node_js
 node_js:
   - "9"
   - "10"
 before_install:
-  - sudo service postgresql stop && sudo service postgresql start $POSTGRESQL_VERSION
+  - sudo /etc/init.d/postgresql stop
+  - sudo /etc/init.d/postgresql start $POSTGRESQL_VERSION
 install:
   - npm install
   - npm install codecov nyc
@@ -12,7 +14,7 @@ env:
     - TEST_LOGGING=true
   matrix:
     - POSTGRESQL_VERSION=9.2
-    - POSTGRESQL_VERSION=9.5
+    - POSTGRESQL_VERSION=9.6
 script:
   - nyc --reporter=lcov npm test
   - codecov
