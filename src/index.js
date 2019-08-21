@@ -101,7 +101,11 @@ function Differ (options) {
     }
   }
 
-  const _supportSeeds = (currentVersion) => currentVersion >= 9.5
+  const _supportSeeds = async (currentVersion) => (
+    utils.isExist(currentVersion)
+      ? currentVersion
+      : await _getDatabaseVersion()
+  ) >= 9.5
 
   const _define = (type, properties) => {
     if (typeof type === 'object') {
@@ -215,7 +219,7 @@ function Differ (options) {
       ]
 
       let insertSeedCount = 0
-      if (_supportSeeds(databaseVersion)) {
+      if (await _supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _sync({
           process: 'inserting seeds',
           orderOfOperations: null,
@@ -297,6 +301,8 @@ function Differ (options) {
   _setup()
 
   return Object.freeze({
+    _supportSeeds,
+    _getDatabaseVersion,
     sync,
     define,
     read,
