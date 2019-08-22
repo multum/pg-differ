@@ -161,7 +161,7 @@ function Table (options) {
 
   const _normalizeCheckRows = R.memoizeWith(R.identity, async (rows) => {
     if (!rows || R.isEmpty(rows)) {
-      return rows || []
+      return rows
     }
 
     const getConstraintName = (id) => `temp_constraint_check_${id}`
@@ -188,16 +188,24 @@ function Table (options) {
     }))
   })
 
+  const _willBeCreated = async () => _forceCreate || !await info.isExist()
+
   const _eachExtension = async (resolver) => {
-    const existingExtensions = await _fetchExtensions()
-    const schemaExtensions = {
-      ..._schema.extensions,
-      check: await _normalizeCheckRows(_schema.checks),
-    }
+    const willBeCreated = await _willBeCreated()
+    const existingExtensions = willBeCreated ? null : await _fetchExtensions()
+    const schemaChecks = (
+      willBeCreated ? _schema.checks : await _normalizeCheckRows(_schema.checks)
+    ) || []
+
+    const schemaExtensions = { ..._schema.extensions, check: schemaChecks }
     Object.values(schemaExtensions)
       .reduce((acc, array) => {
         array.forEach((extension) => {
-          const existing = _findExtensionWhere(existingExtensions[extension.type], extension)
+          const existing = (
+            willBeCreated
+              ? null
+              : _findExtensionWhere(existingExtensions[extension.type], extension)
+          )
           resolver(extension, existing)
         })
         return acc
@@ -214,7 +222,7 @@ function Table (options) {
   }
 
   const _getSqlCleaningExtensions = async () => {
-    if (_forceCreate || !info.isExist()) {
+    if (await _willBeCreated()) {
       return null
     }
     const exclude = []
@@ -242,10 +250,8 @@ function Table (options) {
       case 'index':
         return Sql.create(`create ${type}`, `create ${extensionType} on ${table} (${columns});`)
 
-      case 'primaryKey':
-        return addExtension(`${alterTable} add ${extensionType} (${columns});`)
-
       case 'unique':
+      case 'primaryKey':
         return addExtension(`${alterTable} add ${extensionType} (${columns});`)
 
       case 'foreignKey': {
