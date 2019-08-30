@@ -25,18 +25,14 @@ describe('alter columns', () => {
         indexes: true,
       },
       columns: [
-        { name: 'id', type: 'bigint', primaryKey: true },
+        { name: 'id', type: 'bigint', primaryKey: true, nullable: false },
         { name: 'new_age', type: 'bigint', formerNames: [ 'age' ] },
         { name: 'busy', type: 'bool', default: true },
       ],
     })
     await differ.sync()
 
-    differ.define.table({
-      name: 'users',
-      columns: [
-        { name: 'busy', type: 'smallint' },
-      ],
-    })
+    // sync without changes
+    await differ.sync()
   })
 })

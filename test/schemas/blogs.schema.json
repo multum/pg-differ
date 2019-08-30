@@ -2,7 +2,6 @@
   "type": "table",
   "properties": {
     "name": "${schema}.blogs",
-    "force": true,
     "cleanable": {
       "indexes": true,
       "foreignKeys": true,

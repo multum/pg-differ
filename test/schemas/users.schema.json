@@ -1,8 +1,7 @@
 {
   "type": "table",
   "properties": {
-    "name": "users",
-    "force": true,
+    "name": "public.users",
     "cleanable": {
       "foreignKeys": true,
       "unique": true
