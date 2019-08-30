@@ -6,7 +6,6 @@
  */
 
 const R = require('ramda')
-const utils = require('./utils')
 const chalk = require('chalk')
 
 /**
@@ -15,21 +14,22 @@ const chalk = require('chalk')
  * @param callback {function}
  */
 module.exports = function ({ prefix, callback }) {
-  const getTitle = (string) => `${prefix} :: ${string}`
-
   const log = R.curry((type, title, message) => {
-    if (callback) {
-      const string = [ title && getTitle(title), message ].filter(utils.isExist).join('\n')
-      switch (type) {
-        case 'warn':
-          callback(chalk.yellow(string))
-          break
-        default:
-          callback(string)
-      }
-    }
-    if (type === 'error') {
-      throw new Error(getTitle(message))
+    const chunks = title
+      ? [ `${prefix} :: ${title}`, message ]
+      : [ `${prefix} :: ${message}` ]
+    switch (type) {
+      case 'warn':
+        callback && callback(
+          chalk.yellow(chunks.join(' ')),
+        )
+        break
+      case 'error':
+        return chunks.join('')
+      default:
+        callback && callback(
+          chunks.join('\n'),
+        )
     }
     return null
   })
@@ -37,7 +37,7 @@ module.exports = function ({ prefix, callback }) {
   return {
     log,
     info: log('info'),
-    warn: log('warn', 'Warning'),
-    error: log('error', undefined),
+    warn: log('warn', `[ Warning ]`),
+    error: log('error', null),
   }
 }

@@ -8,27 +8,27 @@
 const R = require('ramda')
 const fs = require('fs')
 
-exports.isExist = R.compose(R.not, R.isNil)
+exports.isExist = (value) => !R.isNil(value)
 
-exports.notEmpty = R.compose(R.not, R.isEmpty)
+exports.isNotEmpty = (value) => !R.isEmpty(value)
 
-exports.omitInObject = R.curry((keys, arrayOfObjects) => arrayOfObjects.map(R.omit(keys)))
-
-exports.findByName = (array, name, formerNames) => R.find((el) => {
-  if (el.name === name) {
-    return true
-  } else if (formerNames) {
-    return R.includes(el.name, formerNames)
-  }
-  return false
-}, array)
+exports.findByName = (array, name, formerNames) => (
+  array.find((el) => {
+    if (el.name === name) {
+      return true
+    } else if (formerNames) {
+      return formerNames.includes(el.name)
+    }
+    return false
+  })
+)
 
 exports.loadJSON = (path, placeholders) => {
   let file = fs.readFileSync(path, 'utf-8')
   if (placeholders) {
     Object.entries(placeholders).forEach(([ name, value ]) => {
       const regExp = `\\$\{${name}\\}`
-      file = file.replace(new RegExp(regExp, 'g'), value)
+      file = file.replace(new RegExp(regExp, 'g'), String(value))
     })
   }
   return JSON.parse(file)

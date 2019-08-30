@@ -10,6 +10,7 @@ describe('sync', () => {
       logging,
       schemaFolder: path.resolve(__dirname, 'schemas'),
       reconnection: false,
+      force: true,
       placeholders: {
         schema: 'public',
       },
@@ -19,12 +20,17 @@ describe('sync', () => {
 
     differ.define.table({
       name: 'public.blogs',
+      force: false,
       cleanable: {
         unique: true,
         foreignKeys: true,
         indexes: true,
         primaryKeys: true,
+        checks: true,
       },
+      checks: [
+        { condition: 'large_id != 0' },
+      ],
       columns: [
         {
           name: 'id',

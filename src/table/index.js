@@ -25,7 +25,7 @@ const _parseSchema = R.pipe(
 )
 
 const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }) => {
-  const sequenceColumns = columns.filter(R.prop('autoIncrement'))
+  const sequenceColumns = columns.filter((column) => column.autoIncrement)
   if (sequenceColumns.length) {
     return sequenceColumns.map((column) => {
       const { autoIncrement: properties } = column
@@ -114,7 +114,7 @@ function Table (options) {
         if (dbColumn) {
           const diff = _getColumnAttributeDiffs(column, dbColumn)
           return (
-            Boolean(diff) && utils.notEmpty(diff)
+            Boolean(diff) && utils.isNotEmpty(diff)
               ? { ...column, diff }
               : null
           )
@@ -142,7 +142,7 @@ function Table (options) {
     const dbColumns = await info.getColumns()
     const sql = new Sql()
     const differences = _getColumnDifferences(dbColumns, _schema.columns)
-    if (utils.notEmpty(differences)) {
+    if (utils.isNotEmpty(differences)) {
       differences.forEach((column) => {
         const { diff } = column
         if (diff) {
@@ -285,10 +285,10 @@ function Table (options) {
     } else if (key === 'nullable') {
       if (value === true) {
         if (_shouldBePrimaryKey(column.name)) {
-          logger.error(
+          throw new Error(logger.error(
             `Error setting '${column.name}.nullable = true'. ` +
             `'${column.name}' is the primaryKey`,
-          )
+          ))
         } else {
           return Sql.create('drop not null', `${alterTable} alter column ${column.name} drop not null;`)
         }
@@ -331,13 +331,15 @@ function Table (options) {
         }
       }
 
-      return column.force === true
-        ? Sql.create(
+      if (column.force === true) {
+        return Sql.create(
           'drop and add column',
           `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`)
-        : logger.error(
+      } else {
+        throw new Error(logger.error(
           `To changing the type '${oldType}' => '${type}' you need to set 'force: true' for '${column.name}' column`,
-        )
+        ))
+      }
     } else if (key === 'default') {
       if (utils.isExist(value)) {
         return Sql.create('set default', `${alterTable} alter column ${column.name} set default ${value};`)
@@ -414,7 +416,9 @@ function Table (options) {
     if (_hasConstraint) {
       _seeds.add(seeds)
     } else {
-      logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
+      throw new Error(logger.error(
+        `To use seeds, you need to set at least one constraint (primaryKey || unique)`,
+      ))
     }
   }
 
@@ -473,7 +477,9 @@ Table._read = async (client, options) => {
     return undefined
   }
 
-  const removeTypeAndNames = utils.omitInObject([ 'type', 'name' ])
+  const removeTypeAndNames = R.map(
+    R.omit([ 'type', 'name' ]),
+  )
 
   const indexes = await info.getIndexes()
   const columns = await info.getColumns()

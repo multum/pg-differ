@@ -2,7 +2,6 @@ dist: trusty
 language: node_js
 node_js:
   - "9"
-  - "10"
 before_install:
   - sudo /etc/init.d/postgresql stop
   - sudo /etc/init.d/postgresql start $POSTGRESQL_VERSION

@@ -138,7 +138,7 @@ function Differ (options) {
         return sequence
       }
       default:
-        logger.error(`Invalid schema type: ${type}`)
+        throw new Error(logger.error(`Invalid schema type: ${type}`))
     }
   }
 
@@ -152,13 +152,13 @@ function Differ (options) {
 
     if (orderOfOperations) {
       store = utils.sortByList(
-        R.prop('operation'),
+        (sql) => sql.operation,
         orderOfOperations,
         store,
       )
     }
 
-    return store.map(R.prop('value'))
+    return store.map((sql) => sql.value)
   }
 
   const _sync = async ({ process, orderOfOperations, promises, logging = true }) => {

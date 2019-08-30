@@ -77,7 +77,9 @@ exports.encodeValue = (value) => {
       }
     }
     default: {
-      return R.is(Object, value) ? exports.quoteLiteral(JSON.stringify(value)) : value
+      return R.is(Object, value)
+        ? exports.quoteLiteral(JSON.stringify(value))
+        : value
     }
   }
 }
@@ -235,7 +237,7 @@ const extensionDefinitionOptions = (type, definition) => {
     case 'foreignKey': {
       const DEFAULTS = EXTENSIONS.FOREIGN_KEY_DEFAULTS
 
-      const [ columns, referenceColumns ] = definition.match(/[^(]+(?=\))/g).map(R.split(', '))
+      const [ columns, referenceColumns ] = definition.match(/[^(]+(?=\))/g).map((matches) => matches.split(', '))
       const table = definition.match(/(?<=\bREFERENCES).*(?=\()/i)[0].trim()
 
       let match = definition.match(/(?<=\bMATCH.*)(FULL|SIMPLE|PARTIAL)/)
@@ -286,29 +288,33 @@ const extensionDefinitionOptions = (type, definition) => {
   }
 }
 
-exports.extensionDefinitions = R.map(({ name, definition, type }) => {
-  switch (type) {
-    case 'p':
-      type = 'primaryKey'
-      break
-    case 'f':
-      type = 'foreignKey'
-      break
-    case 'u':
-      type = 'unique'
-      break
-    case 'c':
-      type = 'check'
-      break
-  }
-  return { name, type, ...extensionDefinitionOptions(type, definition) }
-})
+exports.extensionDefinitions = (definitions) => (
+  definitions.map(({ name, definition, type }) => {
+    switch (type) {
+      case 'p':
+        type = 'primaryKey'
+        break
+      case 'f':
+        type = 'foreignKey'
+        break
+      case 'u':
+        type = 'unique'
+        break
+      case 'c':
+        type = 'check'
+        break
+    }
+    return { name, type, ...extensionDefinitionOptions(type, definition) }
+  })
+)
 
-exports.indexDefinitions = R.map(({ name, definition }) => ({
-  name,
-  type: 'index',
-  ...extensionDefinitionOptions('index', definition),
-}))
+exports.indexDefinitions = (definitions) => (
+  definitions.map(({ name, definition }) => ({
+    name,
+    type: 'index',
+    ...extensionDefinitionOptions('index', definition),
+  }))
+)
 
 const _getExtensionsFromColumns = (
   R.pipe(
