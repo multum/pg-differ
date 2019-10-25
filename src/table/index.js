@@ -6,6 +6,7 @@
  */
 
 const R = require('ramda')
+const Metalize = require('metalize')
 const Sql = require('../sql')
 const Seeds = require('./seeds')
 const Info = require('./info')
@@ -24,7 +25,7 @@ const _parseSchema = R.pipe(
   parser.schema,
 )
 
-const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }) => {
+const _setupSequences = ({ columns, tableName, client, forceCreate }) => {
   const sequenceColumns = columns.filter((column) => column.autoIncrement)
   if (sequenceColumns.length) {
     return sequenceColumns.map((column) => {
@@ -32,7 +33,7 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
       const sequence = new Sequence({
         client,
         properties: {
-          name: `${schemaName}.${tableName}_${column.name}_seq`,
+          name: `${tableName}_${column.name}_seq`,
           force: forceCreate,
           ...properties,
         },
@@ -45,20 +46,12 @@ const _setupSequences = ({ columns, tableName, schemaName, client, forceCreate }
   }
 }
 
-const _defaultExtensions = {
-  primaryKey: [],
-  foreignKey: [],
-  check: [],
-  unique: [],
-  index: [],
-}
-
 function Table (options) {
   const { client, logging } = options
 
   const _schema = _parseSchema(options.schema)
-  const _table = _schema.name
-  const [ _schemaName = 'public', _tableName ] = parser.separateSchema(_table)
+  const [ _schemaName = 'public', _tableName ] = parser.separateSchema(_schema.name)
+  const _fullName = `${_schemaName}.${_tableName}`
 
   const _cleanable = _schema.cleanable
   const _primaryKey = R.path([ 'primaryKey', 0 ], _schema.extensions)
@@ -66,41 +59,39 @@ function Table (options) {
   const _hasConstraint = _primaryKey || R.path([ 'unique', 0 ], _schema.extensions)
 
   const _seeds = new Seeds({
-    table: _table,
+    table: _fullName,
   })
 
-  const info = new Info({ client, schema: _schemaName, name: _tableName })
+  const info = new Info({ client, name: _fullName })
 
-  const logger = new Logger({ prefix: `Postgres Differ [ '${_table}' ]`, callback: logging })
+  const logger = new Logger({ prefix: `Postgres Differ [ '${_fullName}' ]`, callback: logging })
 
   const _sequences = _setupSequences({
     client,
-    tableName: _tableName,
-    schemaName: _schemaName,
+    tableName: _fullName,
     columns: _schema.columns,
     forceCreate: _forceCreate,
   })
 
   const _getProperties = () => ({ ..._schema })
 
-  const _fetchExtensions = async () => {
-    const [ constraints, index ] = await Promise.all([
-      info.getConstraints(),
-      info.getIndexes(),
-    ])
+  const _getExtensions = (structure) => {
     return {
-      ..._defaultExtensions,
-      ...constraints,
-      index,
+      check: structure.checks,
+      primaryKey: structure.primaryKey ? [ structure.primaryKey ] : [],
+      foreignKey: structure.foreignKeys,
+      index: structure.indexes,
+      unique: structure.unique,
     }
   }
 
-  const _getSqlCreateOrAlterTable = async () => {
+  const _getSqlCreateOrAlterTable = (structures) => {
+    const structure = structures.get(_fullName)
     if (_forceCreate) {
       return _createTable({ force: true })
     } else {
-      if (await info.isExist()) {
-        return _getSQLColumnChanges()
+      if (structure) {
+        return _getSQLColumnChanges(structure)
       } else {
         return _createTable({ force: false })
       }
@@ -125,21 +116,34 @@ function Table (options) {
       .filter(Boolean)
   )
 
-  const _findExtensionWhere = (extensions, props) => (
+  const _findExtensionWhere = (props, extensions) => (
     extensions && extensions.find(R.whereEq(props))
   )
 
-  const _getDropExtensionQueries = (extensions, excludeNames) => R.pipe(
-    R.values,
-    R.unnest,
-    R.filter(({ type, name }) => (
-      _cleanable[type] && !excludeNames.includes(name)
-    )),
-    R.map(_dropExtension),
-  )(extensions)
+  const _getDropExtensionQueries = (excludeNames, extensions) => {
+    return R.unnest(
+      Object.entries(extensions)
+        .map(([ type, values ]) => {
+          return values
+            .filter((extension) => (
+              _cleanable[type] && !excludeNames.includes(extension.name)
+            ))
+            .map((extension) => {
+              const alterTable = `alter table ${_fullName}`
+              if (type === 'index') {
+                return Sql.create(`drop ${type}`, `drop index ${_schemaName}.${extension.name};`)
+              }
+              return Sql.create(`drop ${type}`, `${alterTable} drop constraint ${extension.name};`)
+            })
+        }),
+    )
+  }
 
-  const _getSQLColumnChanges = async () => {
-    const dbColumns = await info.getColumns()
+  const _getSQLColumnChanges = (structure) => {
+    const dbColumns = structure.columns.map((column) => ({
+      ...column,
+      default: parser.defaultValueInformationSchema(column.default),
+    }))
     const sql = new Sql()
     const differences = _getColumnDifferences(dbColumns, _schema.columns)
     if (utils.isNotEmpty(differences)) {
@@ -172,75 +176,76 @@ function Table (options) {
 
     const sql = rows.reduce((acc, { condition }, i) => (
       acc.add(_addExtension(
+        'check',
         tempTableName,
-        { type: 'check', name: getConstraintName(i), condition },
+        { name: getConstraintName(i), condition },
       ))
     ), new Sql())
 
     await client.query(sql.join())
 
-    const { check: dbChecks } = await info.getConstraints(null, tempTableName)
+    const dbChecks = await info.getChecks(tempTableName)
     await client.query(`drop table ${tempTableName};`)
-
     return rows.map((_, i) => ({
-      type: 'check',
       condition: dbChecks.find(({ name }) => name === getConstraintName(i)).condition,
     }))
   })
 
-  const _willBeCreated = async () => _forceCreate || !await info.isExist()
+  const _willBeCreated = (structure) => _forceCreate || !structure
 
-  const _eachExtension = async (resolver) => {
-    const willBeCreated = await _willBeCreated()
-    const existingExtensions = willBeCreated ? null : await _fetchExtensions()
+  const _eachExtension = async (resolver, structure) => {
+    const willBeCreated = _willBeCreated(structure)
+    const existingExtensions = willBeCreated ? null : _getExtensions(structure)
     const schemaChecks = (
       willBeCreated ? _schema.checks : await _normalizeCheckRows(_schema.checks)
     ) || []
 
     const schemaExtensions = { ..._schema.extensions, check: schemaChecks }
-    Object.values(schemaExtensions)
-      .reduce((acc, array) => {
-        array.forEach((extension) => {
+    Object.entries(schemaExtensions)
+      .reduce((acc, [ type, values ]) => {
+        values.forEach((extension) => {
           const existing = (
             willBeCreated
               ? null
-              : _findExtensionWhere(existingExtensions[extension.type], extension)
+              : _findExtensionWhere(extension, existingExtensions[type])
           )
-          resolver(extension, existing)
+          resolver(type, existing, extension)
         })
         return acc
       }, [])
     return [ schemaExtensions, existingExtensions ]
   }
 
-  const _getSqlAddingExtensions = async () => {
+  const _getSqlAddingExtensions = async (structures) => {
     const sql = new Sql()
-    await _eachExtension((schemaExtension, existingExtension) => {
-      !existingExtension && sql.add(_addExtension(_table, schemaExtension))
-    })
+    const structure = structures.get(_fullName)
+    await _eachExtension((type, existing, schemaExtension) => {
+      !existing && sql.add(_addExtension(type, _fullName, schemaExtension))
+    }, structure)
     return sql
   }
 
-  const _getSqlCleaningExtensions = async () => {
-    if (await _willBeCreated()) {
+  const _getSqlCleaningExtensions = async (structures) => {
+    const structure = structures.get(_fullName)
+    if (_willBeCreated(structure)) {
       return null
     }
     const exclude = []
-    const [ , existingExtensions ] = await _eachExtension((schemaExtension, existingExtension) => {
-      existingExtension && exclude.push(existingExtension.name)
-    })
-    return new Sql(_getDropExtensionQueries(existingExtensions, exclude))
+    const [ , existing ] = await _eachExtension((type, existing) => {
+      existing && exclude.push(existing.name)
+    }, structure)
+    return new Sql(_getDropExtensionQueries(exclude, existing))
   }
 
   const _addColumn = (column) => (
     Sql.create(
       'add column',
-      `alter table ${_table} add column ${_getColumnDescription(column)};`,
+      `alter table ${_fullName} add column ${_getColumnDescription(column)};`,
     )
   )
 
-  const _addExtension = (table, extension) => {
-    let { type, columns = [], references, onDelete, onUpdate, match, condition, name } = extension
+  const _addExtension = (type, table, extension) => {
+    let { columns = [], references, onDelete, onUpdate, match, condition, name } = extension
     const alterTable = `alter table ${table}`
     const extensionType = parser.encodeExtensionType(type)
 
@@ -268,17 +273,9 @@ function Table (options) {
     }
   }
 
-  const _dropExtension = (extension) => {
-    const alterTable = `alter table ${_table}`
-    if (extension.type === 'index') {
-      return Sql.create(`drop ${extension.type}`, `drop index ${_schemaName}.${extension.name};`)
-    }
-    return Sql.create(`drop ${extension.type}`, `${alterTable} drop constraint ${extension.name};`)
-  }
-
   const _alterColumn = (column, key) => {
     const value = column.diff[key]
-    const alterTable = `alter table ${_table}`
+    const alterTable = `alter table ${_fullName}`
     if (key === 'name') {
       const { oldName, name } = column.diff
       return Sql.create('rename column', `${alterTable} rename column ${oldName} to ${name};`)
@@ -295,7 +292,7 @@ function Table (options) {
       } else {
         const setValues = column.default ? Sql.create(
           'set values by defaults',
-          `update ${_table} set ${column.name} = ${column.default} where ${column.name} is null;`,
+          `update ${_fullName} set ${column.name} = ${column.default} where ${column.name} is null;`,
         ) : null
         return [
           setValues,
@@ -380,7 +377,7 @@ function Table (options) {
     return chunks.join(' ')
   }
 
-  const _createTable = ({ table = _table, columns = _schema.columns, force, temp }) => {
+  const _createTable = ({ table = _fullName, columns = _schema.columns, force, temp }) => {
     columns = columns
       .map(_getColumnDescription)
       .join(',\n  ')
@@ -447,7 +444,7 @@ function Table (options) {
       if (actual) {
         const sequenceCurValue = await sequence._getCurrentValue()
         const { rows: [ { max: valueForRestart } ] } = await client.query(
-          queries.getMaxValueForRestartSequence(_schemaName, _tableName, columnUses, min, max, sequenceCurValue),
+          queries.getMaxValueForRestartSequence(_fullName, columnUses, min, max, sequenceCurValue),
         )
         if (utils.isExist(valueForRestart)) {
           sql.add(Sql.create('sequence restart', sequence._getQueryRestart(valueForRestart)))
@@ -465,37 +462,51 @@ function Table (options) {
     _getSequences,
     _getProperties,
     _getSqlSequenceActualize,
+    _name: _fullName,
     addSeeds,
   })
 }
 
 Table._read = async (client, options) => {
   const [ _schemaName = 'public', _tableName ] = parser.separateSchema(options.name)
-  const info = new Info({ client, schema: _schemaName, name: _tableName })
+  const fullName = `${_schemaName}.${_tableName}`
 
-  if (!await info.isExist()) {
+  const info = new Info({
+    client,
+    name: fullName,
+  })
+
+  const metalize = new Metalize({
+    dialect: 'postgres',
+    client,
+  })
+
+  const structures = await metalize.read.tables([ fullName ])
+
+  const structure = structures.get(fullName)
+
+  if (!structure) {
     return undefined
   }
 
-  const removeTypeAndNames = R.map(
-    R.omit([ 'type', 'name' ]),
+  const removeNames = R.map(
+    R.omit([ 'name' ]),
   )
 
-  const indexes = await info.getIndexes()
-  const columns = await info.getColumns()
-  const { foreignKey = [], unique = [], check = [] } = await info.getConstraints()
-
-  columns.forEach((column) => {
-    column.default = parser.decodeValue(column.default, column.type)
+  structure.columns.forEach((column) => {
+    column.default = parser.decodeValue(
+      parser.defaultValueInformationSchema(column.default, column.type),
+      column.type,
+    )
   })
 
   const properties = {
-    name: `${_schemaName}.${_tableName}`,
-    columns,
-    indexes: removeTypeAndNames(indexes),
-    foreignKeys: removeTypeAndNames(foreignKey),
-    unique: removeTypeAndNames(unique),
-    checks: removeTypeAndNames(check),
+    name: fullName,
+    columns: structure.columns,
+    indexes: removeNames(structure.indexes),
+    foreignKeys: removeNames(structure.foreignKeys),
+    unique: removeNames(structure.unique),
+    checks: removeNames(structure.checks),
   }
 
   if (options.seeds) {

@@ -5,23 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-exports.getSequence = (schema, name) => `
-select
-  start_value, minimum_value, maximum_value, increment, cycle_option
-from information_schema.sequences
-where sequence_schema = '${schema}'
-  and sequence_name = '${name}'
-`
+exports.increment = (fullName) => `nextval('${fullName}'::regclass)`
 
-exports.increment = (schema, name) => `nextval('${schema}.${name}'::regclass)`
+exports.restart = (fullName, value) => `alter sequence ${fullName} restart with ${value}`
 
-exports.restart = (schema, name, value) => `alter sequence ${schema}.${name} restart with ${value}`
+exports.getCurrentValue = (fullName) => `select last_value as "currentValue" from ${fullName}`
 
-exports.getCurrentValue = (schema, name) => `select last_value as "currentValue" from ${schema}.${name}`
-
-exports.hasCorrectCurrValue = (schema, name, min, max) => `
+exports.hasCorrectCurrValue = (fullName, min, max) => `
 select exists ( 
-  select last_value from ${schema}.${name}
+  select last_value from ${fullName}
     where last_value between ${min} and ${max}
 ) as correct
 `

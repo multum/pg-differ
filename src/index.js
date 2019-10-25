@@ -9,6 +9,7 @@ const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
 const R = require('ramda')
+const Metalize = require('metalize')
 const utils = require('./utils')
 const validate = require('./validate')
 
@@ -132,6 +133,7 @@ function Differ (options) {
       case 'sequence': {
         const sequence = new Sequence({
           client: _client,
+          force,
           properties,
         })
         _sequences.set(properties.name, sequence)
@@ -183,6 +185,12 @@ function Differ (options) {
 
     const tables = [ ..._tables.values() ]
     const sequences = [ ..._sequences.values() ]
+
+    const metalize = new Metalize({ client: _client, dialect: 'postgres' })
+
+    const tableStructures = await metalize.read.tables(tables.map((t) => t._name))
+    const sequenceStructures = await metalize.read.sequences(sequences.map((s) => s._name))
+
     const databaseVersion = await _getDatabaseVersion()
 
     logger.info(chalk.green('Sync started'), null)
@@ -195,7 +203,7 @@ function Differ (options) {
         await _sync({
           process: 'updating sequences',
           orderOfOperations: null,
-          promises: sequences.map((sequence) => sequence._getSqlChanges()),
+          promises: sequences.map((sequence) => sequence._getSqlChanges(sequenceStructures)),
         }),
         await _sync({
           process: 'cleaning extensions',
@@ -204,17 +212,17 @@ function Differ (options) {
             'drop primaryKey',
             'drop unique',
           ],
-          promises: tables.map((table) => table._getSqlCleaningExtensions()),
+          promises: tables.map((table) => table._getSqlCleaningExtensions(tableStructures)),
         }),
         await _sync({
           process: 'updating tables',
           orderOfOperations: null,
-          promises: tables.map((table) => table._getSqlCreateOrAlterTable()),
+          promises: tables.map((table) => table._getSqlCreateOrAlterTable(tableStructures)),
         }),
         await _sync({
           process: 'adding extensions',
           orderOfOperations: [ 'add unique' ],
-          promises: tables.map((table) => table._getSqlAddingExtensions()),
+          promises: tables.map((table) => table._getSqlAddingExtensions(tableStructures)),
         }),
       ]
 

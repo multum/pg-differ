@@ -5,9 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const R = require('ramda')
+const Metalize = require('metalize')
 const parser = require('../parser')
 const Sql = require('../sql')
-const Info = require('./info')
 const utils = require('../utils')
 const queries = require('./queries')
 const validate = require('../validate')
@@ -32,12 +33,13 @@ function Sequence (options) {
   let {
     properties,
     client,
+    force,
   } = options
 
   properties = validate.sequenceDefinition({ ...DEFAULTS, ...properties })
+  const _forceCreate = R.isNil(properties.force) ? force : properties.force
   const [ schema = 'public', name ] = parser.separateSchema(properties.name)
-
-  const info = new Info({ client, schema, name })
+  const _fullName = `${schema}.${name}`
 
   const _buildSql = ({ action, ...rest }) => {
     const chunks = []
@@ -67,7 +69,7 @@ function Sequence (options) {
     })
 
     if (chunks.length) {
-      const sql = [ `${action} sequence ${schema}.${name}`, ...chunks ].join(' ') + ';'
+      const sql = [ `${action} sequence ${_fullName}`, ...chunks ].join(' ') + ';'
       return new Sql(Sql.create(`${action} sequence`, sql))
     }
 
@@ -85,19 +87,19 @@ function Sequence (options) {
     }, {})
   )
 
-  const _getSqlChanges = async () => {
-    if (properties.force) {
+  const _getSqlChanges = async (structures) => {
+    if (_forceCreate) {
       return new Sql([
-        Sql.create('drop sequence', `drop sequence if exists ${schema}.${name} cascade;`),
+        Sql.create('drop sequence', `drop sequence if exists ${_fullName} cascade;`),
         ..._buildSql({ action: 'create', ...properties }).getStore(),
       ])
     } else {
-      const dbStructure = await info.getProperties()
-      if (dbStructure) {
-        const diff = _getDifference(properties, dbStructure)
+      const structure = structures.get(_fullName)
+      if (structure) {
+        const diff = _getDifference(properties, structure)
         if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
           const { rows: [ { correct } ] } = await client.query(
-            queries.hasCorrectCurrValue(schema, name, properties.min, properties.max),
+            queries.hasCorrectCurrValue(_fullName, properties.min, properties.max),
           )
           if (!correct) {
             diff.current = properties.min
@@ -112,13 +114,13 @@ function Sequence (options) {
 
   const _getProperties = () => ({ ...properties })
 
-  const _getQueryIncrement = () => queries.increment(schema, name)
+  const _getQueryIncrement = () => queries.increment(_fullName)
 
-  const _getQueryRestart = (value) => queries.restart(schema, name, value)
+  const _getQueryRestart = (value) => queries.restart(_fullName, value)
 
   const _getCurrentValue = async () => {
     const { rows: [ { currentValue } ] } = await client.query(
-      queries.getCurrentValue(schema, name),
+      queries.getCurrentValue(_fullName),
     )
     return currentValue
   }
@@ -129,19 +131,16 @@ function Sequence (options) {
     _getProperties,
     _getQueryRestart,
     _getCurrentValue,
+    _name: _fullName,
   })
 }
 
 Sequence._read = async (client, options) => {
   const [ _schemaName = 'public', _sequenceName ] = parser.separateSchema(options.name)
-  const info = new Info({ client, schema: _schemaName, name: _sequenceName })
-  const properties = await info.getProperties()
-  if (properties) {
-    return {
-      ...properties,
-      name: `${_schemaName}.${_sequenceName}`,
-    }
-  }
+  const fullName = `${_schemaName}.${_sequenceName}`
+  const metalize = new Metalize({ client, dialect: 'postgres' })
+  const structures = await metalize.read.sequences([ fullName ])
+  return structures.get(fullName)
 }
 
 module.exports = Sequence
