@@ -34,11 +34,11 @@ exports.normalizeType = (type) => {
   return values ? `${type}${values.join('')}` : type
 }
 
-exports.defaultValueInformationSchema = (value, currentSchema) => {
+exports.defaultValueInformationSchema = (value) => {
   switch (typeof value) {
     case 'string': {
-      // adding the current scheme in case of its absence
-      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${currentSchema}.`)
+      // adding the public scheme in case of its absence
+      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, 'public.')
       //
       const regExp = /::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/
       if (value.match(regExp)) {
@@ -52,6 +52,9 @@ exports.defaultValueInformationSchema = (value, currentSchema) => {
     }
   }
 }
+
+exports.checkCondition = (definition) => definition.match(/[^(]+(?=\))/)[0]
+
 exports.normalizeAutoIncrement = (value) => {
   if (R.is(Object, value)) {
     return {
@@ -208,113 +211,6 @@ exports.schema = (schema) => {
     cleanable,
   }
 }
-
-exports.dbColumns = R.curry((currentSchema, columns) => (
-  columns.map((column) => {
-    const {
-      column_name: name,
-      is_nullable: nullable,
-      data_type: type,
-      column_default: defaultValue,
-      collation_name: collate,
-    } = column
-    return {
-      name,
-      nullable: nullable === 'YES',
-      default: exports.defaultValueInformationSchema(defaultValue, currentSchema),
-      type: type,
-      collate: collate,
-    }
-  })
-))
-
-const extensionDefinitionOptions = (type, definition) => {
-  switch (type) {
-    /**
-     * example foreignKey definition
-     * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
-     */
-    case 'foreignKey': {
-      const DEFAULTS = EXTENSIONS.FOREIGN_KEY_DEFAULTS
-
-      const [ columns, referenceColumns ] = definition.match(/[^(]+(?=\))/g).map((matches) => matches.split(', '))
-      const table = definition.match(/(?<=\bREFERENCES).*(?=\()/i)[0].trim()
-
-      let match = definition.match(/(?<=\bMATCH.*)(FULL|SIMPLE|PARTIAL)/)
-      match = match ? match[0].trim() : DEFAULTS.match
-
-      let onDelete = definition.match(/(?<=\bON DELETE.*)(CASCADE|RESTRICT|NO ACTION)/)
-      onDelete = onDelete ? onDelete[0].trim() : DEFAULTS.onDelete
-
-      let onUpdate = definition.match(/(?<=\bON UPDATE.*)(CASCADE|RESTRICT|NO ACTION)/)
-      onUpdate = onUpdate ? onUpdate[0].trim() : DEFAULTS.onUpdate
-
-      return {
-        columns,
-        references: { table, columns: referenceColumns },
-        onDelete,
-        onUpdate,
-        match,
-      }
-    }
-
-    /**
-     * example unique and primaryKey definitions
-     * UNIQUE (code)
-     * PRIMARY KEY (code)
-     */
-    case 'unique':
-    case 'primaryKey': {
-      const columns = definition.match(/[^(]+(?=\))/)[0].split(', ')
-      return { columns }
-    }
-
-    /**
-     * example index definition
-     * CREATE UNIQUE INDEX index_name ON table_name USING btree (code)
-     */
-    case 'index': {
-      const columns = definition.match(/(?<=\bUSING.*)[^(]+(?=\))/)[0].split(', ')
-      return { columns }
-    }
-
-    /**
-     * example foreignKey definition
-     * FOREIGN KEY (id, code) REFERENCES table_name(id, code)
-     */
-    case 'check': {
-      return { condition: definition.match(/[^(]+(?=\))/)[0] }
-    }
-  }
-}
-
-exports.extensionDefinitions = (definitions) => (
-  definitions.map(({ name, definition, type }) => {
-    switch (type) {
-      case 'p':
-        type = 'primaryKey'
-        break
-      case 'f':
-        type = 'foreignKey'
-        break
-      case 'u':
-        type = 'unique'
-        break
-      case 'c':
-        type = 'check'
-        break
-    }
-    return { name, type, ...extensionDefinitionOptions(type, definition) }
-  })
-)
-
-exports.indexDefinitions = (definitions) => (
-  definitions.map(({ name, definition }) => ({
-    name,
-    type: 'index',
-    ...extensionDefinitionOptions('index', definition),
-  }))
-)
 
 const _getExtensionsFromColumns = (
   R.pipe(

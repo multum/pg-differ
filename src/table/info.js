@@ -12,63 +12,24 @@ const parser = require('../parser')
 
 /**
  * @typedef {object} TableInfo
- * @property {function} getColumns
- * @property {function} getConstraints
- * @property {function} getIndexes
  * @property {function} getRows
- * @property {function} isExist
+ * @property {function} getChecks
  */
 
 /**
  *
  * @param {object} options
  * @param {PostgresClient} options.client
- * @param {string} options.schema
  * @param {string} options.name
  * @returns {TableInfo}
  */
 
 function TableInfo (options) {
-  const { client, schema, name } = options
-
-  const getColumns = async () => (
-    client.query(
-      queries.getColumns(schema, name),
-    ).then(
-      R.pipe(
-        R.prop('rows'),
-        parser.dbColumns(schema),
-      ),
-    )
-  )
-
-  const getConstraints = (s = schema, table = name) => (
-    client.query(
-      queries.getConstraints(s, table),
-    ).then(
-      R.pipe(
-        // `1` is the result of executing sql-query to get constraints
-        R.path([ 1, 'rows' ]),
-        parser.extensionDefinitions,
-        R.groupBy(R.prop('type')),
-      ),
-    )
-  )
-
-  const getIndexes = () => (
-    client.query(
-      queries.getIndexes(schema, name),
-    ).then(
-      R.pipe(
-        R.prop('rows'),
-        parser.indexDefinitions,
-      ),
-    )
-  )
+  const { client, name } = options
 
   const getRows = (orderBy, range) => (
     client.query(
-      queries.getRows(schema, name, orderBy, range),
+      queries.getRows(name, orderBy, range),
     ).then(
       R.pipe(
         R.prop('rows'),
@@ -76,18 +37,23 @@ function TableInfo (options) {
     )
   )
 
-  const isExist = () => (
+  const getChecks = (table = name) => (
     client.query(
-      queries.tableExist(schema, name),
-    ).then(R.path([ 'rows', 0, 'exists' ]))
+      queries.getChecks(table),
+    ).then(
+      R.pipe(
+        R.prop('rows'),
+        R.map(({ name, definition }) => ({
+          name,
+          condition: parser.checkCondition(definition),
+        })),
+      ),
+    )
   )
 
   return Object.freeze({
-    getColumns,
-    getConstraints,
-    getIndexes,
     getRows,
-    isExist,
+    getChecks,
   })
 }
 

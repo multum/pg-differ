@@ -13,7 +13,7 @@
       "arraysInObjects": true,
       "objectsInObjects": true
     }],
-    "arrow-body-style": ["error", "as-needed"],
+    "arrow-body-style": 0,
     "arrow-parens": ["error", "always"],
     "computed-property-spacing": ["error", "never"],
     "max-len": ["error", {
