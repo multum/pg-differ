@@ -1,23 +1,18 @@
 {
-  "extends": ["eslint:recommended", "standard"],
+  "extends": ["eslint:recommended", "prettier"],
+  "plugins": [ "prettier"],
   "env": {
-    "mocha": true
+    "mocha": true,
+    "node": true,
+    "es6": true
   },
+  "parserOptions": { "ecmaVersion": 2018 },
   "rules": {
-    "comma-dangle": ["error", "only-multiline"],
+    "prettier/prettier": "error",
     "prefer-const": ["error", {"destructuring": "all"}],
     "lines-between-class-members": ["error", "always"],
     "no-console": ["error", { "allow": ["warn", "error", "info"] }],
-    "array-bracket-spacing": ["error", "always"],
-    "object-curly-spacing": ["error", "always", {
-      "arraysInObjects": true,
-      "objectsInObjects": true
-    }],
-    "arrow-body-style": 0,
-    "arrow-parens": ["error", "always"],
-    "computed-property-spacing": ["error", "never"],
-    "max-len": ["error", {
-      "code": 120, "ignoreTrailingComments": true, "ignoreUrls": true, "ignoreTemplateLiterals": true
-    }]
+    "strict": ["error", "global"],
+    "curly": "warn"
   }
 }

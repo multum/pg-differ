@@ -1,5 +1,7 @@
-const Differ = require('../')
-const connectionConfig = require('./pg.config')
+'use strict';
+
+const Differ = require('../');
+const connectionConfig = require('./pg.config');
 
 describe('reconnection', () => {
   const differ = new Differ({
@@ -9,20 +11,20 @@ describe('reconnection', () => {
       database: connectionConfig.database + '_not_exists', // will be a reconnection
     },
     reconnection: { attempts: 2, delay: 500 },
-  })
-  it('error after 2 attempts', async function () {
-    this.timeout(5000)
+  });
+  it('error after 2 attempts', async function() {
+    this.timeout(5000);
     try {
       differ.define.table({
         name: 'users',
-        columns: [ { name: 'id', type: 'smallint' } ],
-      })
+        columns: [{ name: 'id', type: 'smallint' }],
+      });
 
-      await differ.sync()
+      await differ.sync();
     } catch (e) {
-      return true
+      return true;
     }
 
-    throw new Error('test error')
-  })
-})
+    throw new Error('test error');
+  });
+});

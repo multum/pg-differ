@@ -19,6 +19,7 @@
   },
   "keywords": [
     "postgres",
+    "postgresql",
     "node.js",
     "migration",
     "migration-tool"
@@ -27,9 +28,10 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "test": "mocha test/index.test.js --no-timeout",
-    "test::log": "cross-env TEST_LOGGING=true npm test",
+    "test": "mocha test/index.test.js --no-timeout --exit",
+    "test::log": "cross-env TEST_LOGGING=true npm run test",
     "eslint": "eslint --max-warnings=0 **/*.js",
+    "format": "prettier --write src/**/*.js test/**/*.js",
     "docs::start": "docsify serve docs"
   },
   "license": "MIT",
@@ -43,20 +45,30 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "concurrently": "^4.1.0",
-    "cross-env": "^5.2.0",
-    "eslint": "^6.2.1",
-    "eslint-config-standard": "^13.0.1",
-    "eslint-plugin-import": "^2.17.2",
-    "eslint-plugin-node": "^9.1.0",
-    "eslint-plugin-promise": "^4.1.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "husky": "^3.0.2",
-    "mocha": "^6.2.0"
+    "cross-env": "^5.2.1",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.3.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "husky": "^3.0.9",
+    "lint-staged": "^9.4.2",
+    "mocha": "^6.2.2",
+    "prettier": "^1.18.2"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "concurrently \"npm run test\" \"npm run eslint\""
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run test"
     }
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "eslint",
+      "git add"
+    ],
+    "*.{md,html}": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }
