@@ -1,10 +1,12 @@
-const Differ = require('../')
-const path = require('path')
-const connectionConfig = require('./pg.config')
-const logging = Boolean(process.env.TEST_LOGGING) && console.info
+'use strict';
+
+const Differ = require('../');
+const path = require('path');
+const connectionConfig = require('./pg.config');
+const logging = Boolean(process.env.TEST_LOGGING) && console.info;
 
 describe('sync', () => {
-  it('sync schemas', async function () {
+  it('sync schemas', async function() {
     const differ = new Differ({
       connectionConfig,
       logging,
@@ -14,9 +16,9 @@ describe('sync', () => {
       placeholders: {
         schema: 'public',
       },
-    })
+    });
 
-    await differ.sync({ transaction: false })
+    await differ.sync({ transaction: false });
 
     differ.define.table({
       name: 'public.blogs',
@@ -28,9 +30,7 @@ describe('sync', () => {
         primaryKeys: true,
         checks: true,
       },
-      checks: [
-        { condition: 'large_id != 0' },
-      ],
+      checks: [{ condition: 'large_id != 0' }],
       columns: [
         {
           name: 'id',
@@ -44,27 +44,27 @@ describe('sync', () => {
         },
         { name: 'deleted', type: 'bool' },
       ],
-    })
+    });
 
-    await differ.sync()
-  })
+    await differ.sync();
+  });
 
-  it('force sync', async function () {
+  it('force sync', async function() {
     const differ = new Differ({
       schemaFolder: null,
       connectionConfig,
       reconnection: true,
       logging,
-    })
+    });
     differ.define.table({
       name: 'children',
       force: true,
       foreignKeys: [
         {
-          columns: [ 'parent' ],
+          columns: ['parent'],
           references: {
             table: 'users',
-            columns: [ 'description' ],
+            columns: ['description'],
           },
         },
       ],
@@ -86,7 +86,7 @@ describe('sync', () => {
           type: 'varchar(255)',
         },
       ],
-    })
-    await differ.sync()
-  })
-})
+    });
+    await differ.sync();
+  });
+});

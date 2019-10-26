@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+'use strict';
 
-const minimist = require('minimist')
-const Differ = require('../src')
-const pkg = require('../package.json')
+const minimist = require('minimist');
+const Differ = require('../src');
+const pkg = require('../package.json');
 
 const argv = minimist(process.argv.slice(2), {
   alias: {
@@ -18,12 +19,12 @@ const argv = minimist(process.argv.slice(2), {
     l: true,
     f: false,
   },
-  boolean: [ 'version', 'help', 'logging' ],
-})
+  boolean: ['version', 'help', 'logging'],
+});
 
 if (argv.version) {
-  console.info(pkg.version)
-  process.exit(0)
+  console.info(pkg.version);
+  process.exit(0);
 }
 
 const logOptions = () => {
@@ -35,25 +36,22 @@ const logOptions = () => {
   --force, -f                Force synchronization of table (drop and create)
   --version, -v              Print out the installed version
   --help                     Show this help
-  `)
-}
+  `);
+};
 
 if (argv.help) {
-  logOptions()
-  process.exit(0)
+  logOptions();
+  process.exit(0);
 }
 
-const getPlaceholders = () => (
+const getPlaceholders = () =>
   argv.placeholders
-    ? argv.placeholders
-      .split(',')
-      .reduce((acc, element) => {
-        const [ key, value ] = element.trim().split(':')
-        acc[key] = value
-        return acc
+    ? argv.placeholders.split(',').reduce((acc, element) => {
+        const [key, value] = element.trim().split(':');
+        acc[key] = value;
+        return acc;
       }, {})
-    : null
-)
+    : null;
 
 const differ = new Differ({
   schemaFolder: argv.schemaFolder,
@@ -63,9 +61,9 @@ const differ = new Differ({
   connectionConfig: {
     connectionString: argv.connectionString,
   },
-})
+});
 
 differ
   .sync()
   .then(() => process.exit(0))
-  .catch((error) => console.error(error) || process.exit(1))
+  .catch(error => console.error(error) || process.exit(1));

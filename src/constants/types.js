@@ -4,6 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+'use strict';
 
 const ALIASES = {
   int8: 'bigint',
@@ -24,7 +25,7 @@ const ALIASES = {
   timestamptz: 'timestamp with time zone',
   timestamp: 'timestamp without time zone',
   time: 'time without time zone',
-}
+};
 
 const GROUPS = {
   INTEGER: [
@@ -47,13 +48,7 @@ const GROUPS = {
     'regtype',
     'smallint',
   ],
-  CHARACTER: [
-    'character',
-    'character varying',
-    'name',
-    'regclass',
-    'text',
-  ],
+  CHARACTER: ['character', 'character varying', 'name', 'regclass', 'text'],
   TIME: [
     'abstime',
     'date',
@@ -61,16 +56,11 @@ const GROUPS = {
     'timestamp with time zone',
     'timestamp without time zone',
   ],
-  BOOLEAN: [
-    'boolean',
-  ],
-  JSON: [
-    'json',
-    'jsonb',
-  ],
-}
+  BOOLEAN: ['boolean'],
+  JSON: ['json', 'jsonb'],
+};
 
 module.exports = {
   ALIASES,
   GROUPS,
-}
+};

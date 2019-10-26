@@ -1,5 +1,7 @@
-require('./sync')
-require('./alterColumns')
-require('./reconnection')
-require('./schemaValidation')
-require('./structureReading')
+'use strict';
+
+require('./sync');
+require('./alterColumns');
+require('./reconnection');
+require('./schemaValidation');
+require('./structureReading');
