@@ -8,7 +8,13 @@
 
 const utils = require('../utils');
 
-exports.getMaxValueForRestartSequence = (table, column, min, max, sequenceCurValue) => `
+exports.getMaxValueForRestartSequence = (
+  table,
+  column,
+  min,
+  max,
+  sequenceCurValue
+) => `
 select max(${column}) as max
   from ${table}
 where ${column} between ${min} and ${max}

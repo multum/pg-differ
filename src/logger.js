@@ -16,7 +16,9 @@ const chalk = require('chalk');
  */
 module.exports = function({ prefix, callback }) {
   const log = R.curry((type, title, message) => {
-    const chunks = title ? [`${prefix} :: ${title}`, message] : [`${prefix} :: ${message}`];
+    const chunks = title
+      ? [`${prefix} :: ${title}`, message].filter(Boolean)
+      : [`${prefix} :: ${message}`];
     switch (type) {
       case 'warn':
         callback && callback(chalk.yellow(chunks.join(' ')));

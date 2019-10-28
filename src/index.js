@@ -98,8 +98,10 @@ function Differ(options) {
     }
   };
 
-  const _supportSeeds = async currentVersion =>
-    (utils.isExist(currentVersion) ? currentVersion : await _getDatabaseVersion()) >= 9.5;
+  const _supportSeeds = async version => {
+    version = utils.isExist(version) ? version : await _getDatabaseVersion();
+    return version >= 9.5;
+  };
 
   const _define = (type, properties) => {
     if (typeof type === 'object') {
@@ -151,7 +153,12 @@ function Differ(options) {
     return store.map(sql => sql.value);
   };
 
-  const _sync = async ({ process, orderOfOperations, promises, logging = true }) => {
+  const _sync = async ({
+    process,
+    orderOfOperations,
+    promises,
+    logging = true,
+  }) => {
     let sql = await _getFlatAndSortedSqlList(orderOfOperations, promises);
     if (R.isEmpty(sql)) {
       return null;
@@ -176,13 +183,20 @@ function Differ(options) {
 
     const metalize = new Metalize({ client: _client, dialect: 'postgres' });
 
-    const tableStructures = await metalize.read.tables(tables.map(t => t._name));
-    const sequenceStructures = await metalize.read.sequences(sequences.map(s => s._name));
+    const tableStructures = await metalize.read.tables(
+      tables.map(t => t._name)
+    );
+    const sequenceStructures = await metalize.read.sequences(
+      sequences.map(s => s._name)
+    );
 
     const databaseVersion = await _getDatabaseVersion();
 
     logger.info(chalk.green('Sync started'), null);
-    logger.info(chalk.green(`Current version PostgreSQL: ${databaseVersion}`), null);
+    logger.info(
+      chalk.green(`Current version PostgreSQL: ${databaseVersion}`),
+      null
+    );
 
     options.transaction && (await _client.query('begin'));
 
@@ -191,22 +205,34 @@ function Differ(options) {
         await _sync({
           process: 'updating sequences',
           orderOfOperations: null,
-          promises: sequences.map(sequence => sequence._getSqlChanges(sequenceStructures)),
+          promises: sequences.map(sequence =>
+            sequence._getSqlChanges(sequenceStructures)
+          ),
         }),
         await _sync({
           process: 'cleaning extensions',
-          orderOfOperations: ['drop foreignKey', 'drop primaryKey', 'drop unique'],
-          promises: tables.map(table => table._getSqlCleaningExtensions(tableStructures)),
+          orderOfOperations: [
+            'drop foreignKey',
+            'drop primaryKey',
+            'drop unique',
+          ],
+          promises: tables.map(table =>
+            table._getSqlCleaningExtensions(tableStructures)
+          ),
         }),
         await _sync({
           process: 'updating tables',
           orderOfOperations: null,
-          promises: tables.map(table => table._getSqlCreateOrAlterTable(tableStructures)),
+          promises: tables.map(table =>
+            table._getSqlCreateOrAlterTable(tableStructures)
+          ),
         }),
         await _sync({
           process: 'adding extensions',
-          orderOfOperations: ['add unique'],
-          promises: tables.map(table => table._getSqlAddingExtensions(tableStructures)),
+          orderOfOperations: ['add unique', 'add primaryKey'],
+          promises: tables.map(table =>
+            table._getSqlAddingExtensions(tableStructures)
+          ),
         }),
       ];
 
@@ -220,7 +246,10 @@ function Differ(options) {
         });
         if (insertSeedQueries) {
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries);
-          logger.info(`inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`, null);
+          logger.info(
+            `inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`,
+            null
+          );
           queries.push(insertSeedCount);
         }
       } else {

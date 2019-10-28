@@ -39,8 +39,9 @@ module.exports = function(connectionConfig, { reconnection }) {
     });
 
   const retry = async attempt => {
+    const { delay } = reconnection;
     console.info(
-      `Reconnection attempt [ ${(attempt += 1)} ] will be in ${reconnection.delay} seconds.`
+      `Reconnection attempt [ ${(attempt += 1)} ] will be in ${delay} seconds.`
     );
     await end();
     return new Promise(resolve => {
