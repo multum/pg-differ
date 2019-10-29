@@ -8,9 +8,11 @@
 
 exports.increment = fullName => `nextval('${fullName}'::regclass)`;
 
-exports.restart = (fullName, value) => `alter sequence ${fullName} restart with ${value}`;
+exports.restart = (fullName, value) =>
+  `alter sequence ${fullName} restart with ${value};`;
 
-exports.getCurrentValue = fullName => `select last_value as "currentValue" from ${fullName}`;
+exports.getCurrentValue = fullName =>
+  `select last_value as "currentValue" from ${fullName}`;
 
 exports.hasCorrectCurrValue = (fullName, min, max) => `
 select exists ( 

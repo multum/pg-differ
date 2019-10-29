@@ -29,7 +29,9 @@ function TableInfo(options) {
   const { client, name } = options;
 
   const getRows = (orderBy, range) =>
-    client.query(queries.getRows(name, orderBy, range)).then(R.pipe(R.prop('rows')));
+    client
+      .query(queries.getRows(name, orderBy, range))
+      .then(R.pipe(R.prop('rows')));
 
   const getChecks = (table = name) =>
     client.query(queries.getChecks(table)).then(

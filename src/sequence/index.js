@@ -68,8 +68,8 @@ function Sequence(options) {
     });
 
     if (chunks.length) {
-      const sql = [`${action} sequence ${_fullName}`, ...chunks].join(' ') + ';';
-      return new Sql(Sql.create(`${action} sequence`, sql));
+      chunks.unshift(`${action} sequence ${_fullName}`);
+      return new Sql(Sql.create(`${action} sequence`, chunks.join(' ') + ';'));
     }
 
     return null;
@@ -88,7 +88,10 @@ function Sequence(options) {
   const _getSqlChanges = async structures => {
     if (_forceCreate) {
       return new Sql([
-        Sql.create('drop sequence', `drop sequence if exists ${_fullName} cascade;`),
+        Sql.create(
+          'drop sequence',
+          `drop sequence if exists ${_fullName} cascade;`
+        ),
         ..._buildSql({ action: 'create', ...properties }).getStore(),
       ]);
     } else {
@@ -99,7 +102,11 @@ function Sequence(options) {
           const {
             rows: [{ correct }],
           } = await client.query(
-            queries.hasCorrectCurrValue(_fullName, properties.min, properties.max)
+            queries.hasCorrectCurrValue(
+              _fullName,
+              properties.min,
+              properties.max
+            )
           );
           if (!correct) {
             diff.current = properties.min;
@@ -136,7 +143,9 @@ function Sequence(options) {
 }
 
 Sequence._read = async (client, options) => {
-  const [_schemaName = 'public', _sequenceName] = parser.separateSchema(options.name);
+  const [_schemaName = 'public', _sequenceName] = parser.separateSchema(
+    options.name
+  );
   const fullName = `${_schemaName}.${_sequenceName}`;
   const metalize = new Metalize({ client, dialect: 'postgres' });
   const structures = await metalize.read.sequences([fullName]);

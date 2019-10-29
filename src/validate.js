@@ -12,7 +12,9 @@ const ajv = new Ajv();
 
 const formatErrors = errors =>
   errors
-    .map(({ dataPath, message }) => `${dataPath ? `[ ${dataPath} ] ` : ''}${message}`)
+    .map(
+      ({ dataPath, message }) => (dataPath ? `[ ${dataPath} ] ` : '') + message
+    )
     .join('\n\t');
 
 const validate = schema => {

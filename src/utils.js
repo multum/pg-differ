@@ -36,6 +36,7 @@ exports.loadJSON = (path, placeholders) => {
 
 exports.sortByList = R.curry((getter, orderList, array) => {
   const { length } = array;
-  const indexOf = el => orderList.indexOf(getter ? getter(el) : el) + 1 || length;
+  const indexOf = el =>
+    orderList.indexOf(getter ? getter(el) : el) + 1 || length;
   return array.sort((a, b) => indexOf(a) - indexOf(b));
 });

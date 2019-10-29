@@ -41,7 +41,9 @@ describe('reading structure', function() {
       // column check
       const users = await differ.read.table({ name: 'public.users' });
       const columnExpect = properties =>
-        expect(users.columns.find(col => col.name === properties.name)).to.deep.include(properties);
+        expect(
+          users.columns.find(col => col.name === properties.name)
+        ).to.deep.include(properties);
 
       expect(users).to.be.a('object');
       expect(users.columns).of.length(6);

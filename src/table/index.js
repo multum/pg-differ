@@ -51,13 +51,16 @@ function Table(options) {
   const { client, logging } = options;
 
   const _schema = _parseSchema(options.schema);
-  const [_schemaName = 'public', _tableName] = parser.separateSchema(_schema.name);
+  const [_schemaName = 'public', _tableName] = parser.separateSchema(
+    _schema.name
+  );
   const _fullName = `${_schemaName}.${_tableName}`;
 
   const _cleanable = _schema.cleanable;
   const _primaryKey = R.path(['primaryKey', 0], _schema.extensions);
   const _forceCreate = R.isNil(_schema.force) ? options.force : _schema.force;
-  const _hasConstraint = _primaryKey || R.path(['unique', 0], _schema.extensions);
+  const _hasConstraint =
+    _primaryKey || R.path(['unique', 0], _schema.extensions);
 
   const _seeds = new Seeds({
     table: _fullName,
@@ -105,10 +108,14 @@ function Table(options) {
   const _getColumnDifferences = (dbColumns, schemaColumns) =>
     schemaColumns
       .map(column => {
-        const dbColumn = utils.findByName(dbColumns, column.name, column.formerNames);
+        const dbColumn = utils.findByName(
+          dbColumns,
+          column.name,
+          column.formerNames
+        );
         if (dbColumn) {
           const diff = _getColumnAttributeDiffs(column, dbColumn);
-          return Boolean(diff) && utils.isNotEmpty(diff) ? { ...column, diff } : null;
+          return !!diff && utils.isNotEmpty(diff) ? { ...column, diff } : null;
         } else {
           return column;
         }
@@ -122,13 +129,19 @@ function Table(options) {
     return R.unnest(
       Object.entries(extensions).map(([type, values]) => {
         return values
-          .filter(extension => _cleanable[type] && !excludeNames.includes(extension.name))
+          .filter(el => _cleanable[type] && !excludeNames.includes(el.name))
           .map(extension => {
             const alterTable = `alter table ${_fullName}`;
             if (type === 'index') {
-              return Sql.create(`drop ${type}`, `drop index ${_schemaName}.${extension.name};`);
+              return Sql.create(
+                `drop ${type}`,
+                `drop index ${_schemaName}.${extension.name};`
+              );
             }
-            return Sql.create(`drop ${type}`, `${alterTable} drop constraint ${extension.name};`);
+            return Sql.create(
+              `drop ${type}`,
+              `${alterTable} drop constraint ${extension.name};`
+            );
           });
       })
     );
@@ -186,27 +199,40 @@ function Table(options) {
 
     await client.query(sql.join());
 
-    const dbChecks = await info.getChecks(tempTableName);
+    const normalizedChecks = await info.getChecks(tempTableName);
     await client.query(`drop table ${tempTableName};`);
-    return rows.map((_, i) => ({
-      condition: dbChecks.find(({ name }) => name === getConstraintName(i)).condition,
-    }));
+    return rows.map((_, i) => {
+      const nameTempConstraint = getConstraintName(i);
+      const { condition } = normalizedChecks.find(
+        ({ name }) => name === nameTempConstraint
+      );
+      return { condition };
+    });
   });
 
   const _willBeCreated = structure => _forceCreate || !structure;
 
   const _eachExtension = async (resolver, structure) => {
     const willBeCreated = _willBeCreated(structure);
-    const existingExtensions = willBeCreated ? null : _getExtensions(structure);
-    const schemaChecks =
-      (willBeCreated ? _schema.checks : await _normalizeCheckRows(_schema.checks)) || [];
 
-    const schemaExtensions = { ..._schema.extensions, check: schemaChecks };
+    let existingExtensions;
+    let schemaExtensions = _schema.extensions;
+    let schemaChecks = _schema.checks;
+
+    if (!willBeCreated) {
+      existingExtensions = _getExtensions(structure);
+      schemaChecks = await _normalizeCheckRows(_schema.checks);
+    }
+
+    if (schemaChecks) {
+      schemaExtensions = { ...schemaExtensions, check: schemaChecks };
+    }
+
     Object.entries(schemaExtensions).reduce((acc, [type, values]) => {
       values.forEach(extension => {
-        const existing = willBeCreated
-          ? null
-          : _findExtensionWhere(extension, existingExtensions[type]);
+        const existing = !willBeCreated
+          ? _findExtensionWhere(extension, existingExtensions[type])
+          : null;
         resolver(type, existing, extension);
       });
       return acc;
@@ -218,7 +244,9 @@ function Table(options) {
     const sql = new Sql();
     const structure = structures.get(_fullName);
     await _eachExtension((type, existing, schemaExtension) => {
-      !existing && sql.add(_addExtension(type, _fullName, schemaExtension));
+      if (!existing) {
+        sql.add(_addExtension(type, _fullName, schemaExtension));
+      }
     }, structure);
     return sql;
   };
@@ -242,7 +270,15 @@ function Table(options) {
     );
 
   const _addExtension = (type, table, extension) => {
-    let { columns = [], references, onDelete, onUpdate, match, condition, name } = extension;
+    let {
+      columns = [],
+      references,
+      onDelete,
+      onUpdate,
+      match,
+      condition,
+      name,
+    } = extension;
     const alterTable = `alter table ${table}`;
     const extensionType = parser.encodeExtensionType(type);
 
@@ -250,7 +286,10 @@ function Table(options) {
     columns = columns.join(',');
     switch (type) {
       case 'index':
-        return Sql.create(`create ${type}`, `create ${extensionType} on ${table} (${columns});`);
+        return Sql.create(
+          `create ${type}`,
+          `create ${extensionType} on ${table} (${columns});`
+        );
 
       case 'unique':
       case 'primaryKey':
@@ -258,7 +297,8 @@ function Table(options) {
 
       case 'foreignKey': {
         match = match ? ` match ${match}` : null;
-        references = `references ${references.table} (${references.columns.join(',')})`;
+        const refColumns = references.columns.join(',');
+        references = `references ${references.table} (${refColumns})`;
         const events = `on update ${onUpdate} on delete ${onDelete}`;
         return addExtension(
           `${alterTable} add ${extensionType} (${columns}) ${references}${match} ${events};`
@@ -267,7 +307,9 @@ function Table(options) {
 
       case 'check': {
         const constraintName = name ? ` constraint ${name}` : '';
-        return addExtension(`${alterTable} add${constraintName} ${extensionType} (${condition});`);
+        return addExtension(
+          `${alterTable} add${constraintName} ${extensionType} (${condition});`
+        );
       }
     }
   };
@@ -277,7 +319,10 @@ function Table(options) {
     const alterTable = `alter table ${_fullName}`;
     if (key === 'name') {
       const { oldName, name } = column.diff;
-      return Sql.create('rename column', `${alterTable} rename column ${oldName} to ${name};`);
+      return Sql.create(
+        'rename column',
+        `${alterTable} rename column ${oldName} to ${name};`
+      );
     } else if (key === 'nullable') {
       if (value === true) {
         if (_shouldBePrimaryKey(column.name)) {
@@ -302,7 +347,10 @@ function Table(options) {
           : null;
         return [
           setValues,
-          Sql.create('set not null', `${alterTable} alter column ${column.name} set not null;`),
+          Sql.create(
+            'set not null',
+            `${alterTable} alter column ${column.name} set not null;`
+          ),
         ];
       }
     } else if (key === 'type' || key === 'collate') {
@@ -333,14 +381,18 @@ function Table(options) {
         } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
           return alterColumnType(`${column.name}::integer`);
         } else if (oldTypeGroup === INTEGER && newTypeGroup === BOOLEAN) {
-          return alterColumnType(`case when ${column.name} = 0 then false else true end`);
+          return alterColumnType(
+            `case when ${column.name} = 0 then false else true end`
+          );
         }
       }
 
       if (column.force === true) {
         return Sql.create(
           'drop and add column',
-          `${alterTable} drop column ${column.name}, add column ${_getColumnDescription(column)};`
+          `${alterTable} drop column ${
+            column.name
+          }, add column ${_getColumnDescription(column)};`
         );
       } else {
         throw new Error(
@@ -356,7 +408,10 @@ function Table(options) {
           `${alterTable} alter column ${column.name} set default ${value};`
         );
       } else {
-        return Sql.create('set default', `${alterTable} alter column ${column.name} drop default;`);
+        return Sql.create(
+          'set default',
+          `${alterTable} alter column ${column.name} drop default;`
+        );
       }
     }
     return null;
@@ -392,12 +447,22 @@ function Table(options) {
     return chunks.join(' ');
   };
 
-  const _createTable = ({ table = _fullName, columns = _schema.columns, force, temp }) => {
+  const _createTable = ({
+    table = _fullName,
+    columns = _schema.columns,
+    force,
+    temp,
+  }) => {
     columns = columns.map(_getColumnDescription).join(',\n  ');
     temp = temp ? ' temporary' : '';
     return new Sql([
-      force ? Sql.create('drop table', `drop table if exists ${table} cascade;`) : null,
-      Sql.create('create table', `create${temp} table ${table} (\n  ${columns}\n);`),
+      force
+        ? Sql.create('drop table', `drop table if exists ${table} cascade;`)
+        : null,
+      Sql.create(
+        'create table',
+        `create${temp} table ${table} (\n  ${columns}\n);`
+      ),
     ]);
   };
 
@@ -426,7 +491,9 @@ function Table(options) {
       _seeds.add(seeds);
     } else {
       throw new Error(
-        logger.error(`To use seeds, you need to set at least one constraint (primaryKey || unique)`)
+        logger.error(
+          `To use seeds, you need to set at least one constraint (primaryKey || unique)`
+        )
       );
     }
   };
@@ -458,10 +525,21 @@ function Table(options) {
         const {
           rows: [{ max: valueForRestart }],
         } = await client.query(
-          queries.getMaxValueForRestartSequence(_fullName, columnUses, min, max, sequenceCurValue)
+          queries.getMaxValueForRestartSequence(
+            _fullName,
+            columnUses,
+            min,
+            max,
+            sequenceCurValue
+          )
         );
         if (utils.isExist(valueForRestart)) {
-          sql.add(Sql.create('sequence restart', sequence._getQueryRestart(valueForRestart)));
+          sql.add(
+            Sql.create(
+              'sequence restart',
+              sequence._getQueryRestart(valueForRestart)
+            )
+          );
         }
       }
     }
@@ -482,7 +560,9 @@ function Table(options) {
 }
 
 Table._read = async (client, options) => {
-  const [_schemaName = 'public', _tableName] = parser.separateSchema(options.name);
+  const [_schemaName = 'public', _tableName] = parser.separateSchema(
+    options.name
+  );
   const fullName = `${_schemaName}.${_tableName}`;
 
   const info = new Info({

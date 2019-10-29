@@ -52,6 +52,8 @@ const Sql = function(sql) {
   return (_methods = Object.freeze({ add, getLines, getSize, getStore, join }));
 };
 
-Sql.create = R.curry((operation, value) => (value ? { operation, value } : null));
+Sql.create = R.curry((operation, value) =>
+  value ? { operation, value } : null
+);
 
 module.exports = Sql;

@@ -79,7 +79,9 @@ exports.encodeValue = value => {
       }
     }
     default: {
-      return R.is(Object, value) ? exports.quoteLiteral(JSON.stringify(value)) : value;
+      return R.is(Object, value)
+        ? exports.quoteLiteral(JSON.stringify(value))
+        : value;
     }
   }
 };
@@ -132,9 +134,10 @@ const _cleanableDefaults = {
   foreignKey: false,
   unique: false,
   check: false,
+  index: false,
 };
 
-const _encryptedNamesListExtensions = {
+exports.encryptedNamesListExtensions = {
   primaryKeys: 'primaryKey',
   indexes: 'index',
   foreignKeys: 'foreignKey',
@@ -142,21 +145,21 @@ const _encryptedNamesListExtensions = {
   unique: 'unique',
 };
 
-const _getExtensionDefaults = listName => {
-  const type = _encryptedNamesListExtensions[listName];
+const _getExtensionDefaults = type => {
   if (type === 'foreignKey') {
-    return { type, ...EXTENSIONS.FOREIGN_KEY_DEFAULTS };
-  } else {
-    return { type };
+    return { ...EXTENSIONS.FOREIGN_KEY_DEFAULTS };
   }
 };
 
 const _normalizeCleanableObject = object => {
   if (object) {
-    const encrypted = Object.entries(object).reduce((acc, [listName, value]) => {
-      acc[_encryptedNamesListExtensions[listName]] = value;
-      return acc;
-    }, {});
+    const encrypted = Object.entries(object).reduce(
+      (acc, [listName, value]) => {
+        acc[exports.encryptedNamesListExtensions[listName]] = value;
+        return acc;
+      },
+      {}
+    );
     return { ..._cleanableDefaults, ...encrypted };
   }
   return _cleanableDefaults;
@@ -184,10 +187,13 @@ exports.schema = schema => {
   const extensions = R.pipe(
     R.pick(['indexes', 'unique', 'foreignKeys', 'primaryKeys']), // without 'checks'
     R.toPairs,
-    R.reduce((acc, [listName, elements]) => {
+    R.reduce((acc, [type, elements]) => {
       if (elements) {
-        const defaults = _getExtensionDefaults(listName);
-        acc[defaults.type] = elements.map(props => ({ ...defaults, ...props }));
+        type = exports.encryptedNamesListExtensions[type];
+        const defaults = _getExtensionDefaults(type);
+        acc[type] = defaults
+          ? elements.map(props => ({ ...defaults, ...props }))
+          : elements;
       }
       return acc;
     }, {}),
@@ -207,20 +213,18 @@ exports.schema = schema => {
   };
 };
 
-const _getExtensionsFromColumns = R.pipe(
-  R.reduce(
-    (acc, column) =>
-      R.pipe(
-        R.pick(COLUMNS.EXTENSIONS),
-        R.toPairs,
-        R.map(([type, value]) => (value === true ? { type, columns: [column.name] } : null)),
-        R.filter(Boolean),
-        R.concat(acc)
-      )(column),
-    []
-  ),
-  R.groupBy(R.prop('type'))
-);
+const _getExtensionsFromColumns = columns => {
+  return columns.reduce((acc, column) => {
+    const extensions = R.pick(COLUMNS.EXTENSIONS, column);
+    Object.entries(extensions).forEach(([type, value]) => {
+      if (value === true) {
+        acc[type] = acc[type] || [];
+        acc[type].push({ columns: [column.name] });
+      }
+    });
+    return acc;
+  }, {});
+};
 
 exports.quoteLiteral = value => {
   const literal = value.slice(0); // create copy
