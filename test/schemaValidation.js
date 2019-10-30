@@ -67,4 +67,25 @@ describe('schema validation', () => {
 
     throw new Error('error test');
   });
+
+  it(`error change column type with 'column.force: false'`, async function() {
+    differ.define.table({
+      name: 'public.blogs',
+      columns: [
+        {
+          name: 'maker',
+          type: 'bigint', // // will be a error (json => bigint)
+          force: false,
+        },
+      ],
+    });
+
+    try {
+      await differ.sync();
+    } catch (e) {
+      return true;
+    }
+
+    throw new Error('error test');
+  });
 });

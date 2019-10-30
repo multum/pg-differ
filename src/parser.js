@@ -253,20 +253,7 @@ exports.quoteLiteral = value => {
   return quoted;
 };
 
-exports.separateSchema = name => {
+exports.name = name => {
   const chunks = name.split('.');
   return [chunks[1] ? chunks[0] : undefined, chunks[1] || chunks[0]];
-};
-
-exports.dbSequence = response => {
-  if (response) {
-    const {
-      start_value: start,
-      minimum_value: min,
-      maximum_value: max,
-      cycle_option: cycle,
-      increment,
-    } = response;
-    return { start, min, max, increment, cycle: cycle === 'YES' };
-  }
 };

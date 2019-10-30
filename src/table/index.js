@@ -51,9 +51,7 @@ function Table(options) {
   const { client, logging } = options;
 
   const _schema = _parseSchema(options.schema);
-  const [_schemaName = 'public', _tableName] = parser.separateSchema(
-    _schema.name
-  );
+  const [_schemaName = 'public', _tableName] = parser.name(_schema.name);
   const _fullName = `${_schemaName}.${_tableName}`;
 
   const _cleanable = _schema.cleanable;
@@ -560,9 +558,7 @@ function Table(options) {
 }
 
 Table._read = async (client, options) => {
-  const [_schemaName = 'public', _tableName] = parser.separateSchema(
-    options.name
-  );
+  const [_schemaName = 'public', _tableName] = parser.name(options.name);
   const fullName = `${_schemaName}.${_tableName}`;
 
   const info = new Info({

@@ -43,7 +43,21 @@ describe('sync', () => {
           primaryKey: true,
         },
         { name: 'deleted', type: 'bool' },
+        {
+          name: 'maker',
+          type: 'json',
+          force: true,
+        },
       ],
+    });
+
+    differ.define.sequence({
+      name: 'test_sequence',
+      force: false,
+      start: 100,
+      min: 20,
+      max: 100,
+      cycle: false,
     });
 
     await differ.sync();
