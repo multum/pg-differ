@@ -78,6 +78,7 @@ interface SequenceReadOptions {
 
 interface SequenceSchemaOptions {
     name: string,
+    force?: boolean,
     start?: string | number,
     min?: string | number,
     max?: string | number,

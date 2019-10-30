@@ -35,7 +35,7 @@ function Sequence(options) {
 
   properties = validate.sequenceDefinition({ ...DEFAULTS, ...properties });
   const _forceCreate = R.isNil(properties.force) ? force : properties.force;
-  const [schema = 'public', name] = parser.separateSchema(properties.name);
+  const [schema = 'public', name] = parser.name(properties.name);
   const _fullName = `${schema}.${name}`;
 
   const _buildSql = ({ action, ...rest }) => {
@@ -143,11 +143,11 @@ function Sequence(options) {
 }
 
 Sequence._read = async (client, options) => {
-  const [_schemaName = 'public', _sequenceName] = parser.separateSchema(
-    options.name
-  );
-  const fullName = `${_schemaName}.${_sequenceName}`;
   const metalize = new Metalize({ client, dialect: 'postgres' });
+
+  const [_schemaName = 'public', _sequenceName] = parser.name(options.name);
+  const fullName = `${_schemaName}.${_sequenceName}`;
+
   const structures = await metalize.read.sequences([fullName]);
   return structures.get(fullName);
 };
