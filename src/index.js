@@ -19,7 +19,7 @@ const Client = require('./postgres-client');
 const Table = require('./table');
 const Sequence = require('./sequence');
 
-const PROCESSES = require('./constants/processes');
+const { PROCESSES, OPERATIONS } = require('./constants');
 
 const _defaultOptions = {
   logging: false,
@@ -205,7 +205,6 @@ function Differ(options) {
       const queries = [
         await _sync({
           process: PROCESSES.UPDATING_SEQUENCES,
-          orderOfOperations: null,
           promises: sequences.map(sequence =>
             sequence._getSqlChanges(sequenceStructures)
           ),
@@ -213,9 +212,9 @@ function Differ(options) {
         await _sync({
           process: PROCESSES.CLEANING_EXTENSIONS,
           orderOfOperations: [
-            'drop foreignKey',
-            'drop primaryKey',
-            'drop unique',
+            OPERATIONS.DROP_FOREIGN_KEY,
+            OPERATIONS.DROP_PRIMARY_KEY,
+            OPERATIONS.DROP_UNIQUE,
           ],
           promises: tables.map(table =>
             table._getSqlCleaningExtensions(tableStructures)
@@ -223,14 +222,23 @@ function Differ(options) {
         }),
         await _sync({
           process: PROCESSES.UPDATING_TABLES,
-          orderOfOperations: null,
+          orderOfOperations: [
+            OPERATIONS.RENAME_COLUMN,
+            OPERATIONS.DROP_NOT_NULL,
+            OPERATIONS.DROP_DEFAULT,
+            OPERATIONS.TYPE_CHANGE,
+            OPERATIONS.SET_DEFAULT,
+          ],
           promises: tables.map(table =>
             table._getSqlCreateOrAlterTable(tableStructures)
           ),
         }),
         await _sync({
           process: PROCESSES.ADDING_EXTENSIONS,
-          orderOfOperations: ['add unique', 'add primaryKey'],
+          orderOfOperations: [
+            OPERATIONS.ADD_UNIQUE,
+            OPERATIONS.ADD_PRIMARY_KEY,
+          ],
           promises: tables.map(table =>
             table._getSqlAddingExtensions(tableStructures)
           ),
@@ -241,7 +249,6 @@ function Differ(options) {
       if (await _supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _sync({
           process: PROCESSES.INSERTING_SEEDS,
-          orderOfOperations: null,
           promises: tables.map(table => table._getSqlInsertSeeds()),
           logging: false,
         });
@@ -260,8 +267,9 @@ function Differ(options) {
       queries.push(
         await _sync({
           process: PROCESSES.UPDATING_SEQUENCE_VALUES,
-          orderOfOperations: null,
-          promises: tables.map(table => table._getSqlSequenceActualize()),
+          promises: tables.map(table =>
+            table._getSqlSequenceActualize(tableStructures)
+          ),
         })
       );
 

@@ -17,7 +17,8 @@ const Logger = require('../logger');
 const queries = require('./queries');
 const utils = require('../utils');
 const parser = require('../parser');
-const { COLUMNS, TYPES } = require('../constants');
+
+const { COLUMNS, TYPES, OPERATIONS } = require('../constants');
 
 const validate = require('../validate');
 
@@ -113,9 +114,9 @@ function Table(options) {
         );
         if (dbColumn) {
           const diff = _getColumnAttributeDiffs(column, dbColumn);
-          return !!diff && utils.isNotEmpty(diff) ? { ...column, diff } : null;
+          return [column, diff];
         } else {
-          return column;
+          return [column];
         }
       })
       .filter(Boolean);
@@ -132,7 +133,7 @@ function Table(options) {
             const alterTable = `alter table ${_fullName}`;
             if (type === 'index') {
               return Sql.create(
-                `drop ${type}`,
+                OPERATIONS.DROP_INDEX,
                 `drop index ${_schemaName}.${extension.name};`
               );
             }
@@ -152,20 +153,16 @@ function Table(options) {
     }));
     const sql = new Sql();
     const differences = _getColumnDifferences(dbColumns, _schema.columns);
-    if (utils.isNotEmpty(differences)) {
-      differences.forEach(column => {
-        const { diff } = column;
-        if (diff) {
-          const keys = utils.sortByList(null, COLUMNS.ATTRS, Object.keys(diff));
-          keys.forEach(key => {
-            const alterQuery = _alterColumn(column, key);
-            alterQuery && sql.add(alterQuery);
-          });
-        } else {
-          sql.add(_addColumn(column));
-        }
-      });
-    }
+    differences.forEach(([column, diff]) => {
+      if (diff) {
+        Object.entries(diff).forEach(([key, value]) => {
+          const alterQuery = _alterColumn(column, key, value);
+          alterQuery && sql.add(alterQuery);
+        });
+      } else {
+        sql.add(_addColumn(column));
+      }
+    });
     return sql;
   };
 
@@ -263,7 +260,7 @@ function Table(options) {
 
   const _addColumn = column =>
     Sql.create(
-      'add column',
+      OPERATIONS.ADD_COLUMN,
       `alter table ${_fullName} add column ${_getColumnDescription(column)};`
     );
 
@@ -285,7 +282,7 @@ function Table(options) {
     switch (type) {
       case 'index':
         return Sql.create(
-          `create ${type}`,
+          OPERATIONS.CREATE_INDEX,
           `create ${extensionType} on ${table} (${columns});`
         );
 
@@ -312,14 +309,12 @@ function Table(options) {
     }
   };
 
-  const _alterColumn = (column, key) => {
-    const value = column.diff[key];
+  const _alterColumn = (column, key, value) => {
     const alterTable = `alter table ${_fullName}`;
     if (key === 'name') {
-      const { oldName, name } = column.diff;
       return Sql.create(
-        'rename column',
-        `${alterTable} rename column ${oldName} to ${name};`
+        OPERATIONS.RENAME_COLUMN,
+        `${alterTable} rename column ${value.old} to ${value.new};`
       );
     } else if (key === 'nullable') {
       if (value === true) {
@@ -332,43 +327,42 @@ function Table(options) {
           );
         } else {
           return Sql.create(
-            'drop not null',
+            OPERATIONS.DROP_NOT_NULL,
             `${alterTable} alter column ${column.name} drop not null;`
           );
         }
       } else {
-        const setValues = column.default
+        const setValues = utils.isExist(column.default)
           ? Sql.create(
-              'set values by defaults',
+              OPERATIONS.SET_VALUES_BY_DEFAULTS,
               `update ${_fullName} set ${column.name} = ${column.default} where ${column.name} is null;`
             )
           : null;
         return [
           setValues,
           Sql.create(
-            'set not null',
+            OPERATIONS.SET_NOT_NULL,
             `${alterTable} alter column ${column.name} set not null;`
           ),
         ];
       }
     } else if (key === 'type' || key === 'collate') {
-      const { oldType, type } = column.diff;
-      const oldTypeGroup = parser.getTypeGroup(oldType);
-      const newTypeGroup = parser.getTypeGroup(type);
+      const oldTypeGroup = parser.getTypeGroup(value.old);
+      const newTypeGroup = parser.getTypeGroup(value.new);
       const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS;
       const collate = column.collate ? ` collate "${column.collate}"` : '';
 
       // If not an array
-      if (type.indexOf(']') === -1) {
+      if (value.new.indexOf(']') === -1) {
         const alterColumnType = using => {
           using = using ? ` using (${using})` : '';
           return Sql.create(
-            'set type',
+            OPERATIONS.TYPE_CHANGE,
             `${alterTable} alter column ${column.name} type ${column.type}${collate}${using};`
           );
         };
         if (
-          !oldType ||
+          !value.old ||
           (oldTypeGroup === INTEGER && newTypeGroup === INTEGER) ||
           (oldTypeGroup === CHARACTER && newTypeGroup === CHARACTER) ||
           (oldTypeGroup === INTEGER && newTypeGroup === CHARACTER)
@@ -377,7 +371,14 @@ function Table(options) {
         } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
           return alterColumnType(`trim(${column.name})::integer`);
         } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
-          return alterColumnType(`${column.name}::integer`);
+          const queries = [
+            _alterColumn(column, 'default', undefined), // drop default
+            alterColumnType(`${column.name}::integer`),
+          ];
+          if (utils.isExist(column.default)) {
+            queries.push(_alterColumn(column, 'default', column.default));
+          }
+          return queries;
         } else if (oldTypeGroup === INTEGER && newTypeGroup === BOOLEAN) {
           return alterColumnType(
             `case when ${column.name} = 0 then false else true end`
@@ -387,7 +388,7 @@ function Table(options) {
 
       if (column.force === true) {
         return Sql.create(
-          'drop and add column',
+          OPERATIONS.DROP_AND_ADD_COLUMN,
           `${alterTable} drop column ${
             column.name
           }, add column ${_getColumnDescription(column)};`
@@ -395,19 +396,19 @@ function Table(options) {
       } else {
         throw new Error(
           logger.error(
-            `To changing the type '${oldType}' => '${type}' you need to set 'force: true' for '${column.name}' column`
+            `To changing the type '${value.old}' => '${value.new}' you need to set 'force: true' for '${column.name}' column`
           )
         );
       }
     } else if (key === 'default') {
       if (utils.isExist(value)) {
         return Sql.create(
-          'set default',
+          OPERATIONS.SET_DEFAULT,
           `${alterTable} alter column ${column.name} set default ${value};`
         );
       } else {
         return Sql.create(
-          'set default',
+          OPERATIONS.DROP_DEFAULT,
           `${alterTable} alter column ${column.name} drop default;`
         );
       }
@@ -455,10 +456,13 @@ function Table(options) {
     temp = temp ? ' temporary' : '';
     return new Sql([
       force
-        ? Sql.create('drop table', `drop table if exists ${table} cascade;`)
+        ? Sql.create(
+            OPERATIONS.DROP_TABLE,
+            `drop table if exists ${table} cascade;`
+          )
         : null,
       Sql.create(
-        'create table',
+        OPERATIONS.CREATE_TABLE,
         `create${temp} table ${table} (\n  ${columns}\n);`
       ),
     ]);
@@ -469,16 +473,14 @@ function Table(options) {
       const dbValue = dbColumn[key];
       const schemaValue = column[key];
       if (String(dbValue) !== String(schemaValue)) {
-        acc[key] = schemaValue;
         switch (key) {
+          case 'name':
           case 'type': {
-            acc['oldType'] = dbValue;
+            acc[key] = { new: schemaValue, old: dbValue };
             break;
           }
-          case 'name': {
-            acc['oldName'] = dbValue;
-            break;
-          }
+          default:
+            acc[key] = schemaValue;
         }
       }
       return acc;
@@ -503,15 +505,18 @@ function Table(options) {
   const _getSqlInsertSeeds = () => {
     if (_seeds.size()) {
       const inserts = _seeds.inserts();
-      return new Sql(inserts.map(insert => Sql.create('insert seed', insert)));
+      return new Sql(
+        inserts.map(insert => Sql.create(OPERATIONS.INSERT_SEED, insert))
+      );
     }
     return null;
   };
 
   const _getSequences = () => _sequences;
 
-  const _getSqlSequenceActualize = async () => {
-    if (_sequences.length === 0 || (await _willBeCreated())) {
+  const _getSqlSequenceActualize = async structures => {
+    const willBeCreated = _willBeCreated(structures.get(_fullName));
+    if (_sequences.length === 0 || willBeCreated) {
       return null;
     }
     const sql = new Sql();
@@ -534,7 +539,7 @@ function Table(options) {
         if (utils.isExist(valueForRestart)) {
           sql.add(
             Sql.create(
-              'sequence restart',
+              OPERATIONS.SEQUENCE_RESTART,
               sequence._getQueryRestart(valueForRestart)
             )
           );

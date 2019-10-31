@@ -32,6 +32,14 @@ describe('alter columns', () => {
         { name: 'busy', type: 'bool', default: true },
       ],
     });
+
+    await differ.sync();
+
+    differ.define.table({
+      name: 'users',
+      columns: [{ name: 'busy', type: 'smallint', default: 1 }],
+    });
+
     await differ.sync();
 
     // sync without changes

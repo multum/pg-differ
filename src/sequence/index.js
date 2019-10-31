@@ -14,6 +14,7 @@ const utils = require('../utils');
 const queries = require('./queries');
 const validate = require('../validate');
 
+const { OPERATIONS } = require('../constants');
 const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences');
 
 function Sequence(options) {
@@ -24,7 +25,7 @@ function Sequence(options) {
   const [schema = 'public', name] = parser.name(properties.name);
   const _fullName = `${schema}.${name}`;
 
-  const _buildSql = ({ action, ...rest }) => {
+  const _buildSql = ({ operation, ...rest }) => {
     const chunks = [];
     Object.entries(rest).forEach(([key, value]) => {
       switch (key) {
@@ -54,8 +55,8 @@ function Sequence(options) {
     });
 
     if (chunks.length) {
-      chunks.unshift(`${action} sequence ${_fullName}`);
-      return new Sql(Sql.create(`${action} sequence`, chunks.join(' ') + ';'));
+      chunks.unshift(`${operation} ${_fullName}`);
+      return new Sql(Sql.create(operation, chunks.join(' ') + ';'));
     }
 
     return null;
@@ -75,10 +76,13 @@ function Sequence(options) {
     if (_forceCreate) {
       return new Sql([
         Sql.create(
-          'drop sequence',
+          OPERATIONS.DROP_SEQUENCE,
           `drop sequence if exists ${_fullName} cascade;`
         ),
-        ..._buildSql({ action: 'create', ...properties }).getStore(),
+        ..._buildSql({
+          operation: OPERATIONS.CREATE_SEQUENCE,
+          ...properties,
+        }).getStore(),
       ]);
     } else {
       const structure = structures.get(_fullName);
@@ -98,9 +102,12 @@ function Sequence(options) {
             diff.current = properties.min;
           }
         }
-        return _buildSql({ action: 'alter', ...diff });
+        return _buildSql({ operation: OPERATIONS.ALTER_SEQUENCE, ...diff });
       } else {
-        return _buildSql({ action: 'create', ...properties });
+        return _buildSql({
+          operation: OPERATIONS.CREATE_SEQUENCE,
+          ...properties,
+        });
       }
     }
   };
