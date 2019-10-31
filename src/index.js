@@ -19,6 +19,8 @@ const Client = require('./postgres-client');
 const Table = require('./table');
 const Sequence = require('./sequence');
 
+const { PROCESSES, OPERATIONS } = require('./constants');
+
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
@@ -98,8 +100,8 @@ function Differ(options) {
     }
   };
 
-  const _supportSeeds = async version => {
-    version = utils.isExist(version) ? version : await _getDatabaseVersion();
+  const _supportSeeds = async v => {
+    const version = utils.isExist(v) ? v : await _getDatabaseVersion();
     return version >= 9.5;
   };
 
@@ -117,20 +119,19 @@ function Differ(options) {
           force,
           logging,
         });
-        const sequences = table._getSequences();
-        sequences &&
-          sequences.forEach(([, sequence]) => {
-            const { name } = sequence._getProperties();
-            _sequences.set(name, sequence);
-          });
         _tables.set(properties.name, table);
+
+        table._getSequences().forEach(([, sequence]) => {
+          _sequences.set(sequence._name, sequence);
+        });
+
         return table;
       }
       case 'sequence': {
         const sequence = new Sequence({
-          client: _client,
           force,
           properties,
+          client: _client,
         });
         _sequences.set(properties.name, sequence);
         return sequence;
@@ -203,33 +204,41 @@ function Differ(options) {
     try {
       const queries = [
         await _sync({
-          process: 'updating sequences',
-          orderOfOperations: null,
+          process: PROCESSES.UPDATING_SEQUENCES,
           promises: sequences.map(sequence =>
             sequence._getSqlChanges(sequenceStructures)
           ),
         }),
         await _sync({
-          process: 'cleaning extensions',
+          process: PROCESSES.CLEANING_EXTENSIONS,
           orderOfOperations: [
-            'drop foreignKey',
-            'drop primaryKey',
-            'drop unique',
+            OPERATIONS.DROP_FOREIGN_KEY,
+            OPERATIONS.DROP_PRIMARY_KEY,
+            OPERATIONS.DROP_UNIQUE,
           ],
           promises: tables.map(table =>
             table._getSqlCleaningExtensions(tableStructures)
           ),
         }),
         await _sync({
-          process: 'updating tables',
-          orderOfOperations: null,
+          process: PROCESSES.UPDATING_TABLES,
+          orderOfOperations: [
+            OPERATIONS.RENAME_COLUMN,
+            OPERATIONS.DROP_NOT_NULL,
+            OPERATIONS.DROP_DEFAULT,
+            OPERATIONS.TYPE_CHANGE,
+            OPERATIONS.SET_DEFAULT,
+          ],
           promises: tables.map(table =>
             table._getSqlCreateOrAlterTable(tableStructures)
           ),
         }),
         await _sync({
-          process: 'adding extensions',
-          orderOfOperations: ['add unique', 'add primaryKey'],
+          process: PROCESSES.ADDING_EXTENSIONS,
+          orderOfOperations: [
+            OPERATIONS.ADD_UNIQUE,
+            OPERATIONS.ADD_PRIMARY_KEY,
+          ],
           promises: tables.map(table =>
             table._getSqlAddingExtensions(tableStructures)
           ),
@@ -239,8 +248,7 @@ function Differ(options) {
       let insertSeedCount = 0;
       if (await _supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _sync({
-          process: 'inserting seeds',
-          orderOfOperations: null,
+          process: PROCESSES.INSERTING_SEEDS,
           promises: tables.map(table => table._getSqlInsertSeeds()),
           logging: false,
         });
@@ -258,9 +266,10 @@ function Differ(options) {
 
       queries.push(
         await _sync({
-          process: 'updating sequence values',
-          orderOfOperations: null,
-          promises: tables.map(table => table._getSqlSequenceActualize()),
+          process: PROCESSES.UPDATING_SEQUENCE_VALUES,
+          promises: tables.map(table =>
+            table._getSqlSequenceActualize(tableStructures)
+          ),
         })
       );
 
@@ -321,13 +330,15 @@ function Differ(options) {
 
   _setup();
 
-  return Object.freeze({
+  const _instance = {
     _supportSeeds,
     _getDatabaseVersion,
     sync,
     define,
     read,
-  });
+  };
+
+  return Object.freeze(_instance);
 }
 
 module.exports = Differ;

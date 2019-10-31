@@ -8,19 +8,6 @@
 
 const R = require('ramda');
 
-/**
- * @typedef {Object} Sql
- * @property {function} add
- * @property {function} getSize
- * @property {function} getLines
- * @property {function} getStore
- * @property {function} join
- */
-
-/**
- * @returns {Sql}
- * @constructor
- */
 const Sql = function(sql) {
   let _methods = null;
   const _lines = new Set();
@@ -49,7 +36,9 @@ const Sql = function(sql) {
     add(sql);
   }
 
-  return (_methods = Object.freeze({ add, getLines, getSize, getStore, join }));
+  const _instance = { add, getLines, getSize, getStore, join };
+
+  return (_methods = Object.freeze(_instance));
 };
 
 Sql.create = R.curry((operation, value) =>

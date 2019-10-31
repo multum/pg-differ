@@ -11,20 +11,6 @@ const R = require('ramda');
 const queries = require('./queries');
 const parser = require('../parser');
 
-/**
- * @typedef {object} TableInfo
- * @property {function} getRows
- * @property {function} getChecks
- */
-
-/**
- *
- * @param {object} options
- * @param {PostgresClient} options.client
- * @param {string} options.name
- * @returns {TableInfo}
- */
-
 function TableInfo(options) {
   const { client, name } = options;
 
@@ -44,10 +30,12 @@ function TableInfo(options) {
       )
     );
 
-  return Object.freeze({
+  const _instance = {
     getRows,
     getChecks,
-  });
+  };
+
+  return Object.freeze(_instance);
 }
 
 module.exports = TableInfo;

@@ -10,9 +10,13 @@ const COLUMNS = require('./columns');
 const TYPES = require('./types');
 const EXTENSIONS = require('./extensions');
 const SEQUENCES = require('./sequences');
+const OPERATIONS = require('./operations');
+const PROCESSES = require('./processes');
 module.exports = {
   COLUMNS,
   TYPES,
   EXTENSIONS,
   SEQUENCES,
+  OPERATIONS,
+  PROCESSES,
 };
