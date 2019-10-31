@@ -16,20 +16,6 @@ const validate = require('../validate');
 
 const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences');
 
-/**
- * @typedef {object} Sequence
- * @property {function} _getSqlChanges
- * @property {function} _getQueryIncrement
- * @property {function} _getQueryRestart
- * @property {function} _getCurrentValue
- */
-
-/**
- *
- * @param {object} options
- * @param {PostgresClient} options.client
- * @returns {Sequence}
- */
 function Sequence(options) {
   let { properties, client, force } = options;
 
@@ -119,7 +105,7 @@ function Sequence(options) {
     }
   };
 
-  const _getProperties = () => ({ ...properties });
+  const _getProperties = () => properties;
 
   const _getQueryIncrement = () => queries.increment(_fullName);
 
@@ -132,14 +118,16 @@ function Sequence(options) {
     return currentValue;
   };
 
-  return Object.freeze({
+  const _instance = {
     _getSqlChanges,
     _getQueryIncrement,
     _getProperties,
     _getQueryRestart,
     _getCurrentValue,
     _name: _fullName,
-  });
+  };
+
+  return Object.freeze(_instance);
 }
 
 Sequence._read = async (client, options) => {

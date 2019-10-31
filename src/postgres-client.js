@@ -8,19 +8,7 @@
 
 const { Client } = require('pg');
 
-/**
- * @typedef {Object} PostgresClient
- * @property {function} end
- * @property {function} query
- */
-
-/**
- *
- * @param connectionConfig
- * @param options
- * @returns {PostgresClient}
- */
-module.exports = function(connectionConfig, { reconnection }) {
+module.exports = function PostgresClient(connectionConfig, { reconnection }) {
   let client;
 
   const connect = (attempt = 0) => {
@@ -62,8 +50,10 @@ module.exports = function(connectionConfig, { reconnection }) {
     return client.query(sql, params);
   };
 
-  return Object.freeze({
+  const _instance = {
     end,
     query,
-  });
+  };
+
+  return Object.freeze(_instance);
 };

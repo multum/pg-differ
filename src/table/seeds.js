@@ -6,20 +6,8 @@
  */
 'use strict';
 
-/**
- * @typedef {object} Seeds
- * @property {function} add
- * @property {function} inserts
- * @property {function} size
- */
-
 const parser = require('../parser');
 
-/**
- *
- * @param {object} options
- * @returns {Seeds}
- */
 module.exports = function(options) {
   const { table } = options;
   let _seeds = [];
@@ -31,14 +19,16 @@ module.exports = function(options) {
   const inserts = () => _seeds.map(_insertSeed);
 
   const _insertSeed = seed => {
-    const keys = Object.keys(seed);
-    const values = Object.values(seed).map(parser.encodeValue);
-    return `insert into ${table} (${keys.join(', ')}) values (${values.join(
-      ', '
-    )}) on conflict do nothing;`;
+    const keys = Object.keys(seed).join(', ');
+    const values = Object.values(seed)
+      .map(parser.encodeValue)
+      .join(', ');
+    return `insert into ${table} (${keys}) values (${values}) on conflict do nothing;`;
   };
 
   const size = () => _seeds.length;
 
-  return Object.freeze({ add, inserts, size });
+  const _instance = { add, inserts, size };
+
+  return Object.freeze(_instance);
 };

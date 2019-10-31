@@ -43,7 +43,7 @@ const _setupSequences = ({ columns, tableName, client, forceCreate }) => {
       return [column.name, sequence];
     });
   } else {
-    return null;
+    return [];
   }
 };
 
@@ -78,7 +78,7 @@ function Table(options) {
     forceCreate: _forceCreate,
   });
 
-  const _getProperties = () => ({ ..._schema });
+  const _getProperties = () => _schema;
 
   const _getExtensions = structure => {
     return {
@@ -511,7 +511,7 @@ function Table(options) {
   const _getSequences = () => _sequences;
 
   const _getSqlSequenceActualize = async () => {
-    if (!(_sequences && _sequences.length)) {
+    if (_sequences.length === 0 || (await _willBeCreated())) {
       return null;
     }
     const sql = new Sql();
@@ -544,7 +544,7 @@ function Table(options) {
     return sql;
   };
 
-  return Object.freeze({
+  const _instance = {
     _getSqlCreateOrAlterTable,
     _getSqlAddingExtensions,
     _getSqlCleaningExtensions,
@@ -554,7 +554,9 @@ function Table(options) {
     _getSqlSequenceActualize,
     _name: _fullName,
     addSeeds,
-  });
+  };
+
+  return Object.freeze(_instance);
 }
 
 Table._read = async (client, options) => {

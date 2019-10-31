@@ -19,6 +19,8 @@ const Client = require('./postgres-client');
 const Table = require('./table');
 const Sequence = require('./sequence');
 
+const PROCESSES = require('./constants/processes');
+
 const _defaultOptions = {
   logging: false,
   schemaFolder: null,
@@ -98,8 +100,8 @@ function Differ(options) {
     }
   };
 
-  const _supportSeeds = async version => {
-    version = utils.isExist(version) ? version : await _getDatabaseVersion();
+  const _supportSeeds = async v => {
+    const version = utils.isExist(v) ? v : await _getDatabaseVersion();
     return version >= 9.5;
   };
 
@@ -117,20 +119,19 @@ function Differ(options) {
           force,
           logging,
         });
-        const sequences = table._getSequences();
-        sequences &&
-          sequences.forEach(([, sequence]) => {
-            const { name } = sequence._getProperties();
-            _sequences.set(name, sequence);
-          });
         _tables.set(properties.name, table);
+
+        table._getSequences().forEach(([, sequence]) => {
+          _sequences.set(sequence._name, sequence);
+        });
+
         return table;
       }
       case 'sequence': {
         const sequence = new Sequence({
-          client: _client,
           force,
           properties,
+          client: _client,
         });
         _sequences.set(properties.name, sequence);
         return sequence;
@@ -203,14 +204,14 @@ function Differ(options) {
     try {
       const queries = [
         await _sync({
-          process: 'updating sequences',
+          process: PROCESSES.UPDATING_SEQUENCES,
           orderOfOperations: null,
           promises: sequences.map(sequence =>
             sequence._getSqlChanges(sequenceStructures)
           ),
         }),
         await _sync({
-          process: 'cleaning extensions',
+          process: PROCESSES.CLEANING_EXTENSIONS,
           orderOfOperations: [
             'drop foreignKey',
             'drop primaryKey',
@@ -221,14 +222,14 @@ function Differ(options) {
           ),
         }),
         await _sync({
-          process: 'updating tables',
+          process: PROCESSES.UPDATING_TABLES,
           orderOfOperations: null,
           promises: tables.map(table =>
             table._getSqlCreateOrAlterTable(tableStructures)
           ),
         }),
         await _sync({
-          process: 'adding extensions',
+          process: PROCESSES.ADDING_EXTENSIONS,
           orderOfOperations: ['add unique', 'add primaryKey'],
           promises: tables.map(table =>
             table._getSqlAddingExtensions(tableStructures)
@@ -239,7 +240,7 @@ function Differ(options) {
       let insertSeedCount = 0;
       if (await _supportSeeds(databaseVersion)) {
         const insertSeedQueries = await _sync({
-          process: 'inserting seeds',
+          process: PROCESSES.INSERTING_SEEDS,
           orderOfOperations: null,
           promises: tables.map(table => table._getSqlInsertSeeds()),
           logging: false,
@@ -258,7 +259,7 @@ function Differ(options) {
 
       queries.push(
         await _sync({
-          process: 'updating sequence values',
+          process: PROCESSES.UPDATING_SEQUENCE_VALUES,
           orderOfOperations: null,
           promises: tables.map(table => table._getSqlSequenceActualize()),
         })
@@ -321,13 +322,15 @@ function Differ(options) {
 
   _setup();
 
-  return Object.freeze({
+  const _instance = {
     _supportSeeds,
     _getDatabaseVersion,
     sync,
     define,
     read,
-  });
+  };
+
+  return Object.freeze(_instance);
 }
 
 module.exports = Differ;

@@ -9,12 +9,7 @@
 const R = require('ramda');
 const chalk = require('chalk');
 
-/**
- *
- * @param prefix {string}
- * @param callback {function}
- */
-module.exports = function({ prefix, callback }) {
+module.exports = function Logger({ prefix, callback }) {
   const log = R.curry((type, title, message) => {
     const chunks = title
       ? [`${prefix} :: ${title}`, message].filter(Boolean)
