@@ -55,6 +55,21 @@ describe('sync', () => {
       ],
     });
 
+    differ.define.table({
+      name: 'public.users',
+      force: false,
+      columns: [
+        {
+          name: 'id',
+          type: 'bigint',
+          unique: true,
+          primaryKey: true,
+          autoIncrement: { actual: true },
+          nullable: false,
+        },
+      ],
+    });
+
     differ.define.sequence({
       name: 'test_sequence',
       force: false,
@@ -64,6 +79,22 @@ describe('sync', () => {
       cycle: false,
     });
 
+    await differ.sync();
+  });
+
+  it(`creating a table with 'force: false'`, async function() {
+    const differ = new Differ({
+      schemaFolder: null,
+      connectionConfig,
+      reconnection: true,
+      logging,
+    });
+    const name = `public.nonexistent_table`;
+    differ.define.table({
+      name,
+      columns: [{ name: 'id', type: 'smallint' }],
+    });
+    await differ._client.query(`drop table if exists ${name}`);
     await differ.sync();
   });
 

@@ -333,6 +333,7 @@ function Differ(options) {
   const _instance = {
     _supportSeeds,
     _getDatabaseVersion,
+    _client,
     sync,
     define,
     read,

@@ -93,6 +93,7 @@ interface AutoIncrementOptions {
     max?: string | number,
     increment?: string | number,
     cycle?: boolean,
+    actual?: boolean
 }
 
 interface CheckOptions {
