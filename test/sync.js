@@ -42,7 +42,11 @@ describe('sync', () => {
           type: 'bigint',
           primaryKey: true,
         },
-        { name: 'deleted', type: 'bool' },
+        {
+          name: 'deleted',
+          type: 'bool',
+          default: false,
+        },
         {
           name: 'maker',
           type: 'json',

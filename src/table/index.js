@@ -19,6 +19,7 @@ const utils = require('../utils');
 const parser = require('../parser');
 
 const { COLUMNS, TYPES, OPERATIONS } = require('../constants');
+const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS;
 
 const validate = require('../validate');
 
@@ -349,17 +350,30 @@ function Table(options) {
     } else if (key === 'type' || key === 'collate') {
       const oldTypeGroup = parser.getTypeGroup(value.old);
       const newTypeGroup = parser.getTypeGroup(value.new);
-      const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS;
+
+      const hasDefault = utils.isExist(column.default);
+
       const collate = column.collate ? ` collate "${column.collate}"` : '';
 
       // If not an array
       if (value.new.indexOf(']') === -1) {
         const alterColumnType = using => {
           using = using ? ` using (${using})` : '';
-          return Sql.create(
+
+          const alterType = Sql.create(
             OPERATIONS.TYPE_CHANGE,
             `${alterTable} alter column ${column.name} type ${column.type}${collate}${using};`
           );
+
+          if (using && hasDefault) {
+            return [
+              _alterColumn(column, 'default', undefined), // drop default
+              alterType,
+              _alterColumn(column, 'default', column.default),
+            ];
+          } else {
+            return alterType;
+          }
         };
         if (
           !value.old ||
@@ -371,14 +385,7 @@ function Table(options) {
         } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
           return alterColumnType(`trim(${column.name})::integer`);
         } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
-          const queries = [
-            _alterColumn(column, 'default', undefined), // drop default
-            alterColumnType(`${column.name}::integer`),
-          ];
-          if (utils.isExist(column.default)) {
-            queries.push(_alterColumn(column, 'default', column.default));
-          }
-          return queries;
+          return alterColumnType(`${column.name}::integer`);
         } else if (oldTypeGroup === INTEGER && newTypeGroup === BOOLEAN) {
           return alterColumnType(
             `case when ${column.name} = 0 then false else true end`
