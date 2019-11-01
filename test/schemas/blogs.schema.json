@@ -59,7 +59,8 @@
       },
       {
         "name": "deleted",
-        "type": "smallint"
+        "type": "smallint",
+        "default": 0
       },
       {
         "name": "created",
