@@ -8,10 +8,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/av-dev/pg-differ.git"
+    "url": "https://github.com/multum/pg-differ.git"
   },
-  "homepage": "https://av-dev.github.io/pg-differ",
-  "bugs": "https://github.com/av-dev/pg-differ/issues",
+  "homepage": "https://multum.github.io/pg-differ",
+  "bugs": "https://github.com/multum/pg-differ/issues",
   "main": "src/index.js",
   "types": "types/index.d.ts",
   "bin": {

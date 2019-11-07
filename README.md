@@ -1,33 +1,33 @@
-[<img src='https://av-dev.github.io/pg-differ/readme-logo.svg' width='560' alt='pg-differ'>](https://av-dev.github.io/pg-differ/#/)
+[<img src='https://multum.github.io/pg-differ/readme-logo.svg' width='560' alt='pg-differ'>](https://multum.github.io/pg-differ/#/)
 
 [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)
 
-![](https://img.shields.io/travis/com/av-dev/pg-differ.svg?style=flat-square)
-[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat-square)](https://github.com/av-dev/pg-differ/blob/master/LICENSE)
+![](https://img.shields.io/travis/com/multum/pg-differ.svg?style=flat-square)
+[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat-square)](https://github.com/multum/pg-differ/blob/master/LICENSE)
 [![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)](https://www.npmjs.com/package/pg-differ)
-![](https://img.shields.io/codecov/c/github/av-dev/pg-differ.svg?style=flat-square)
+![](https://img.shields.io/codecov/c/github/multum/pg-differ.svg?style=flat-square)
 
 ## Features
 
-  - Easy to use [schema structure](https://av-dev.github.io/pg-differ/#/entities)
-  - Table support
-  - Sequence support
-  - Adding/changing columns
-  - Constraint and index support
-  - Seed support
-  - Dropping of unnecessary constraints/indexes
-  - Change logging
+- Easy to use [schema structure](https://multum.github.io/pg-differ/#/entities)
+- Table support
+- Sequence support
+- Adding/changing columns
+- Constraint and index support
+- Seed support
+- Dropping of unnecessary constraints/indexes
+- Change logging
 
-<img src='https://av-dev.github.io/pg-differ/screencast.svg' width='640px'/>
+<img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 
 ## Documentation
 
-You can find the documentation [on the website](https://av-dev.github.io/pg-differ/#/)
+You can find the documentation [on the website](https://multum.github.io/pg-differ/#/)
 
-> If you are using an older version, you can go to the [documentation for v1](https://av-dev.github.io/pg-differ/v1/#/)
+> If you are using an older version, you can go to the [documentation for v1](https://multum.github.io/pg-differ/v1/#/)
 
 ## Contributing
 
@@ -44,4 +44,5 @@ Please **ask first** if somebody else is already working on this or the core dev
 Please also provide a **test plan**, i.e. specify how you verified that your addition works.
 
 ## License
-pg-differ is open source software [licensed as MIT](https://github.com/av-dev/pg-differ/blob/master/LICENSE).
+
+pg-differ is open source software [licensed as MIT](https://github.com/multum/pg-differ/blob/master/LICENSE).

@@ -1,29 +1,36 @@
 ## 2.4.0
 
 #### Enhancement
-* added `transaction` parameter to `differ.sync` method ([docs](https://av-dev.github.io/pg-differ/#/sync))
-* the `define(type, properties)` method is **deprecated**
-* added `define.table(properties)` and `define.sequence(properties)`
+
+- added `transaction` parameter to `differ.sync` method ([docs](https://multum.github.io/pg-differ/#/sync))
+- the `define(type, properties)` method is **deprecated**
+- added `define.table(properties)` and `define.sequence(properties)`
 
 #### Bug Fix
-* fixed bug of `_supportSeeds` function that returned a promise instead of a result
+
+- fixed bug of `_supportSeeds` function that returned a promise instead of a result
 
 #### Internal
-* repo renamed
-* typos fixed in `types/index.d.ts`
+
+- repo renamed
+- typos fixed in `types/index.d.ts`
 
 ## 2.3.1
 
 #### Bug Fix
-* the use of `savepoint` and `rollback savepoint` in the method of reading constraints is removed, which sometimes led to the rollback of changes in parallel synchronization processes ([issue #58](https://github.com/av-dev/pg-differ/issues/58))
+
+- the use of `savepoint` and `rollback savepoint` in the method of reading constraints is removed, which sometimes led to the rollback of changes in parallel synchronization processes ([issue #58](https://github.com/multum/pg-differ/issues/58))
 
 #### Internal
-* devDependencies updated
+
+- devDependencies updated
 
 ## 2.3.0
 
 #### Enhancement
-* added ability to **read the structure/properties** of existing entities
+
+- added ability to **read the structure/properties** of existing entities
+
 ```javascript
 const differ = new Differ(...)
 const users = await differ.read.table({ name: 'public.users', seeds: true })
@@ -31,45 +38,54 @@ console.log(users) // { name: 'public.users', columns: [...], foreignKeys: [...]
 ```
 
 #### Internal
-* increase test coverage
-* improved regular expressions for parsing values from `information_schema`
+
+- increase test coverage
+- improved regular expressions for parsing values from `information_schema`
 
 ## 2.2.2
 
 #### Enhancement
-* added adjustment of `currval` when changing `[min, max]` sequence
+
+- added adjustment of `currval` when changing `[min, max]` sequence
 
 #### Internal
-* more detailed file `package.json`
+
+- more detailed file `package.json`
 
 ## 2.2.1
 
 #### Enhancement
-* `--connectionString` removed from the list of required parameters for CLI
+
+- `--connectionString` removed from the list of required parameters for CLI
 
 #### Bug Fix
-* end-of-line normalization introduced ([issue #49](https://github.com/av-dev/pg-differ/issues/49))
-* fixed error logging the number of inserted seeds
+
+- end-of-line normalization introduced ([issue #49](https://github.com/multum/pg-differ/issues/49))
+- fixed error logging the number of inserted seeds
 
 ## 2.2.0
 
 #### Enhancement
-* added new property `autoIncrement.actual` for restart the sequence to the largest column value
+
+- added new property `autoIncrement.actual` for restart the sequence to the largest column value
 
 #### Bug Fix
-* fixed `out of shared memory` error by sending SQL-queries one at a time
-* nested transaction removed
+
+- fixed `out of shared memory` error by sending SQL-queries one at a time
+- nested transaction removed
 
 ## 2.1.1
 
 #### Bug Fix
-* added reset `search_path` to get complete information about existing foreign keys
+
+- added reset `search_path` to get complete information about existing foreign keys
 
 ## 2.1.0
 
 #### Enhancement
 
-* added `reconnection` config to options
+- added `reconnection` config to options
+
 ```javascript
 // default value
 reconnection: { attempts: Infinity, delay: 5000 }
@@ -77,42 +93,44 @@ reconnection: { attempts: Infinity, delay: 5000 }
 
 #### Bug Fix
 
-* closing db connection after sync error
-* fixed error of adding a `unique` constraint
-* canceled unnecessary run insert seeds in their absence
+- closing db connection after sync error
+- fixed error of adding a `unique` constraint
+- canceled unnecessary run insert seeds in their absence
 
 #### Internal
 
-* tests are sorted
-* increase test coverage
+- tests are sorted
+- increase test coverage
 
 ## 2.0.0
 
 #### Enhancement
 
-* optimized schema structure
+- optimized schema structure
+
   - added support for **multiple Postgres objects**(table, sequence and more)
   - **indexes and constraints** in the scheme are **separated**
 
-* added support `CHECK` constraint
-* drop and create **sequences** by synchronizing the table **with force mode**
-* removed unnecessary methods and options
+- added support `CHECK` constraint
+- drop and create **sequences** by synchronizing the table **with force mode**
+- removed unnecessary methods and options
   - `differ.getModel(name: String)`
   - `options.seedFolder`
-* refactored the property `schema.forceIndexes` and renamed it to `schema.cleanable`
-* renamed the `options.dbConfig` option to `options.connectionConfig`
+- refactored the property `schema.forceIndexes` and renamed it to `schema.cleanable`
+- renamed the `options.dbConfig` option to `options.connectionConfig`
 
 #### Bug Fix
 
-* fixed postgres-client reconnection error after connection error
+- fixed postgres-client reconnection error after connection error
 
 #### Internal
 
-* code optimized
-* dependencies updated
-* update and optimized docs
+- code optimized
+- dependencies updated
+- update and optimized docs
 
 #### Migrating from 1.3.4 to 2.0.0
+
 ```javascript
 // v1.x
 {
@@ -164,148 +182,155 @@ reconnection: { attempts: Infinity, delay: 5000 }
 
 #### Bug Fix
 
-* added escaping for Object or Array in `column.default` key (or in the value of the column  in `seeds`)
+- added escaping for Object or Array in `column.default` key (or in the value of the column in `seeds`)
 
 ## 1.3.3
 
 #### Internal
 
-* small code refactoring
+- small code refactoring
 
 ## 1.3.2
 
 #### Bug Fix
 
-* a single quote in the string for the `column.default` key (or the column value in `seeds`) caused an error. Added escaping for strings
+- a single quote in the string for the `column.default` key (or the column value in `seeds`) caused an error. Added escaping for strings
 
 ## 1.3.1
 
 #### Enhancement
 
-* added property `name` to `column.autoIncrement`
+- added property `name` to `column.autoIncrement`
 
 #### Internal
 
-* schema validation method refactored
-* code optimized
-* dependencies updated
-* update docs
+- schema validation method refactored
+- code optimized
+- dependencies updated
+- update docs
 
 ## 1.3.0
 
 #### Enhancement
 
-* added the ability to create a **sequence** using the `autoIncrement` in columns
+- added the ability to create a **sequence** using the `autoIncrement` in columns
 
 #### Internal
 
-* code optimized
-* increased test coverage
-* documentation migrated to [GitHub Pages](https://av-dev.github.io/pg-differ/#/)
+- code optimized
+- increased test coverage
+- documentation migrated to [GitHub Pages](https://multum.github.io/pg-differ/#/)
 
 ## 1.2.0
 
 #### Enhancement
 
-* added special syntax `::sql` for defining SQL in values and default values
-* removed auto-add of unique restriction for adding foreignKey
-* added `differ.getModel` method to get the model object
+- added special syntax `::sql` for defining SQL in values and default values
+- removed auto-add of unique restriction for adding foreignKey
+- added `differ.getModel` method to get the model object
 
 #### Bug Fix
 
-* fixed the error that occurred when checking the existence of a table in PostgreSQL 9.2
-* fixed incorrect comparison of `column.default` values
-* changed model object returned by 'differ.define' method. Now the link to the model is always the same
+- fixed the error that occurred when checking the existence of a table in PostgreSQL 9.2
+- fixed incorrect comparison of `column.default` values
+- changed model object returned by 'differ.define' method. Now the link to the model is always the same
 
 #### Internal
 
-* increased test coverage. Now it is ***96%***
-* code optimized
-* renamed Model functions
-* removed unnecessary methods
-* added codecov reports
-* improved logging
+- increased test coverage. Now it is **_96%_**
+- code optimized
+- renamed Model functions
+- removed unnecessary methods
+- added codecov reports
+- improved logging
 
 #### Migrating from 1.1.1 to 1.2.0
 
 Column value definitions (column.default and seed values)
+
 ```javascript
 // v1.1.1
-'\'Default string\''   // string types
-'now()'                // sql functions
+'\'Default string\''; // string types
+'now()'; // sql functions
 
 // v1.2.0
-'Default string'       // string types
-'now()::sql'           // sql functions 
+'Default string'; // string types
+'now()::sql'; // sql functions
 ```
- 
+
 ## 1.1.1
 
 #### Bug Fix
- * Fixed a bug that caused the 'seeds' parameter to be ignored in the 'differ.define' method
- * Fixed a bug that occurred when counting inserted seeds
- 
+
+- Fixed a bug that caused the 'seeds' parameter to be ignored in the 'differ.define' method
+- Fixed a bug that occurred when counting inserted seeds
+
 ## 1.1.0
 
 #### Enhancement
- * Added object/array syntax support for fields of type JSON ([issue #23](https://github.com/av-dev/pg-differ/issues/23))
- * Refactoring the postgres query manager
- * Removed unnecessary parameter 'logger'
+
+- Added object/array syntax support for fields of type JSON ([issue #23](https://github.com/multum/pg-differ/issues/23))
+- Refactoring the postgres query manager
+- Removed unnecessary parameter 'logger'
 
 #### Migrating from 1.0.3 to 1.1.0
 
 ```javascript
 const differ = new Differ({
   ...options,
-    
+
   // v1.0.3
   // logging: true,
-  // logger: function(message){} 
-    
+  // logger: function(message){}
+
   // v1.1.0
-  logging: function(message){},
-})
- 
+  logging: function(message) {},
+});
+
 differ.define({
   ...options,
   columns: [
     {
-      'name': 'column_name',
-      'type': 'json',
-      
+      name: 'column_name',
+      type: 'json',
+
       // v1.0.3
       // default value for json type not supported,
-      
+
       // v1.1.0
-      'default': {
+      default: {
         1: '...',
-        2: '...'
-      }
-    }
-  ]
-})
+        2: '...',
+      },
+    },
+  ],
+});
 ```
 
 ## 1.0.3
 
 #### Bug Fix
- * Fix error with npm files
- 
+
+- Fix error with npm files
+
 ## 1.0.2
 
 #### Enhancement
- * Added declaration file index.d.ts ([pull #20](https://github.com/av-dev/pg-differ/pull/20))
- * Concatenated the logger arguments into one ([pull #19](https://github.com/av-dev/pg-differ/pull/19))
- 
+
+- Added declaration file index.d.ts ([pull #20](https://github.com/multum/pg-differ/pull/20))
+- Concatenated the logger arguments into one ([pull #19](https://github.com/multum/pg-differ/pull/19))
+
 ## 1.0.1
 
 #### Bug Fix
- * Fix logging. Tab correction
- * Added seedFolder option in CLI
+
+- Fix logging. Tab correction
+- Added seedFolder option in CLI
 
 ## 1.0.0
 
 #### Enhancement
- * Seed support ([issue #15](https://github.com/av-dev/pg-differ/issues/15))
- * Converting values without removing them when changing the type of the column 'boolean' => 'integer' and 'integer' => 'boolean' ([issue #14](https://github.com/av-dev/pg-differ/issues/14))
- * Ability to rename table columns ([issue #10](https://github.com/av-dev/pg-differ/issues/10))
+
+- Seed support ([issue #15](https://github.com/multum/pg-differ/issues/15))
+- Converting values without removing them when changing the type of the column 'boolean' => 'integer' and 'integer' => 'boolean' ([issue #14](https://github.com/multum/pg-differ/issues/14))
+- Ability to rename table columns ([issue #10](https://github.com/multum/pg-differ/issues/10))
