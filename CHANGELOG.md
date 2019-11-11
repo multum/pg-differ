@@ -1,9 +1,30 @@
+## 2.5.0
+
+#### Enhancement
+
+- optimized database **metadata reading** process (now many times faster:boom:)
+- `options.force` is **deprecated**
+- `options.schemaFolder` is **deprecated**
+- CLI: added **unnamed argument** (alternative for `--schemaFolder`)
+
+#### Bug Fix
+
+- fixed change of **column type** if **default value** exists
+- fixed error of ignoring `options.force` in sequences
+
+#### Internal
+
+- added [`metalize`](https://multum.github.io/metalize) lib for reading database metadata
+- repository **author name** changed to `multum`
+- adding `prettier` and `lint-staged`
+- redesigned code style
+
 ## 2.4.0
 
 #### Enhancement
 
 - added `transaction` parameter to `differ.sync` method ([docs](https://multum.github.io/pg-differ/#/sync))
-- the `define(type, properties)` method is **deprecated**
+- `define(type, properties)` method is **deprecated**
 - added `define.table(properties)` and `define.sequence(properties)`
 
 #### Bug Fix

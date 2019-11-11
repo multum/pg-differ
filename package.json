@@ -1,10 +1,10 @@
 {
   "name": "pg-differ",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "PostgreSQL migration alternative for Node.js",
   "author": {
     "name": "Andrey Vereshchak",
-    "email": "vereschak@gmail.com"
+    "email": "andrew.vereshchak@gmail.com"
   },
   "repository": {
     "type": "git",
