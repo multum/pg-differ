@@ -19,9 +19,11 @@ interface SQL {
 
 interface DifferOptions {
     connectionConfig: object,
+    /** @deprecated */
     schemaFolder?: string,
-    logging?: boolean | Function,
+    /** @deprecated */
     force?: boolean,
+    logging?: boolean | Function,
     placeholders?: { [key: string]: string; },
     reconnection?: boolean | {
         attempts: number,
@@ -171,10 +173,7 @@ declare class Differ {
     sync(options?: SyncOptions): Promise<null>
 
     define: {
-        /**
-         *
-         * @deprecated
-         */
+        /** @deprecated */
         (entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Table | Sequence
 
         table(properties: TableSchemaOptions): Table

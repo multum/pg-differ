@@ -47,7 +47,7 @@ const _calculateSuccessfulInsets = R.ifElse(
 
 function Differ(options) {
   options = { ..._defaultOptions, ...options };
-  const { schemaFolder, placeholders, force, connectionConfig } = options;
+  const { schemaFolder, placeholders, connectionConfig } = options;
 
   let reconnection;
   let logging;
@@ -76,6 +76,13 @@ function Differ(options) {
   }
 
   const logger = new Logger({ prefix: 'Postgres Differ', callback: logging });
+
+  if (options.force) {
+    logger.warn(
+      `The property 'options.force' is deprecated.` +
+        ` Use 'define.table({...properties, force: true})' or 'define.sequence({...properties, force: true})'`
+    );
+  }
 
   const _client = new Client(connectionConfig, { reconnection });
   const _tables = new Map();
@@ -116,7 +123,7 @@ function Differ(options) {
         const table = new Table({
           client: _client,
           schema: properties,
-          force,
+          force: options.force,
           logging,
         });
         _tables.set(properties.name, table);
@@ -129,7 +136,7 @@ function Differ(options) {
       }
       case 'sequence': {
         const sequence = new Sequence({
-          force,
+          force: options.force,
           properties,
           client: _client,
         });
