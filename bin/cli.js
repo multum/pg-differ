@@ -15,12 +15,20 @@ const argv = minimist(process.argv.slice(2), {
     f: 'force',
   },
   default: {
-    s: './schemas',
     l: true,
     f: false,
   },
   boolean: ['version', 'help', 'logging'],
 });
+
+const path = (argv._.length ? argv._[0] : argv.schemaFolder) || './schemas';
+
+if (argv.schemaFolder) {
+  console.warn(
+    `The argument '--schemaFolder' is deprecated.\n` +
+      `Use unnamed argument. Example: pg-differ -c postgresql://{...} ./schemas`
+  );
+}
 
 if (argv.version) {
   console.info(pkg.version);
@@ -28,7 +36,7 @@ if (argv.version) {
 }
 
 const logOptions = () => {
-  console.error(`Usage: pg-differ [options]
+  console.info(`Usage: pg-differ [options]
   --connectionString, -c     Connection URI to database
   --schemaFolder, -s         Path to the folder with *.schema.json files. Default value is './schemas'
   --placeholders, -p         An string with names and their values to replace placeholders in 'schemaFolder' files
@@ -54,7 +62,7 @@ const getPlaceholders = () =>
     : null;
 
 const differ = new Differ({
-  schemaFolder: argv.schemaFolder,
+  schemaFolder: path,
   placeholders: getPlaceholders(),
   logging: argv.logging,
   force: argv.force,
