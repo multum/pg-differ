@@ -50,7 +50,7 @@
 
 #### Enhancement
 
-- added ability to **read the structure/properties** of existing entities
+- added ability to **read the structure/properties** of existing objects
 
 ```javascript
 const differ = new Differ(...)

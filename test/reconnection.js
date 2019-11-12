@@ -1,6 +1,7 @@
 'use strict';
 
 const Differ = require('../');
+const helpers = require('./helpers');
 const connectionConfig = require('./pg.config');
 
 describe('reconnection', () => {
@@ -14,17 +15,10 @@ describe('reconnection', () => {
   });
   it('error after 2 attempts', async function() {
     this.timeout(5000);
-    try {
-      differ.define.table({
-        name: 'users',
-        columns: [{ name: 'id', type: 'smallint' }],
-      });
-
-      await differ.sync();
-    } catch (e) {
-      return true;
-    }
-
-    throw new Error('test error');
+    differ.define.table({
+      name: 'users',
+      columns: [{ name: 'id', type: 'smallint' }],
+    });
+    await helpers.expectError(() => differ.sync());
   });
 });

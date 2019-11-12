@@ -1,7 +1,7 @@
-# Entities {docsify-ignore-all}
+# Objects {docsify-ignore-all}
 
-* [Table](table.md)
-* [Sequence](sequence.md)
+- [Table](table.md)
+- [Sequence](sequence.md)
 
 ## Usage example
 
@@ -17,7 +17,7 @@ const differ = new Differ({
     schema: 'schema_name'
   }
 })
- 
+
 const table = differ.define.table({
   name: 'schema_name.table_name',
   cleanable: { foreignKeys: true },
@@ -60,11 +60,11 @@ differ.define.sequence({
 })
 
 // ...
- 
+
 table.addSeeds([
   { id: 4, description: 'fourth seed', body: { ... } },
   { id: 5, description: 'fifth seed', body: { ... } },
 ])
- 
+
 differ.sync()
 ```

@@ -78,7 +78,7 @@ interface SequenceReadOptions {
     name: string
 }
 
-interface SequenceSchemaOptions {
+interface SequenceProperties {
     name: string,
     force?: boolean,
     start?: string | number,
@@ -102,7 +102,7 @@ interface CheckOptions {
     condition: string
 }
 
-interface TableSchemaOptions {
+interface TableProperties {
     name: string,
     columns: Array<ColumnOptions>,
     cleanable?: CleanExtensionOptions,
@@ -124,8 +124,8 @@ interface TableReadOptions {
 }
 
 interface Schema {
-    type: EntityType,
-    properties: TableSchemaOptions | SequenceSchemaOptions
+    type: ObjectType,
+    properties: TableProperties | SequenceProperties
 }
 
 interface Table {
@@ -165,7 +165,7 @@ interface SyncOptions {
     transaction?: boolean
 }
 
-declare type EntityType = 'table' | 'sequence'
+declare type ObjectType = 'table' | 'sequence'
 
 declare class Differ {
     constructor(options: DifferOptions);
@@ -174,16 +174,18 @@ declare class Differ {
 
     define: {
         /** @deprecated */
-        (entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Table | Sequence
+        (objectType: Schema | ObjectType, properties?: TableProperties | SequenceProperties): Table | Sequence
 
-        table(properties: TableSchemaOptions): Table
+        (schema: Schema): Table | Sequence
 
-        sequence(properties: SequenceSchemaOptions): Sequence
+        table(properties: TableProperties): Table
+
+        sequence(properties: SequenceProperties): Sequence
     };
 
     read: {
-        table(options: TableReadOptions): Promise<TableSchemaOptions>
-        sequence(options: SequenceReadOptions): Promise<SequenceSchemaOptions>
+        table(options: TableReadOptions): Promise<TableProperties>
+        sequence(options: SequenceReadOptions): Promise<SequenceProperties>
     }
 }
 

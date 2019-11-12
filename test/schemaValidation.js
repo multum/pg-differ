@@ -2,6 +2,7 @@
 
 const Differ = require('../');
 const connectionConfig = require('./pg.config');
+const helpers = require('./helpers');
 const logging = Boolean(process.env.TEST_LOGGING);
 
 describe('schema validation', () => {
@@ -10,39 +11,34 @@ describe('schema validation', () => {
     logging: logging,
     schemaFolder: null,
   });
-  it('catching schema validation errors', function(done) {
-    try {
+
+  it('catching schema validation errors', async function() {
+    await helpers.expectError(() => {
       differ.define.table({
         columns: [{ name: 'id', type: 'smallint' }],
       });
-    } catch (e) {
-      done();
-    }
+    });
   });
 
-  it('catching schema type error', function(done) {
-    try {
+  it('catching schema type error', async function() {
+    await helpers.expectError(() => {
       differ.define({
         type: 't', // invalid type
         properties: {
           columns: [{ name: 'id', type: 'smallint' }],
         },
       });
-    } catch (e) {
-      done();
-    }
+    });
   });
 
-  it('missing constraint error', function(done) {
-    try {
+  it('missing constraint', async function() {
+    await helpers.expectError(() => {
       differ.define.table({
         name: 'some_table',
         columns: [{ name: 'id', type: 'smallint' }],
         seeds: [{ id: 1, busy: "some string with quote '" }], // will be a error
       });
-    } catch (e) {
-      done();
-    }
+    });
   });
 
   it(`error setting 'nullable: true' for primaryKey`, async function() {
@@ -58,14 +54,7 @@ describe('schema validation', () => {
         },
       ],
     });
-
-    try {
-      await differ.sync();
-    } catch (e) {
-      return true;
-    }
-
-    throw new Error('error test');
+    await helpers.expectError(() => differ.sync());
   });
 
   it(`error change column type with 'column.force: false'`, async function() {
@@ -79,13 +68,20 @@ describe('schema validation', () => {
         },
       ],
     });
+    await helpers.expectError(() => differ.sync());
+  });
 
-    try {
-      await differ.sync();
-    } catch (e) {
-      return true;
-    }
-
-    throw new Error('error test');
+  it(`invalid object name`, async function() {
+    await helpers.expectError(() => {
+      differ.define.table({
+        name: 'public.invalid.name', // will be a error
+        columns: [
+          {
+            name: 'id',
+            type: 'bigint',
+          },
+        ],
+      });
+    });
   });
 });

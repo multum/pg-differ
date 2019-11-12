@@ -255,5 +255,11 @@ exports.quoteLiteral = value => {
 
 exports.name = name => {
   const chunks = name.split('.');
-  return [chunks[1] ? chunks[0] : undefined, chunks[1] || chunks[0]];
+  const { length } = chunks;
+  if (length === 0 || length > 2) {
+    throw new Error(`Invalid object name: ${name}`);
+  }
+  return chunks.length === 2 // [schema, name]
+    ? [chunks[0], chunks[1]]
+    : [undefined, chunks[0]];
 };

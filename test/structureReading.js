@@ -1,6 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
+const helpers = require('./helpers');
 const Differ = require('../');
 const connectionConfig = require('./pg.config');
 
@@ -95,13 +96,10 @@ describe('reading structure', function() {
     expect(sequence).to.include(properties);
   });
 
-  it('catching entity type error', async function() {
-    try {
-      await differ.read.table({ name: null });
-    } catch (e) {
-      return true;
-    }
-    throw new Error('the error is not caught');
+  it('catching object type error', async function() {
+    await helpers.expectError(() => {
+      return differ.read.table({ name: null });
+    });
   });
 
   it('undefined table', async function() {
