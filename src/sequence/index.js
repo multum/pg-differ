@@ -10,6 +10,7 @@ const R = require('ramda');
 const Metalize = require('metalize');
 const parser = require('../parser');
 const Sql = require('../sql');
+const Logger = require('../logger');
 const utils = require('../utils');
 const queries = require('./queries');
 const validate = require('../validate');
@@ -19,11 +20,23 @@ const { DEFAULTS, ATTRIBUTES } = require('../constants/sequences');
 
 function Sequence(options) {
   let { properties, client, force } = options;
+  properties = { ...DEFAULTS, ...properties };
 
-  properties = validate.sequenceDefinition({ ...DEFAULTS, ...properties });
-  const _forceCreate = R.isNil(properties.force) ? force : properties.force;
   const [schema = 'public', name] = parser.name(properties.name);
   const _fullName = `${schema}.${name}`;
+
+  const log = new Logger({
+    prefix: `[ '${_fullName}' ]`,
+    callback: options.logging,
+  });
+
+  try {
+    validate.sequenceDefinition(properties);
+  } catch (error) {
+    throw new Error(log.error(error.message));
+  }
+
+  const _forceCreate = R.isNil(properties.force) ? force : properties.force;
 
   const _buildSql = ({ operation, ...rest }) => {
     const chunks = [];

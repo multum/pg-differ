@@ -3,6 +3,7 @@
 const Differ = require('../');
 const connectionConfig = require('./pg.config');
 const helpers = require('./helpers');
+const path = require('path');
 const logging = Boolean(process.env.TEST_LOGGING);
 
 describe('schema validation', () => {
@@ -15,7 +16,14 @@ describe('schema validation', () => {
   it('catching schema validation errors', async function() {
     await helpers.expectError(() => {
       differ.define.table({
-        columns: [{ name: 'id', type: 'smallint' }],
+        name: 'public.blogs',
+        columns: {}, // will be a error
+      });
+    });
+    await helpers.expectError(() => {
+      differ.define.sequence({
+        name: 'public.blogs_seq',
+        cycle: '1', // will be a error
       });
     });
   });
@@ -25,6 +33,7 @@ describe('schema validation', () => {
       differ.define({
         type: 't', // invalid type
         properties: {
+          name: 'public.blogs',
           columns: [{ name: 'id', type: 'smallint' }],
         },
       });
@@ -34,7 +43,7 @@ describe('schema validation', () => {
   it('missing constraint', async function() {
     await helpers.expectError(() => {
       differ.define.table({
-        name: 'some_table',
+        name: 'public.blogs',
         columns: [{ name: 'id', type: 'smallint' }],
         seeds: [{ id: 1, busy: "some string with quote '" }], // will be a error
       });
@@ -81,6 +90,15 @@ describe('schema validation', () => {
             type: 'bigint',
           },
         ],
+      });
+    });
+  });
+
+  it(`undefined local variable in *.json`, async function() {
+    await helpers.expectError(() => {
+      differ.import({
+        path: path.resolve(__dirname, 'invalidSchemas'),
+        locals: {},
       });
     });
   });

@@ -33,11 +33,18 @@ const _defaultSyncOptions = {
   transaction: true,
 };
 
-const _getSchemas = ({ filePattern, pathFolder, placeholders }) =>
+const _readSchemas = ({
+  path: pathString,
+  locals,
+  filter = /.*\.schema.json$/,
+  interpolate = /\${([\s\S]+?)}/g,
+}) =>
   fs
-    .readdirSync(pathFolder)
-    .filter(file => filePattern.test(file))
-    .map(file => utils.loadJSON(path.resolve(pathFolder, file), placeholders));
+    .readdirSync(pathString)
+    .filter(file => filter.test(file))
+    .map(file =>
+      utils.loadJSON(path.resolve(pathString, file), locals, interpolate)
+    );
 
 const _calculateSuccessfulInsets = R.ifElse(
   R.is(Array),
@@ -75,10 +82,14 @@ function Differ(options) {
     logging = false;
   }
 
-  const logger = new Logger({ prefix: 'Postgres Differ', callback: logging });
+  const log = new Logger({ prefix: null, callback: logging });
 
+  /**
+   * @todo CLI: `options.force` => `differ.sync({ force })`
+   * @body Need to be replaced with the `force` option in the `differ.sync()` method
+   */
   if (options.force) {
-    logger.warn(
+    log.warn(
       `The property 'options.force' is deprecated.` +
         ` Use 'define.table({...properties, force: true})' or 'define.sequence({...properties, force: true})'`
     );
@@ -98,13 +109,23 @@ function Differ(options) {
 
   const _setup = () => {
     if (schemaFolder) {
-      const schemas = _getSchemas({
-        placeholders,
-        pathFolder: schemaFolder,
-        filePattern: /^.*\.schema.json$/,
-      });
-      schemas.forEach(_define);
+      _import({ path: schemaFolder, locals: placeholders });
     }
+  };
+
+  const _import = options => {
+    if (typeof options === 'string') {
+      options = { path: options };
+    }
+    let schemas;
+    try {
+      schemas = _readSchemas(options);
+    } catch (error) {
+      throw new Error(log.error(error.message));
+    }
+    return new Map(
+      schemas.map(schema => [schema.properties.name, _define(schema)])
+    );
   };
 
   const _supportSeeds = async v => {
@@ -144,7 +165,7 @@ function Differ(options) {
         return sequence;
       }
       default:
-        throw new Error(logger.error(`Invalid schema type: ${type}`));
+        throw new Error(log.error(`Invalid schema type: ${type}`));
     }
   };
 
@@ -174,11 +195,11 @@ function Differ(options) {
       sql = R.uniq(sql);
       const result = [];
       process = `[ ${chalk.green(process)} ]`;
-      logging && logger.info(`${process} started`, sql.join('\n'));
+      logging && log.info(`${process} started` + '\n' + sql.join('\n'));
       for (let i = 0; i < sql.length; i++) {
         result.push(await _client.query(sql[i]));
       }
-      logging && logger.info(`${process} successfully`, null);
+      logging && log.info(`${process} successfully`);
       return result;
     }
   };
@@ -200,11 +221,8 @@ function Differ(options) {
 
     const databaseVersion = await _getDatabaseVersion();
 
-    logger.info(chalk.green('Sync started'), null);
-    logger.info(
-      chalk.green(`Current version PostgreSQL: ${databaseVersion}`),
-      null
-    );
+    log.info(chalk.green('Sync started'));
+    log.info(chalk.green(`Current version PostgreSQL: ${databaseVersion}`));
 
     options.transaction && (await _client.query('begin'));
 
@@ -261,14 +279,13 @@ function Differ(options) {
         });
         if (insertSeedQueries) {
           insertSeedCount = _calculateSuccessfulInsets(insertSeedQueries);
-          logger.info(
-            `inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`,
-            null
+          log.info(
+            `inserted ${chalk.green('seeds')}: ${chalk.green(insertSeedCount)}`
           );
           queries.push(insertSeedCount);
         }
       } else {
-        logger.warn(`For Seeds need a PostgreSQL v9.5 or more`);
+        log.warn(`For Seeds need a PostgreSQL v9.5 or more`);
       }
 
       queries.push(
@@ -281,11 +298,11 @@ function Differ(options) {
       );
 
       if (queries.filter(Boolean).length === 0) {
-        logger.info('Database does not need updating', null);
+        log.info('Database does not need updating');
       }
 
       options.transaction && (await _client.query('commit'));
-      logger.info(chalk.green('Sync successful!'), null);
+      log.info(chalk.green('Sync successful!'));
 
       await _client.end();
     } catch (error) {
@@ -324,7 +341,7 @@ function Differ(options) {
   };
 
   const define = (type, properties) => {
-    logger.warn(
+    log.warn(
       `The method 'define(type, properties)' is deprecated.` +
         ` Use 'define.table(properties)' or 'define.sequence(properties)'`
     );
@@ -335,16 +352,19 @@ function Differ(options) {
 
   define.sequence = properties => _define('sequence', properties);
 
-  _setup();
-
   const _instance = {
+    // private
     _supportSeeds,
     _getDatabaseVersion,
     _client,
+    // public
+    import: _import,
     sync,
     define,
     read,
   };
+
+  _setup();
 
   return Object.freeze(_instance);
 }

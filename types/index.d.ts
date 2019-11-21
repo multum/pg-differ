@@ -23,8 +23,9 @@ interface DifferOptions {
     schemaFolder?: string,
     /** @deprecated */
     force?: boolean,
-    logging?: boolean | Function,
+    /** @deprecated */
     placeholders?: { [key: string]: string; },
+    logging?: boolean | Function,
     reconnection?: boolean | {
         attempts: number,
         delay: number
@@ -125,7 +126,7 @@ interface TableReadOptions {
 
 interface Schema {
     type: ObjectType,
-    properties: TableProperties | SequenceProperties
+    properties: AnyOfSchemas
 }
 
 interface Table {
@@ -165,18 +166,31 @@ interface SyncOptions {
     transaction?: boolean
 }
 
+interface ImportOptions {
+    path: string,
+    filter?: RegExp,
+    interpolate?: RegExp,
+    locals?: { [key: string]: string | number | Object | Array<any>; },
+}
+
 declare type ObjectType = 'table' | 'sequence'
+
+declare type AnyOfObjects = Table | Sequence
+
+declare type AnyOfSchemas = TableProperties | SequenceProperties
 
 declare class Differ {
     constructor(options: DifferOptions);
+
+    import(options: String | ImportOptions): this
 
     sync(options?: SyncOptions): Promise<null>
 
     define: {
         /** @deprecated */
-        (objectType: Schema | ObjectType, properties?: TableProperties | SequenceProperties): Table | Sequence
+        (objectType: Schema | ObjectType, properties?:  AnyOfSchemas): AnyOfObjects
 
-        (schema: Schema): Table | Sequence
+        (schema: Schema): AnyOfObjects
 
         table(properties: TableProperties): Table
 

@@ -62,13 +62,16 @@ const getPlaceholders = () =>
     : null;
 
 const differ = new Differ({
-  schemaFolder: path,
-  placeholders: getPlaceholders(),
   logging: argv.logging,
   force: argv.force,
   connectionConfig: {
     connectionString: argv.connectionString,
   },
+});
+
+differ.import({
+  path,
+  locals: getPlaceholders(),
 });
 
 differ

@@ -6,30 +6,16 @@
  */
 'use strict';
 
-const R = require('ramda');
 const chalk = require('chalk');
 
-module.exports = function Logger({ prefix, callback }) {
-  const log = R.curry((type, title, message) => {
-    const chunks = title
-      ? [`${prefix} :: ${title}`, message].filter(Boolean)
-      : [`${prefix} :: ${message}`];
-    switch (type) {
-      case 'warn':
-        callback && callback(chalk.yellow(chunks.join(' ')));
-        break;
-      case 'error':
-        return chunks.join('');
-      default:
-        callback && callback(chunks.join('\n'));
-    }
-    return null;
-  });
+const MODULE_NAME = 'Postgres Differ';
 
+module.exports = function Logger({ prefix, callback }) {
+  prefix = MODULE_NAME + (prefix ? ` ${prefix}` : '');
+  const formatMessage = message => `${prefix} :: ${message}`;
   return {
-    log,
-    info: log('info'),
-    warn: log('warn', `[ Warning ]`),
-    error: log('error', null),
+    info: message => callback && callback(formatMessage(message)),
+    warn: message => console.warn(chalk.yellow(formatMessage(message))),
+    error: message => formatMessage(message),
   };
 };

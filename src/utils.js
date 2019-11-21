@@ -9,9 +9,7 @@
 const R = require('ramda');
 const fs = require('fs');
 
-exports.isExist = value => !R.isNil(value);
-
-exports.isNotEmpty = value => !R.isEmpty(value);
+exports.isExist = value => value !== undefined && value !== null;
 
 exports.findByName = (array, name, formerNames) =>
   array.find(el => {
@@ -23,12 +21,16 @@ exports.findByName = (array, name, formerNames) =>
     return false;
   });
 
-exports.loadJSON = (path, placeholders) => {
+exports.loadJSON = (path, locals, interpolate) => {
   let file = fs.readFileSync(path, 'utf-8');
-  if (placeholders) {
-    Object.entries(placeholders).forEach(([name, value]) => {
-      const regExp = `\\$\{${name}\\}`;
-      file = file.replace(new RegExp(regExp, 'g'), String(value));
+  if (locals && interpolate) {
+    file = file.replace(interpolate, (match, value) => {
+      const placeholder = R.path(value.split('.'), locals);
+      if (exports.isExist(placeholder)) {
+        return placeholder;
+      } else {
+        throw new Error(`No placeholder found for '${match}'`);
+      }
     });
   }
   return JSON.parse(file);

@@ -25,11 +25,13 @@ const path = require('path');
 const setup = async () => {
   const differ = new Differ({
     connectionConfig: {},
-    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method,
-    logging: true,
-    placeholders: {
-      schema: 'schema_name',
-    },
+    logging: true, // default value of console.log
+  });
+
+  differ.import({
+    // or/and use 'differ.define' method
+    path: path.resolve(__dirname, 'schemas'),
+    locals: { schema: 'schema_name' },
   });
 
   const users = await differ.read.table({ name: 'users' });

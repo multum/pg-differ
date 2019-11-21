@@ -52,9 +52,20 @@ const _setupSequences = ({ columns, tableName, client, forceCreate }) => {
 function Table(options) {
   const { client, logging } = options;
 
-  const _schema = _parseSchema(options.schema);
-  const [_schemaName = 'public', _tableName] = parser.name(_schema.name);
+  const [_schemaName = 'public', _tableName] = parser.name(options.schema.name);
   const _fullName = `${_schemaName}.${_tableName}`;
+
+  const log = new Logger({
+    prefix: `[ '${_fullName}' ]`,
+    callback: logging,
+  });
+
+  let _schema;
+  try {
+    _schema = _parseSchema(options.schema);
+  } catch (error) {
+    throw new Error(log.error(error.message));
+  }
 
   const _cleanable = _schema.cleanable;
   const _primaryKey = R.path(['primaryKey', 0], _schema.extensions);
@@ -67,11 +78,6 @@ function Table(options) {
   });
 
   const info = new Info({ client, name: _fullName });
-
-  const logger = new Logger({
-    prefix: `Postgres Differ [ '${_fullName}' ]`,
-    callback: logging,
-  });
 
   const _sequences = _setupSequences({
     client,
@@ -321,7 +327,7 @@ function Table(options) {
       if (value === true) {
         if (_shouldBePrimaryKey(column.name)) {
           throw new Error(
-            logger.error(
+            log.error(
               `Error setting '${column.name}.nullable = true'. ` +
                 `'${column.name}' is the primaryKey`
             )
@@ -402,7 +408,7 @@ function Table(options) {
         );
       } else {
         throw new Error(
-          logger.error(
+          log.error(
             `To changing the type '${value.old}' => '${value.new}' you need to set 'force: true' for '${column.name}' column`
           )
         );
@@ -498,7 +504,7 @@ function Table(options) {
       _seeds.add(seeds);
     } else {
       throw new Error(
-        logger.error(
+        log.error(
           `To use seeds, you need to set at least one constraint (primaryKey || unique)`
         )
       );

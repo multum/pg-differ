@@ -11,11 +11,14 @@ const path = require('path')
 
 const differ = new Differ({
   connectionConfig: {},
-  schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method
   logging: true, // default value of console.log
-  placeholders: {
-    schema: 'schema_name'
-  }
+})
+
+differ.import({ // or/and use 'differ.define' method
+    path: path.resolve(__dirname, 'schemas'),
+    locals: {
+        schema: 'schema_name'
+    }
 })
 
 const table = differ.define.table({

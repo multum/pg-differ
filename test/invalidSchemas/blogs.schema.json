@@ -1,0 +1,12 @@
+{
+  "type": "table",
+  "properties": {
+    "name": "${undefinedVariable}.blogs",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint"
+      }
+    ]
+  }
+}

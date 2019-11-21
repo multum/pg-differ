@@ -1,11 +1,30 @@
 'use strict';
 
+const { expect } = require('chai');
 const Differ = require('../');
 const path = require('path');
 const connectionConfig = require('./pg.config');
 const logging = Boolean(process.env.TEST_LOGGING) && console.info;
 
 describe('sync', () => {
+  it('importing schemas', async function() {
+    const differ = new Differ({
+      connectionConfig,
+      logging,
+    });
+
+    const importedUsingObjectOptions = differ.import({
+      path: path.resolve(__dirname, 'schemas'),
+      locals: { schema: 'public' },
+    });
+    expect(importedUsingObjectOptions.size).has.equal(3);
+
+    const importedUsingStringOption = differ.import(
+      path.resolve(__dirname, 'schemas')
+    );
+    expect(importedUsingStringOption.size).has.equal(3);
+  });
+
   it('sync schemas', async function() {
     const differ = new Differ({
       connectionConfig,
