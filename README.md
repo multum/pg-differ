@@ -1,4 +1,4 @@
-![](https://multum.github.io/pg-differ/readme-logo.svg)
+<img src='https://multum.github.io/pg-differ/readme-logo.svg' width='560' alt='pg-differ'>
 
 > [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
