@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018-present Andrey Vereshchak
+ * Copyright (c) 2018-present Andrew Vereshchak
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -23,10 +23,7 @@ const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS;
 
 const validate = require('../validate');
 
-const _parseSchema = R.pipe(
-  validate.tableDefinition,
-  parser.schema
-);
+const _parseSchema = R.pipe(validate.tableDefinition, parser.schema);
 
 const _setupSequences = ({ columns, tableName, client, forceCreate }) => {
   const sequenceColumns = columns.filter(column => column.autoIncrement);

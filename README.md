@@ -1,4 +1,4 @@
-[<img src='https://multum.github.io/pg-differ/readme-logo.svg' width='560' alt='pg-differ'>](https://multum.github.io/pg-differ/#/)
+![](https://multum.github.io/pg-differ/readme-logo.svg)
 
 > [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
 
@@ -12,12 +12,11 @@
 
 ## Features
 
-- Easy to use [schema structure](https://multum.github.io/pg-differ/#/objects)
-- Table support
-- Sequence support
+- [Easy to use](https://multum.github.io/pg-differ/#/getting-started)
+- [Table](https://multum.github.io/pg-differ/#/table) support
+- [Sequence](https://multum.github.io/pg-differ/#/sequence) support
 - Adding/changing columns
 - Constraint and index support
-- Seed support
 - Dropping of unnecessary constraints/indexes
 - Change logging
 
