@@ -10,12 +10,14 @@ const Ajv = require('ajv');
 
 const ajv = new Ajv();
 
-const formatErrors = errors =>
-  errors
-    .map(
-      ({ dataPath, message }) => (dataPath ? `[ ${dataPath} ] ` : '') + message
-    )
+const formatErrors = errors => {
+  return errors
+    .map(({ dataPath, message }) => {
+      dataPath = dataPath ? `[ ${dataPath} ] ` : '';
+      return `${dataPath}${message}`;
+    })
     .join('\n\t');
+};
 
 const validate = schema => {
   const validate = ajv.compile(schema);
@@ -31,6 +33,4 @@ const validate = schema => {
 module.exports = {
   tableDefinition: validate(require('./schemas/define.table.json')),
   sequenceDefinition: validate(require('./schemas/define.sequence.json')),
-  tableReading: validate(require('./schemas/read.table.json')),
-  sequenceReading: validate(require('./schemas/read.sequence.json')),
 };

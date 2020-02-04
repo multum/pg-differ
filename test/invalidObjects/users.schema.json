@@ -1,0 +1,12 @@
+{
+  "type": "table",
+  "properties": {
+    "name": "${undefinedVariable}.users",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint"
+      }
+    ]
+  }
+}

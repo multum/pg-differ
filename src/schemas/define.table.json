@@ -124,35 +124,6 @@
     "name": {
       "type": "string"
     },
-    "force": {
-      "type": "boolean"
-    },
-    "seeds": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "cleanable": {
-      "type": "object",
-      "properties": {
-        "foreignKeys": {
-          "type": "boolean"
-        },
-        "primaryKeys": {
-          "type": "boolean"
-        },
-        "unique": {
-          "type": "boolean"
-        },
-        "indexes": {
-          "type": "boolean"
-        },
-        "checks": {
-          "type": "boolean"
-        }
-      }
-    },
     "indexes": {
       "type": "array",
       "items": {

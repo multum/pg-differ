@@ -2,53 +2,39 @@
 
 const { expect } = require('chai');
 const Differ = require('../');
-const path = require('path');
 const connectionConfig = require('./pg.config');
-const logging = Boolean(process.env.TEST_LOGGING) && console.info;
+const logging = Boolean(process.env.LOGGING);
 
 describe('sync', () => {
-  it('importing schemas', async function() {
+  it('importing objects', async function() {
     const differ = new Differ({
       connectionConfig,
       logging,
     });
 
     const importedUsingObjectOptions = differ.import({
-      path: path.resolve(__dirname, 'schemas'),
+      path: './objects',
       locals: { schema: 'public' },
     });
     expect(importedUsingObjectOptions.size).has.equal(3);
 
-    const importedUsingStringOption = differ.import(
-      path.resolve(__dirname, 'schemas')
-    );
+    const importedUsingStringOption = differ.import('./objects');
     expect(importedUsingStringOption.size).has.equal(3);
   });
 
-  it('sync schemas', async function() {
+  it('sync objects', async function() {
     const differ = new Differ({
       connectionConfig,
       logging,
-      schemaFolder: path.resolve(__dirname, 'schemas'),
       reconnection: false,
-      force: true,
-      placeholders: {
-        schema: 'public',
-      },
     });
 
-    await differ.sync({ transaction: false });
+    differ.import('./objects');
 
-    differ.define.table({
-      name: 'public.blogs',
-      force: false,
-      cleanable: {
-        unique: true,
-        foreignKeys: true,
-        indexes: true,
-        primaryKeys: true,
-        checks: true,
-      },
+    await differ.sync({ transaction: false, force: true });
+
+    differ.define('table', {
+      name: 'blogs',
       checks: [{ condition: 'large_id != 0' }],
       columns: [
         {
@@ -74,9 +60,8 @@ describe('sync', () => {
       ],
     });
 
-    differ.define.table({
-      name: 'public.users',
-      force: false,
+    differ.define('table', {
+      name: 'users',
       columns: [
         {
           name: 'id',
@@ -84,32 +69,38 @@ describe('sync', () => {
           unique: true,
           primaryKey: true,
           autoIncrement: { actual: true },
-          nullable: false,
         },
       ],
     });
 
-    differ.define.sequence({
+    differ.define('sequence', {
       name: 'test_sequence',
-      force: false,
       start: 100,
       min: 20,
       max: 100,
       cycle: false,
     });
 
-    await differ.sync();
+    await differ.sync({
+      force: false,
+      cleanable: {
+        unique: false,
+        foreignKeys: true,
+        indexes: true,
+        primaryKeys: true,
+        checks: true,
+      },
+    });
   });
 
   it(`creating a table with 'force: false'`, async function() {
     const differ = new Differ({
-      schemaFolder: null,
       connectionConfig,
       reconnection: true,
       logging,
     });
     const name = `public.nonexistent_table`;
-    differ.define.table({
+    differ.define('table', {
       name,
       columns: [{ name: 'id', type: 'smallint' }],
     });
@@ -119,14 +110,12 @@ describe('sync', () => {
 
   it('force sync', async function() {
     const differ = new Differ({
-      schemaFolder: null,
       connectionConfig,
       reconnection: true,
       logging,
     });
-    differ.define.table({
+    differ.define('table', {
       name: 'children',
-      force: true,
       foreignKeys: [
         {
           columns: ['parent'],
@@ -155,6 +144,6 @@ describe('sync', () => {
         },
       ],
     });
-    await differ.sync();
+    await differ.sync({ force: true });
   });
 });

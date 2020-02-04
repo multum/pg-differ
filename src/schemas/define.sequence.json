@@ -34,9 +34,6 @@
     },
     "actual": {
       "type": "boolean"
-    },
-    "force": {
-      "type": "boolean"
     }
   }
 }

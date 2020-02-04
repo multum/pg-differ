@@ -1,0 +1,52 @@
+{
+  "type": "table",
+  "properties": {
+    "name": "users",
+    "unique": [
+      {
+        "columns": [
+          "id",
+          "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "columns": [
+          "parent"
+        ]
+      }
+    ],
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "unique": true,
+        "primaryKey": true,
+        "autoIncrement": true
+      },
+      {
+        "name": "age",
+        "type": "bigint",
+        "default": 18
+      },
+      {
+        "name": "parent",
+        "type": "integer"
+      },
+      {
+        "name": "code",
+        "type": "varchar(255)"
+      },
+      {
+        "name": "busy",
+        "type": "bool"
+      },
+      {
+        "name": "description",
+        "type": "varchar(255)",
+        "unique": true
+      }
+    ]
+  }
+}

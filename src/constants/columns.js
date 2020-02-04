@@ -6,16 +6,6 @@
  */
 'use strict';
 
-const ATTRS = ['name', 'nullable', 'default', 'type', 'collate'];
-const EXTENSIONS = ['unique', 'primaryKey'];
-const ALL_PROPERTIES = [
-  ...ATTRS,
-  ...EXTENSIONS,
-  'formerNames',
-  'force',
-  'autoIncrement',
-];
-
 const DEFAULTS = {
   nullable: true,
   default: null,
@@ -27,7 +17,4 @@ const DEFAULTS = {
 
 module.exports = {
   DEFAULTS,
-  ATTRS,
-  EXTENSIONS,
-  ALL_PROPERTIES,
 };

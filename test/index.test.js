@@ -6,7 +6,7 @@ before(() => (start = Date.now()));
 after(() => console.info(`Total time: ${Date.now() - start}`));
 
 require('./sync');
-require('./alterColumns');
+require('./alter-columns');
 require('./reconnection');
-require('./schemaValidation');
-require('./structureReading');
+require('./schema-validation');
+require('./structure-reading');

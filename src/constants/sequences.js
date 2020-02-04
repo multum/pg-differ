@@ -14,6 +14,4 @@ const DEFAULTS = {
   min: 1,
 };
 
-const ATTRIBUTES = ['start', 'increment', 'min', 'max', 'cycle'];
-
-module.exports = { DEFAULTS, ATTRIBUTES };
+module.exports = { DEFAULTS };

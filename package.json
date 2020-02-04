@@ -30,7 +30,7 @@
   },
   "scripts": {
     "test": "mocha test/index.test.js --no-timeout --exit",
-    "test::log": "cross-env TEST_LOGGING=true npm run test",
+    "test::log": "cross-env LOGGING=true npm run test",
     "eslint": "eslint --max-warnings=0 **/*.js",
     "format": "prettier --write src/**/*.js test/**/*.js",
     "docs::start": "docsify serve docs"
@@ -39,7 +39,7 @@
   "dependencies": {
     "ajv": "6.10.2",
     "chalk": "^3.0.0",
-    "metalize": "0.0.3",
+    "metalize": "0.0.4",
     "minimist": "^1.2.0",
     "pg": "7.14.0",
     "ramda": "0.26.1"
@@ -47,8 +47,8 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "cross-env": "^6.0.3",
-    "eslint": "^6.7.1",
-    "eslint-config-prettier": "^6.7.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-prettier": "^3.1.1",
     "husky": "^3.1.0",
     "lint-staged": "^9.4.3",

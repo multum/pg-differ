@@ -6,17 +6,15 @@
  */
 'use strict';
 
-const COLUMNS = require('./columns');
-const TYPES = require('./types');
-const EXTENSIONS = require('./extensions');
-const SEQUENCES = require('./sequences');
-const OPERATIONS = require('./operations');
-const PROCESSES = require('./processes');
+const Columns = require('./columns');
+const Types = require('./types');
+const Extensions = require('./extensions');
+const Sequences = require('./sequences');
+const Processes = require('./processes');
 module.exports = {
-  COLUMNS,
-  TYPES,
-  EXTENSIONS,
-  SEQUENCES,
-  OPERATIONS,
-  PROCESSES,
+  Columns,
+  Types,
+  Extensions,
+  Sequences,
+  Processes,
 };

@@ -8,11 +8,11 @@
 
 Path to the folder with `*.json` files
 
-### filter
+### match
 
 - Type: `RegExp`
 - Default: `/.*\.schema.json$/`
-- Required: `false`
+- Required: `true`
 
 Regular expression to filter folder files
 
