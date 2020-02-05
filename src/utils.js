@@ -1,17 +1,12 @@
 /**
- * Copyright (c) 2018-present Andrey Vereshchak
+ * Copyright (c) 2018-present Andrew Vereshchak
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 'use strict';
 
-const R = require('ramda');
-const fs = require('fs');
-
-exports.isExist = value => !R.isNil(value);
-
-exports.isNotEmpty = value => !R.isEmpty(value);
+exports.isExist = value => value !== undefined && value !== null;
 
 exports.findByName = (array, name, formerNames) =>
   array.find(el => {
@@ -23,20 +18,38 @@ exports.findByName = (array, name, formerNames) =>
     return false;
   });
 
-exports.loadJSON = (path, placeholders) => {
-  let file = fs.readFileSync(path, 'utf-8');
-  if (placeholders) {
-    Object.entries(placeholders).forEach(([name, value]) => {
-      const regExp = `\\$\{${name}\\}`;
-      file = file.replace(new RegExp(regExp, 'g'), String(value));
-    });
-  }
-  return JSON.parse(file);
+exports.getObjectDifference = (object, exclude) => {
+  return Object.keys(object).reduce((acc, key) => {
+    const leftValue = object[key];
+    const rightValue = exclude[key];
+    if (String(leftValue) !== String(rightValue)) {
+      acc[key] = leftValue;
+    }
+    return acc;
+  }, {});
 };
 
-exports.sortByList = R.curry((getter, orderList, array) => {
-  const { length } = array;
-  const indexOf = el =>
-    orderList.indexOf(getter ? getter(el) : el) + 1 || length;
-  return array.sort((a, b) => indexOf(a) - indexOf(b));
-});
+exports.delay = delay => {
+  return new Promise(resolve => setTimeout(resolve, delay));
+};
+
+exports.getCaller = () => {
+  const traceFn = Error.prepareStackTrace;
+  Error.prepareStackTrace = (err, stack) => stack;
+  const stack = new Error().stack;
+  Error.prepareStackTrace = traceFn;
+  return stack[2].getFileName();
+};
+
+exports.isObject = target => {
+  return target
+    ? Object.prototype.toString.call(target) === '[object Object]'
+    : false;
+};
+
+exports.isEmpty = target => {
+  if (exports.isObject(target)) {
+    target = Object.keys(target);
+  }
+  return target.length === 0;
+};

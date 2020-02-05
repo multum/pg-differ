@@ -1,37 +1,35 @@
-# Methods 
+# Methods
 
 ### sync
 
-* Arguments: (options?: [sync options](sync.md))
-* Returns: `Promise<null>`
+> Differ.prototype.sync
 
-Synchronization of previously defined tables and their seeds
+- Arguments: (options?: [sync options](sync.md))
+- Returns: `Promise<ChangesMap>`
 
-### define.table
+Synchronization of previously defined [objects](objects.md)
 
-* Arguments: (properties: [TableProperties](table.md#properties))
-* Returns: [Table](table.md)
+### import
 
-Table definition
+- Arguments: (options: `FolderPath` | [import options](import.md))
+- Returns: `differ`
 
+Defining models from `*.json` files. Equivalent to function calls `differ.define(...)`
 
-### define.sequence
+### define
 
-* Arguments: (properties: [SequenceProperties](sequence.md#properties))
-* Returns: [Sequence](sequence.md) 
+> Differ.prototype.define
 
-Sequence definition
+- Arguments: (objectType: `String`, properties: [TableProperties](table.md#properties) | [SequenceProperties](sequence.md#properties))
+- Returns: [Table](table.md) | [Sequence](sequence.md)
 
-### read.table
+Object definition
 
-* Arguments: (options: [read.table options](read-table.md))
-* Returns: [`Promise<TableProperties>`](table.md#properties)
+### setDefaultSchema
 
-Getting the schema of an existing table
+> Differ.prototype.setDefaultSchema
 
-### read.sequence
+- Arguments: (schema: `String`)
+- Returns: `differ`
 
-* Arguments: (options: [read.sequence options](read-sequence.md))
-* Returns: [`Promise<SequenceProperties>`](sequence.md#properties)
-
-Getting the schema of an existing sequence
+Definition of the **default schema**. By default it is equal to `'public''`

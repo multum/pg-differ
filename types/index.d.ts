@@ -1,39 +1,13 @@
 /**
- * Copyright (c) 2018-present Andrey Vereshchak
+ * Copyright (c) 2018-present Andrew Vereshchak
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-interface SQL {
-    add(line: Array<Object> | Object): this
-
-    getLines(): Array<string>
-
-    getSize(): number
-
-    getStore(): Array<{ operation: string, value: string }>
-
-    join(): String
-}
-
-interface DifferOptions {
-    connectionConfig: object,
-    /** @deprecated */
-    schemaFolder?: string,
-    /** @deprecated */
-    force?: boolean,
-    logging?: boolean | Function,
-    placeholders?: { [key: string]: string; },
-    reconnection?: boolean | {
-        attempts: number,
-        delay: number
-    }
-}
-
 interface ReferenceOptions {
-    table: string,
-    columns: Array<string>,
+  table: string,
+  columns: Array<string>,
 }
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
@@ -41,150 +15,120 @@ declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE'
 
 declare type CleanExtensionOptions = {
-    primaryKeys?: boolean,
-    indexes?: boolean,
-    foreignKeys?: boolean,
-    unique?: boolean,
-    checks?: boolean
+  primaryKeys?: boolean,
+  indexes?: boolean,
+  foreignKeys?: boolean,
+  unique?: boolean,
+  checks?: boolean
 }
 
 declare type ColumnValueType = string | number | Array<any> | Object
 
 interface ForeignKeyOptions {
-    columns: Array<string>
-    match?: MatchType,
-    onDelete?: ActionType,
-    onUpdate?: ActionType,
-    references: ReferenceOptions
+  columns: Array<string>
+  match?: MatchType,
+  onDelete?: ActionType,
+  onUpdate?: ActionType,
+  references: ReferenceOptions
 }
 
 interface ColumnOptions {
-    name: string,
-    type: string,
-    nullable?: boolean,
-    force?: boolean,
-    primaryKey?: boolean,
-    unique?: boolean,
-    default?: ColumnValueType,
-    autoIncrement?: boolean | AutoIncrementOptions,
-    formerNames?: Array<string>,
+  name: string,
+  type: string,
+  nullable?: boolean,
+  force?: boolean,
+  primaryKey?: boolean,
+  unique?: boolean,
+  default?: ColumnValueType,
+  autoIncrement?: boolean | AutoIncrementOptions,
+  formerNames?: Array<string>,
 }
 
 interface IndexOptions {
-    columns: Array<string>,
+  columns: Array<string>,
 }
 
-interface SequenceReadOptions {
-    name: string
-}
-
-interface SequenceSchemaOptions {
-    name: string,
-    force?: boolean,
-    start?: string | number,
-    min?: string | number,
-    max?: string | number,
-    increment?: string | number,
-    cycle?: boolean,
+interface SequenceProperties {
+  name: string,
+  start?: string | number,
+  min?: string | number,
+  max?: string | number,
+  increment?: string | number,
+  cycle?: boolean,
 }
 
 interface AutoIncrementOptions {
-    name?: string,
-    start?: string | number,
-    min?: string | number,
-    max?: string | number,
-    increment?: string | number,
-    cycle?: boolean,
-    actual?: boolean
+  name?: string,
+  start?: string | number,
+  min?: string | number,
+  max?: string | number,
+  increment?: string | number,
+  cycle?: boolean,
+  actual?: boolean
 }
 
 interface CheckOptions {
-    condition: string
+  condition: string
 }
 
-interface TableSchemaOptions {
-    name: string,
-    columns: Array<ColumnOptions>,
-    cleanable?: CleanExtensionOptions,
-    primaryKeys?: Array<IndexOptions>,
-    unique?: Array<IndexOptions>,
-    indexes?: Array<IndexOptions>,
-    foreignKeys?: Array<ForeignKeyOptions>,
-    checks?: Array<CheckOptions>,
-    force?: boolean,
-    seeds?: Array<Object>,
-}
-
-interface TableReadOptions {
-    name: string,
-    seeds?: boolean | {
-        orderBy?: string,
-        range?: Array<string | number>
-    }
-}
-
-interface Schema {
-    type: EntityType,
-    properties: TableSchemaOptions | SequenceSchemaOptions
-}
-
-interface Table {
-    // public methods
-    addSeeds(seeds: Array<Object>): null
-
-    // private methods
-    _getSqlCreateOrAlterTable(): Promise<SQL>
-
-    _getSqlAddingExtensions(): Promise<SQL>
-
-    _getSqlCleaningExtensions(): Promise<SQL>
-
-    _getSqlInsertSeeds(): SQL
-
-    _getSequences(): Array<Sequence> | null
-
-    _getProperties(): Object
-
-    _getSqlSequenceActualize(): Promise<SQL | null>
-}
-
-interface Sequence {
-    // private methods
-    _getSqlChanges(): Promise<SQL>
-
-    _getQueryIncrement(): string
-
-    _getProperties(): Object
-
-    _getQueryRestart(): string
-
-    _getCurrentValue(): Promise<String>
+interface TableProperties {
+  name: string,
+  columns: Array<ColumnOptions>,
+  primaryKeys?: Array<IndexOptions>,
+  unique?: Array<IndexOptions>,
+  indexes?: Array<IndexOptions>,
+  foreignKeys?: Array<ForeignKeyOptions>,
+  checks?: Array<CheckOptions>
 }
 
 interface SyncOptions {
-    transaction?: boolean
+  transaction?: boolean,
+  force?: boolean,
+  execute?: boolean,
+  cleanable?: CleanExtensionOptions,
 }
 
-declare type EntityType = 'table' | 'sequence'
+declare type ObjectType = 'table' | 'sequence'
+
+declare type AnyOfSchemas = TableProperties | SequenceProperties
+
+declare class DatabaseObject {
+  type: ObjectType;
+
+  getSchemaName(): string;
+  getObjectName(): string; // object name without schema
+  getFullName(): string; // object name with schema
+}
+
+interface ImportOptions {
+  path: string,
+  match?: RegExp,
+  interpolate?: RegExp,
+  locals?: { [key: string]: string | number | Object | Array<any>; },
+}
+
+interface DifferOptions {
+  connectionConfig: object,
+  logging?: boolean | Function,
+  reconnection?: boolean | {
+    attempts: number,
+    delay: number
+  }
+}
 
 declare class Differ {
-    constructor(options: DifferOptions);
 
-    sync(options?: SyncOptions): Promise<null>
+  constructor(options: DifferOptions);
 
-    define: {
-        /** @deprecated */
-        (entityType: Schema | EntityType, properties?: TableSchemaOptions | SequenceSchemaOptions): Table | Sequence
+  sync(options?: SyncOptions): Promise<Array<string>>
 
-        table(properties: TableSchemaOptions): Table
+  import(options: string | ImportOptions): Map<string, DatabaseObject>
 
-        sequence(properties: SequenceSchemaOptions): Sequence
-    };
+  define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
 
-    read: {
-        table(options: TableReadOptions): Promise<TableSchemaOptions>
-        sequence(options: SequenceReadOptions): Promise<SequenceSchemaOptions>
-    }
+  setDefaultSchema(schema: String): this
+
+  objects: Map<string, DatabaseObject>
 }
 
 export = Differ;

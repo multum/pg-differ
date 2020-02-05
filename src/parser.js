@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018-present Andrey Vereshchak
+ * Copyright (c) 2018-present Andrew Vereshchak
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,12 +8,12 @@
 
 const R = require('ramda');
 const utils = require('./utils');
-const { TYPES, COLUMNS, EXTENSIONS, SEQUENCES } = require('./constants');
+const { Types, Columns, Extensions, Sequences } = require('./constants');
 
 exports.getTypeGroup = type => {
   if (type) {
     type = exports.trimType(type);
-    return Object.values(TYPES.GROUPS).find(group => group.includes(type));
+    return Object.values(Types.GROUPS).find(group => group.includes(type));
   }
 };
 
@@ -26,9 +26,9 @@ exports.normalizeType = type => {
   type = exports.trimType(type);
 
   // decode type alias
-  const aliasDescription = TYPES.ALIASES[type];
+  const aliasDescription = Types.ALIASES[type];
   if (utils.isExist(aliasDescription)) {
-    type = TYPES.ALIASES[type];
+    type = Types.ALIASES[type];
   }
   return values ? `${type}${values.join('')}` : type;
 };
@@ -39,12 +39,7 @@ exports.defaultValueInformationSchema = value => {
       // adding the public scheme in case of its absence
       value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, 'public.');
       //
-      const regExp = /::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/;
-      if (value.match(regExp)) {
-        return value.replace(regExp, '');
-      } else {
-        return value;
-      }
+      return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
     }
     default: {
       return value;
@@ -57,84 +52,56 @@ exports.checkCondition = definition => definition.match(/[^(]+(?=\))/)[0];
 exports.normalizeAutoIncrement = value => {
   if (R.is(Object, value)) {
     return {
-      ...SEQUENCES.DEFAULTS,
+      ...Sequences.DEFAULTS,
       ...value,
     };
   } else if (value) {
-    return { ...SEQUENCES.DEFAULTS };
+    return { ...Sequences.DEFAULTS };
   }
   return value;
 };
 
-exports.encodeValue = value => {
-  switch (typeof value) {
-    case 'number':
-      return value;
-    case 'string': {
-      const regExp = /::sql$/;
-      if (value.match(regExp)) {
-        return value.replace(regExp, '');
-      } else {
-        return exports.quoteLiteral(value);
+exports.encodeValue = v => {
+  switch (true) {
+    case typeof v === 'string': {
+      return exports.quoteLiteral(v);
+    }
+    case utils.isObject(v): {
+      const { type, value } = v;
+      if (type === 'json') {
+        return exports.quoteLiteral(JSON.stringify(value));
+      } else if (type === 'literal') {
+        return value;
       }
+      break;
     }
     default: {
-      return R.is(Object, value)
-        ? exports.quoteLiteral(JSON.stringify(value))
-        : value;
+      return v;
     }
-  }
-};
-
-exports.decodeValue = (value, type) => {
-  if (typeof value === 'string') {
-    const bracketsContent = /(?<=^').*(?='$)/;
-    const typeGroup = exports.getTypeGroup(type);
-    const defaultValue = `${value}::sql`;
-    switch (typeGroup) {
-      case TYPES.GROUPS.JSON: {
-        const match = value.match(bracketsContent);
-        return match ? JSON.parse(match[0]) : defaultValue;
-      }
-      case TYPES.GROUPS.INTEGER: {
-        const match = value.match(/^[0-9]*$/);
-        return match ? match[0] : defaultValue;
-      }
-      case TYPES.GROUPS.BOOLEAN: {
-        if (value === 'true') {
-          return true;
-        } else if (value === 'false') {
-          return false;
-        } else {
-          return defaultValue;
-        }
-      }
-      default: {
-        const match = value.match(bracketsContent);
-        return match ? match[0] : defaultValue;
-      }
-    }
-  } else {
-    return value;
   }
 };
 
 const _encodeExtensionTypes = {
-  primaryKey: EXTENSIONS.TYPES.PRIMARY_KEY,
-  unique: EXTENSIONS.TYPES.UNIQUE,
-  foreignKey: EXTENSIONS.TYPES.FOREIGN_KEY,
-  index: EXTENSIONS.TYPES.INDEX,
-  check: EXTENSIONS.TYPES.CHECK,
+  primaryKey: Extensions.TYPES.PRIMARY_KEY,
+  unique: Extensions.TYPES.UNIQUE,
+  foreignKey: Extensions.TYPES.FOREIGN_KEY,
+  index: Extensions.TYPES.INDEX,
+  check: Extensions.TYPES.CHECK,
 };
 
 exports.encodeExtensionType = key => _encodeExtensionTypes[key] || null;
 
-const _cleanableDefaults = {
-  primaryKey: true,
-  foreignKey: false,
-  unique: false,
-  check: false,
-  index: false,
+const _defaultSyncOptions = {
+  transaction: true,
+  force: false,
+  execute: true,
+  cleanable: {
+    primaryKey: true,
+    foreignKey: false,
+    unique: false,
+    check: false,
+    index: false,
+  },
 };
 
 exports.encryptedNamesListExtensions = {
@@ -147,10 +114,20 @@ exports.encryptedNamesListExtensions = {
 
 const _getExtensionDefaults = type => {
   if (type === 'foreignKey') {
-    return { ...EXTENSIONS.FOREIGN_KEY_DEFAULTS };
+    return { ...Extensions.FOREIGN_KEY_DEFAULTS };
   }
 };
-
+exports.syncOptions = options => {
+  if (options) {
+    return {
+      ..._defaultSyncOptions,
+      ...options,
+      cleanable: _normalizeCleanableObject(options.cleanable),
+    };
+  } else {
+    return _defaultSyncOptions;
+  }
+};
 const _normalizeCleanableObject = object => {
   if (object) {
     const encrypted = Object.entries(object).reduce(
@@ -160,17 +137,14 @@ const _normalizeCleanableObject = object => {
       },
       {}
     );
-    return { ..._cleanableDefaults, ...encrypted };
+    return { ..._defaultSyncOptions.cleanable, ...encrypted };
   }
-  return _cleanableDefaults;
+  return _defaultSyncOptions.cleanable;
 };
 
 exports.schema = schema => {
   const columns = schema.columns.map(column => {
-    column = {
-      ...COLUMNS.DEFAULTS,
-      ...R.pick(COLUMNS.ALL_PROPERTIES, column),
-    };
+    column = { ...Columns.DEFAULTS, ...column };
 
     const type = exports.normalizeType(column['type']);
     const defaultValue = exports.encodeValue(column.default);
@@ -200,26 +174,20 @@ exports.schema = schema => {
     R.mergeWith(R.concat, _getExtensionsFromColumns(columns))
   )(schema);
 
-  const cleanable = _normalizeCleanableObject(schema.cleanable);
-
   return {
     name: schema.name,
-    force: schema.force,
-    seeds: schema.seeds,
     checks: schema.checks,
     columns,
     extensions,
-    cleanable,
   };
 };
 
 const _getExtensionsFromColumns = columns => {
   return columns.reduce((acc, column) => {
-    const extensions = R.pick(COLUMNS.EXTENSIONS, column);
-    Object.entries(extensions).forEach(([type, value]) => {
-      if (value === true) {
-        acc[type] = acc[type] || [];
-        acc[type].push({ columns: [column.name] });
+    ['unique', 'primaryKey'].forEach(key => {
+      if (column[key] === true) {
+        acc[key] = acc[key] || [];
+        acc[key].push({ columns: [column.name] });
       }
     });
     return acc;
@@ -254,6 +222,14 @@ exports.quoteLiteral = value => {
 };
 
 exports.name = name => {
-  const chunks = name.split('.');
-  return [chunks[1] ? chunks[0] : undefined, chunks[1] || chunks[0]];
+  if (typeof name === 'string') {
+    const chunks = (name || '').split('.');
+    const { length } = chunks;
+    if (length === 1 || length === 2) {
+      return chunks.length === 2 // [schema, name]
+        ? [chunks[0], chunks[1]]
+        : [undefined, chunks[0]];
+    }
+  }
+  throw new Error(`Invalid object name: ${name}`);
 };

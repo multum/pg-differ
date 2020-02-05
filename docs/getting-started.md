@@ -1,17 +1,17 @@
 # Getting started
 
-!> pg-differ requires: **[Node.js](https://nodejs.org/)** **v8** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v9.2** or more, **9.5+** if using **seeds**
+!> pg-differ requires: **[Node.js](https://nodejs.org/)** **v8** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v9.2** or more
 
 ```bash
 npm i pg-differ
 ```
 
-## Writing schemas
+## Writing object definition files
 
-Then create a folder with your first [schema](entities.md) or use the `define` method.
+Then create a folder with your first [object definition file](objects.md) or use the `define` method.
 
 ```bash
-mkdir schemas && touch schemas/name.schema.json
+mkdir objects && touch objects/name.js
 ```
 
 ## Initialize
@@ -19,32 +19,32 @@ mkdir schemas && touch schemas/name.schema.json
 After that you can run the module or use the [CLI](cli.md)
 
 ```javascript
-const Differ = require('pg-differ')
-const path = require('path')
+const Differ = require('pg-differ');
 
 const setup = async () => {
   const differ = new Differ({
     connectionConfig: {},
-    schemaFolder: path.resolve(__dirname, 'schemas'), // or/and use 'differ.define' method,
-    logging: true,
-    placeholders: {
-      schema: 'schema_name'
-    }
-  })
+    logging: true, // default value of console.log
+  });
 
-  const users = await differ.read.table({ name: 'users' })
-  if (!users || users.columns.length !== 1) {
-    differ.define.table({
-      name: 'users',
-      columns: [
-        { name: 'id', type: 'bigint', primaryKey: true },
-        { name: 'name', type: 'varchar(255)' }
-      ]
-    })
-  }
+  differ.setDefaultSchema('user_schema'); // by default 'public'
 
-  return differ.sync()
-}
+  differ.import({
+    // or/and use 'differ.define' method
+    path: 'schemas',
+    locals: { schema: 'schema_name' },
+  });
 
-setup().then(() => console.log('database ready'))
+  differ.define('table', {
+    name: 'users',
+    columns: [
+      { name: 'id', type: 'bigint', primaryKey: true },
+      { name: 'name', type: 'varchar(255)' },
+    ],
+  });
+
+  return differ.sync();
+};
+
+setup().then(() => console.log('database ready'));
 ```

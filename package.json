@@ -3,7 +3,7 @@
   "version": "2.5.0",
   "description": "PostgreSQL migration alternative for Node.js",
   "author": {
-    "name": "Andrey Vereshchak",
+    "name": "Andrew Vereshchak",
     "email": "andrew.vereshchak@gmail.com"
   },
   "repository": {
@@ -22,37 +22,38 @@
     "postgresql",
     "node.js",
     "migration",
-    "migration-tool"
+    "migration-tool",
+    "automigrate"
   ],
   "engines": {
     "node": ">=8.0.0"
   },
   "scripts": {
     "test": "mocha test/index.test.js --no-timeout --exit",
-    "test::log": "cross-env TEST_LOGGING=true npm run test",
+    "test::log": "cross-env LOGGING=true npm run test",
     "eslint": "eslint --max-warnings=0 **/*.js",
     "format": "prettier --write src/**/*.js test/**/*.js",
     "docs::start": "docsify serve docs"
   },
   "license": "MIT",
   "dependencies": {
-    "ajv": "^6.10.0",
-    "chalk": "^2.4.2",
-    "metalize": "0.0.3",
+    "ajv": "6.10.2",
+    "chalk": "^3.0.0",
+    "metalize": "0.0.4",
     "minimist": "^1.2.0",
-    "pg": "^7.11.0",
-    "ramda": "^0.26.1"
+    "pg": "7.14.0",
+    "ramda": "0.26.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "cross-env": "^5.2.1",
-    "eslint": "^6.6.0",
-    "eslint-config-prettier": "^6.3.0",
+    "cross-env": "^6.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "husky": "^3.0.9",
-    "lint-staged": "^9.4.2",
+    "husky": "^3.1.0",
+    "lint-staged": "^9.4.3",
     "mocha": "^6.2.2",
-    "prettier": "^1.18.2"
+    "prettier": "^1.19.1"
   },
   "husky": {
     "hooks": {
