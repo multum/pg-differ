@@ -59,7 +59,7 @@ const differ = new Differ({
 });
 
 differ.import({
-  path: path.resolve(process.cwd(), argv._[0] || './schemas'),
+  path: path.resolve(process.cwd(), argv._[0] || './'),
   locals: getLocals(),
 });
 
