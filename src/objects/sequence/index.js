@@ -10,7 +10,6 @@ const ChangeStorage = require('../../change-storage');
 const utils = require('../../utils');
 const QueryGenerator = require('./query-generator');
 const AbstractObject = require('../abstract');
-const validate = require('../../validate');
 
 const { Sequences } = require('../../constants');
 
@@ -18,11 +17,6 @@ class Sequence extends AbstractObject {
   constructor(differ, properties) {
     super(differ, { ...Sequences.DEFAULTS, ...properties });
     this.type = 'sequence';
-    try {
-      validate.sequenceDefinition(properties);
-    } catch (error) {
-      throw new Error(this._logger.formatMessage(error.message));
-    }
   }
 
   async _getChangeQueries(structure, options) {

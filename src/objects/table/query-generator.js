@@ -8,6 +8,7 @@
 
 const utils = require('../../utils');
 const parser = require('../../parser');
+const { SynchronizationError } = require('../../errors');
 const { Types } = require('../../constants');
 const { INTEGER, CHARACTER, BOOLEAN } = Types.GROUPS;
 
@@ -194,8 +195,8 @@ class QueryGenerator {
         const columnDescription = _getColumnDescription(primaryKey, column);
         return `alter table ${table} drop column ${column.name}, add column ${columnDescription};`;
       } else {
-        throw new Error(
-          `To changing the type '${value.old}' => '${value.new}' you need to set 'force: true' for '${column.name}' column`
+        throw new SynchronizationError(
+          `Impossible type change from '${value.old}' to '${value.new}' without losing column data`
         );
       }
     } else if (key === 'default') {

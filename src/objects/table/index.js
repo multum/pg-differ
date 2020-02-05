@@ -14,18 +14,6 @@ const AbstractObject = require('../abstract');
 const utils = require('../../utils');
 const parser = require('../../parser');
 
-const validate = require('../../validate');
-
-const _parseSchema = R.pipe(validate.tableDefinition, parser.schema);
-
-const ORDERED_LIST_OF_COLUMN_ATTRS_TO_UPDATE = [
-  'name',
-  'nullable',
-  'type',
-  'default',
-  'collate',
-];
-
 const _setupSequences = (differ, { columns, tableName }) => {
   const sequenceColumns = columns.filter(column => column.autoIncrement);
   if (sequenceColumns.length) {
@@ -74,11 +62,7 @@ class Table extends AbstractObject {
   constructor(differ, properties) {
     super(differ, properties);
     this.type = 'table';
-    try {
-      this._properties = _parseSchema(properties);
-    } catch (error) {
-      throw new Error(this._logger.formatMessage(error.message));
-    }
+    this._properties = parser.schema(properties);
 
     this._primaryKey = R.path(['primaryKey', 0], this._properties.extensions);
 
@@ -117,25 +101,21 @@ class Table extends AbstractObject {
         if (utils.isEmpty(diff)) {
           return;
         }
-        ORDERED_LIST_OF_COLUMN_ATTRS_TO_UPDATE.forEach(attribute => {
-          if (Object.prototype.hasOwnProperty.call(diff, attribute)) {
-            const key = attribute;
-            const value = diff[key];
-            try {
-              queries.add(
-                QueryGenerator.alterColumn(
-                  fullName,
-                  this._primaryKey,
-                  column,
-                  key,
-                  value
-                )
+        ['name', 'nullable', 'type', 'default', 'collate'].forEach(
+          attribute => {
+            if (Object.prototype.hasOwnProperty.call(diff, attribute)) {
+              const key = attribute;
+              const value = diff[key];
+              QueryGenerator.alterColumn(
+                fullName,
+                this._primaryKey,
+                column,
+                key,
+                value
               );
-            } catch (error) {
-              throw new Error(this._logger.formatMessage(error.message));
             }
           }
-        });
+        );
       } else {
         return queries.add(
           QueryGenerator.addColumn(fullName, this._primaryKey, column)

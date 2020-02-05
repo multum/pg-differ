@@ -7,7 +7,6 @@
 'use strict';
 
 const parser = require('../parser');
-const Logger = require('../logger');
 
 class AbstractObject {
   constructor(differ, properties) {
@@ -17,8 +16,6 @@ class AbstractObject {
 
     const [schema, name] = parser.name(properties.name);
     this._path = { schema, name };
-
-    this._logger = new Logger({ prefix: `[ '${this.getFullName()}' ]` });
   }
 
   getFullName() {

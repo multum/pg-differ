@@ -8,6 +8,7 @@
 
 const R = require('ramda');
 const utils = require('./utils');
+const { ValidationError } = require('./errors');
 const { Types, Columns, Extensions, Sequences } = require('./constants');
 
 exports.getTypeGroup = type => {
@@ -222,14 +223,17 @@ exports.quoteLiteral = value => {
 };
 
 exports.name = name => {
-  if (typeof name === 'string') {
-    const chunks = (name || '').split('.');
-    const { length } = chunks;
-    if (length === 1 || length === 2) {
-      return chunks.length === 2 // [schema, name]
-        ? [chunks[0], chunks[1]]
-        : [undefined, chunks[0]];
-    }
+  const chunks = (name || '').split('.');
+  const { length } = chunks;
+  if (length === 1 || length === 2) {
+    return chunks.length === 2 // [schema, name]
+      ? [chunks[0], chunks[1]]
+      : [undefined, chunks[0]];
   }
-  throw new Error(`Invalid object name: ${name}`);
+  throw new ValidationError([
+    {
+      path: 'properties.name',
+      message: `Invalid object name: '${name}'`,
+    },
+  ]);
 };

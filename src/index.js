@@ -12,6 +12,8 @@ const utils = require('./utils');
 const helpers = require('./helpers');
 const parser = require('./parser');
 const path = require('path');
+const validate = require('./validate');
+const errors = require('./errors');
 
 const Metalize = require('metalize');
 
@@ -112,10 +114,15 @@ class Differ {
         break;
       }
       default:
-        throw new Error(
-          this._logger.formatMessage(`Invalid schema type: ${type}`)
-        );
+        throw new errors.ValidationError([
+          {
+            path: 'type',
+            message: `Invalid schema type: ${type}`,
+            keyword: 'type',
+          },
+        ]);
     }
+    validate[type](properties);
     return new Controller(this, properties);
   }
 
@@ -259,6 +266,12 @@ class Differ {
       throw error;
     }
   }
+}
+
+Differ.Error = errors.BaseError;
+
+for (const error of Object.keys(errors)) {
+  Differ[error] = errors[error];
 }
 
 module.exports = Differ;
