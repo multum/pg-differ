@@ -134,7 +134,7 @@ class QueryGenerator {
 
   static alterColumn(table, primaryKey, column, key, value) {
     if (key === 'name') {
-      return `alter table ${table} rename column ${value.old} to ${value.new};`;
+      return `alter table ${table} rename column ${value.prev} to ${value.next};`;
     } else if (key === 'nullable') {
       if (value === true) {
         if (!_shouldBePrimaryKey(primaryKey, column.name)) {
@@ -150,13 +150,13 @@ class QueryGenerator {
         ];
       }
     } else if (key === 'type' || key === 'collate') {
-      const oldTypeGroup = parser.getTypeGroup(value.old);
-      const newTypeGroup = parser.getTypeGroup(value.new);
+      const prevTypeGroup = parser.getTypeGroup(value.prev);
+      const nextTypeGroup = parser.getTypeGroup(value.next);
 
       const hasDefault = utils.isExist(column.default);
 
       // If not an array
-      if (value.new.indexOf(']') === -1) {
+      if (value.next.indexOf(']') === -1) {
         const alterColumnType = using => {
           using = using ? ` using (${using})` : '';
 
@@ -173,18 +173,19 @@ class QueryGenerator {
             return alterType;
           }
         };
+
         if (
-          !value.old ||
-          (oldTypeGroup === INTEGER && newTypeGroup === INTEGER) ||
-          (oldTypeGroup === CHARACTER && newTypeGroup === CHARACTER) ||
-          (oldTypeGroup === INTEGER && newTypeGroup === CHARACTER)
+          !value.prev ||
+          (prevTypeGroup === INTEGER && nextTypeGroup === INTEGER) ||
+          (prevTypeGroup === CHARACTER && nextTypeGroup === CHARACTER) ||
+          (prevTypeGroup === INTEGER && nextTypeGroup === CHARACTER)
         ) {
           return alterColumnType();
-        } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
+        } else if (prevTypeGroup === CHARACTER && nextTypeGroup === INTEGER) {
           return alterColumnType(`trim(${column.name})::integer`);
-        } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
+        } else if (prevTypeGroup === BOOLEAN && nextTypeGroup === INTEGER) {
           return alterColumnType(`${column.name}::integer`);
-        } else if (oldTypeGroup === INTEGER && newTypeGroup === BOOLEAN) {
+        } else if (prevTypeGroup === INTEGER && nextTypeGroup === BOOLEAN) {
           return alterColumnType(
             `case when ${column.name} = 0 then false else true end`
           );
@@ -196,7 +197,7 @@ class QueryGenerator {
         return `alter table ${table} drop column ${column.name}, add column ${columnDescription};`;
       } else {
         throw new SynchronizationError(
-          `Impossible type change from '${value.old}' to '${value.new}' without losing column data`
+          `Impossible type change from '${value.prev}' to '${value.next}' without losing column data`
         );
       }
     } else if (key === 'default') {

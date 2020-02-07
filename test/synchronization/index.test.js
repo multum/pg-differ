@@ -1,3 +1,4 @@
 'use strict';
 
-require('./alter-table-errors');
+require('./column-type');
+require('./column-default');

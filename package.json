@@ -29,7 +29,7 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "test": "mocha test/index.test.js --no-timeout --exit",
+    "test": "mocha test/**/index.test.js --no-timeout --exit",
     "test::log": "cross-env LOGGING=true npm run test",
     "eslint": "eslint --max-warnings=0 **/*.js",
     "format": "prettier --write src/**/*.js test/**/*.js",

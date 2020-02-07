@@ -1,15 +1,17 @@
 'use strict';
 
+const SCHEMAS = {
+  DEFAULT: 'differ_test_schema',
+};
+
 exports.TABLES = {
-  USERS: 'users',
-  ROLES: 'roles',
+  USERS: `${SCHEMAS.DEFAULT}.users`,
+  ROLES: `${SCHEMAS.DEFAULT}.roles`,
 };
 
 exports.SEQUENCES = {
-  USERS: 'users_id_seq',
-  ROLES: 'roles_id_seq',
+  USERS: `${SCHEMAS.DEFAULT}.users_id_seq`,
+  ROLES: `${SCHEMAS.DEFAULT}.roles_id_seq`,
 };
 
-exports.SCHEMAS = {
-  DEFAULT: 'differ_test_schema',
-};
+exports.SCHEMAS = SCHEMAS;

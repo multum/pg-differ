@@ -50,10 +50,10 @@ const _findExtensionWhere = (props, extensions) => {
 const _getColumnAttributeDiff = (column, dbColumn) => {
   const diff = utils.getObjectDifference(column, dbColumn);
   if (diff.name) {
-    diff.name = { new: column.name, old: dbColumn.name };
+    diff.name = { next: column.name, prev: dbColumn.name };
   }
   if (diff.type) {
-    diff.type = { new: column.type, old: dbColumn.type };
+    diff.type = { next: column.type, prev: dbColumn.type };
   }
   return diff;
 };
@@ -62,13 +62,16 @@ class Table extends AbstractObject {
   constructor(differ, properties) {
     super(differ, properties);
     this.type = 'table';
-    this._properties = parser.schema(properties);
 
-    this._primaryKey = R.path(['primaryKey', 0], this._properties.extensions);
+    const { columns, checks, extensions } = parser.schema(this.properties);
+    this._columns = columns;
+    this._checks = checks;
+    this._extensions = extensions;
+    this._primaryKey = R.path(['primaryKey', 0], extensions);
 
     this._sequences = _setupSequences(differ, {
-      tableName: properties.name,
-      columns: this._properties.columns,
+      tableName: this.getObjectName(),
+      columns: this._columns,
     });
 
     this._normalizeCheckRows = R.once(this._normalizeCheckRows);
@@ -90,10 +93,13 @@ class Table extends AbstractObject {
     const fullName = this.getFullName();
     const dbColumns = structure.columns.map(column => ({
       ...column,
-      default: parser.defaultValueInformationSchema(column.default),
+      default: parser.defaultValueInformationSchema(
+        column.default,
+        this._differ.defaultSchema
+      ),
     }));
     const queries = new ChangeStorage();
-    this._properties.columns.forEach(column => {
+    this._columns.forEach(column => {
       const { name, formerNames } = column;
       const dbColumn = utils.findByName(dbColumns, name, formerNames);
       if (dbColumn) {
@@ -106,12 +112,14 @@ class Table extends AbstractObject {
             if (Object.prototype.hasOwnProperty.call(diff, attribute)) {
               const key = attribute;
               const value = diff[key];
-              QueryGenerator.alterColumn(
-                fullName,
-                this._primaryKey,
-                column,
-                key,
-                value
+              queries.add(
+                QueryGenerator.alterColumn(
+                  fullName,
+                  this._primaryKey,
+                  column,
+                  key,
+                  value
+                )
               );
             }
           }
@@ -172,9 +180,9 @@ class Table extends AbstractObject {
 
   _getSchemaExtensions(type) {
     if (type === 'check') {
-      return this._normalizeCheckRows(this._properties.checks);
+      return this._normalizeCheckRows(this._checks);
     } else {
-      return this._properties.extensions[type];
+      return this._extensions[type];
     }
   }
 
@@ -189,7 +197,7 @@ class Table extends AbstractObject {
 
   _createTable({
     table = this.getFullName(),
-    columns = this._properties.columns,
+    columns = this._columns,
     temp = false,
     force,
   }) {
@@ -214,7 +222,7 @@ class Table extends AbstractObject {
     for (let i = 0; i < this._sequences.length; i++) {
       const [columnUses, sequence] = this._sequences[i];
       const exists = sequenceStructures.get(sequence.getFullName());
-      const { actual = true, min, max } = sequence._properties;
+      const { actual = true, min, max } = sequence.properties;
       if (actual && exists) {
         const sequenceCurValue = await sequence._getCurrentValue();
         const {

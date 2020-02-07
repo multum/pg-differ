@@ -7,7 +7,7 @@ const helpers = require('../helpers');
 describe('schema validation', () => {
   const differ = helpers.createInstance();
 
-  it('catching schema validation errors', function() {
+  it('should get a schema validation error', function() {
     try {
       differ.define('table', { name: 'table_name', columns: {} });
     } catch (error) {
@@ -22,7 +22,7 @@ describe('schema validation', () => {
     }
   });
 
-  it('catching schema type error', function() {
+  it('should get a schema type validation error', function() {
     try {
       differ.define('t', {});
     } catch (error) {
@@ -31,7 +31,7 @@ describe('schema validation', () => {
     }
   });
 
-  it(`invalid object name`, function() {
+  it(`should get a object name validation error`, function() {
     try {
       differ.define('table', {
         name: 'public.invalid.name',

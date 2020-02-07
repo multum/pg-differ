@@ -19,5 +19,3 @@ after(async () => {
   }
   return differ._client.end();
 });
-
-require('./configuration/index.test');

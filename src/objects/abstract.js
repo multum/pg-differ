@@ -12,7 +12,7 @@ class AbstractObject {
   constructor(differ, properties) {
     this._differ = differ;
     this._client = differ._client;
-    this._properties = properties;
+    this.properties = properties;
 
     const [schema, name] = parser.name(properties.name);
     this._path = { schema, name };

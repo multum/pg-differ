@@ -61,6 +61,7 @@ class Differ {
 
     this._client = new ConnectionManager(options.connectionConfig, {
       reconnection,
+      logger: this._logger,
     });
     this.objects = new Map();
   }
