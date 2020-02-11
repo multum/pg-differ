@@ -31,10 +31,14 @@ exports.alterColumnType = (
       it(`[ ${prevType} ] => [ ${type} ]`, async function() {
         const model = differ.define('table', {
           name: table,
-          columns: [{ name: column, type: normalizeType(prevType) }],
+          columns: [{ name: column, type: prevType }],
         });
 
-        await differ.sync({ force: true }); // TODO: need to test expected queries using `expectSyncResult`
+        const normalizedPrevType = normalizeType(prevType);
+        await exports.expectSyncResult(differ.sync({ force: true }), [
+          `drop table if exists ${model.getQuotedFullName()} cascade;`,
+          `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} null );`,
+        ]);
 
         const normalizedType = normalizeType(type);
 
