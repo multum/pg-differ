@@ -10,7 +10,6 @@ const ChangeStorage = require('../../change-storage');
 const utils = require('../../utils');
 const QueryGenerator = require('./query-generator');
 const AbstractObject = require('../abstract');
-const validate = require('../../validate');
 
 const { Sequences } = require('../../constants');
 
@@ -18,57 +17,52 @@ class Sequence extends AbstractObject {
   constructor(differ, properties) {
     super(differ, { ...Sequences.DEFAULTS, ...properties });
     this.type = 'sequence';
-    try {
-      validate.sequenceDefinition(properties);
-    } catch (error) {
-      throw new Error(this._logger.formatMessage(error.message));
-    }
   }
 
   async _getChangeQueries(structure, options) {
-    const fullName = this.getFullName();
+    const fullName = this.getQuotedFullName();
     if (options.force) {
       return new ChangeStorage([
         QueryGenerator.drop(fullName),
-        QueryGenerator.create(fullName, this._properties),
+        QueryGenerator.create(fullName, this.properties),
       ]);
     } else {
       if (structure) {
-        const diff = utils.getObjectDifference(this._properties, structure);
+        const diff = utils.getObjectDifference(this.properties, structure);
         if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
           const {
             rows: [{ correct }],
           } = await this._client.query(
             QueryGenerator.hasCorrectCurrValue(
               fullName,
-              this._properties.min,
-              this._properties.max
+              this.properties.min,
+              this.properties.max
             )
           );
           if (!correct) {
-            diff.current = this._properties.min;
+            diff.current = this.properties.min;
           }
         }
         return new ChangeStorage(QueryGenerator.alter(fullName, diff));
       } else {
         return new ChangeStorage(
-          QueryGenerator.create(fullName, this._properties)
+          QueryGenerator.create(fullName, this.properties)
         );
       }
     }
   }
 
   _getIncrementQuery() {
-    return QueryGenerator.increment(this.getFullName());
+    return QueryGenerator.increment(this.getQuotedFullName());
   }
 
   _getRestartQuery(value) {
-    return QueryGenerator.restart(this.getFullName(), value);
+    return QueryGenerator.restart(this.getQuotedFullName(), value);
   }
 
   _getCurrentValue() {
     return this._client
-      .query(QueryGenerator.getCurrentValue(this.getFullName()))
+      .query(QueryGenerator.getCurrentValue(this.getQuotedFullName()))
       .then(({ rows: [{ currentValue }] }) => currentValue);
   }
 }

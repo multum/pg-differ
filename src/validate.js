@@ -7,17 +7,9 @@
 'use strict';
 
 const Ajv = require('ajv');
+const { ValidationError } = require('./errors');
 
-const ajv = new Ajv();
-
-const formatErrors = errors => {
-  return errors
-    .map(({ dataPath, message }) => {
-      dataPath = dataPath ? `[ ${dataPath} ] ` : '';
-      return `${dataPath}${message}`;
-    })
-    .join('\n\t');
-};
+const ajv = new Ajv({ allErrors: true });
 
 const validate = schema => {
   const validate = ajv.compile(schema);
@@ -25,12 +17,18 @@ const validate = schema => {
     if (validate(object)) {
       return object;
     } else {
-      throw new Error(formatErrors(validate.errors));
+      throw new ValidationError(
+        validate.errors.map(({ dataPath, keyword, message }) => ({
+          path: `properties${dataPath}`,
+          keyword,
+          message,
+        }))
+      );
     }
   };
 };
 
 module.exports = {
-  tableDefinition: validate(require('./schemas/define.table.json')),
-  sequenceDefinition: validate(require('./schemas/define.sequence.json')),
+  table: validate(require('./schemas/define.table.json')),
+  sequence: validate(require('./schemas/define.sequence.json')),
 };

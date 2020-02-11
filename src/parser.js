@@ -8,6 +8,7 @@
 
 const R = require('ramda');
 const utils = require('./utils');
+const { ValidationError } = require('./errors');
 const { Types, Columns, Extensions, Sequences } = require('./constants');
 
 exports.getTypeGroup = type => {
@@ -33,11 +34,11 @@ exports.normalizeType = type => {
   return values ? `${type}${values.join('')}` : type;
 };
 
-exports.defaultValueInformationSchema = value => {
+exports.defaultValueInformationSchema = (value, defaultSchema) => {
   switch (typeof value) {
     case 'string': {
       // adding the public scheme in case of its absence
-      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, 'public.');
+      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${defaultSchema}.`);
       //
       return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
     }
@@ -62,23 +63,27 @@ exports.normalizeAutoIncrement = value => {
 };
 
 exports.encodeValue = v => {
-  switch (true) {
-    case typeof v === 'string': {
-      return exports.quoteLiteral(v);
+  if (typeof v === 'string') {
+    return exports.quoteLiteral(v);
+  }
+  const isArray = Array.isArray(v);
+  const isObject = utils.isObject(v);
+
+  if (isArray || isObject) {
+    let type, value;
+    if (isArray) {
+      [type, value] = v;
+    } else {
+      type = v.type;
+      value = v.value;
     }
-    case utils.isObject(v): {
-      const { type, value } = v;
-      if (type === 'json') {
-        return exports.quoteLiteral(JSON.stringify(value));
-      } else if (type === 'literal') {
-        return value;
-      }
-      break;
-    }
-    default: {
-      return v;
+    if (type === 'json') {
+      return exports.quoteLiteral(JSON.stringify(value));
+    } else if (type === 'literal') {
+      return value;
     }
   }
+  return v;
 };
 
 const _encodeExtensionTypes = {
@@ -222,14 +227,17 @@ exports.quoteLiteral = value => {
 };
 
 exports.name = name => {
-  if (typeof name === 'string') {
-    const chunks = (name || '').split('.');
-    const { length } = chunks;
-    if (length === 1 || length === 2) {
-      return chunks.length === 2 // [schema, name]
-        ? [chunks[0], chunks[1]]
-        : [undefined, chunks[0]];
-    }
+  const chunks = (name || '').split('.');
+  const { length } = chunks;
+  if (length === 1 || length === 2) {
+    return chunks.length === 2 // [schema, name]
+      ? [chunks[0], chunks[1]]
+      : [undefined, chunks[0]];
   }
-  throw new Error(`Invalid object name: ${name}`);
+  throw new ValidationError([
+    {
+      path: 'properties.name',
+      message: `Invalid object name: '${name}'`,
+    },
+  ]);
 };

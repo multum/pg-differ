@@ -7,13 +7,13 @@
 'use strict';
 
 const { Client } = require('pg');
-const { logger } = require('./logger');
 const utils = require('./utils');
 
 class ConnectionManager {
-  constructor(connectionConfig, { reconnection }) {
+  constructor(connectionConfig, { reconnection, logger }) {
     this._connectionConfig = connectionConfig;
     this._reconnection = reconnection;
+    this._logger = logger;
     this.client = null;
   }
 
@@ -35,8 +35,8 @@ class ConnectionManager {
   _retry(error, attempt) {
     const { delay } = this._reconnection;
     attempt += 1;
-    logger.error(error.message);
-    logger.info(
+    this._logger.error(error.message);
+    this._logger.info(
       `Reconnection attempt [ ${attempt} ] will be in ${delay} seconds.`
     );
     return this.end()

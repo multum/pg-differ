@@ -1,5 +1,14 @@
 # CLI
 
+## Usage example
+
+```bash
+# connection_string='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
+pg-differ -c ${connection_string} -l 'schema:public, user:u_name' ./objects
+```
+
+## Properties
+
 ### connectionString
 
 - Alias: `-c`
@@ -14,7 +23,7 @@ Connection URI to database
 - Alias: `-l`
 - Default: `null`
 - Required: `false`
-- Example: `schema:s_name, user:u_name`
+- Example: `'schema:s_name, user:u_name'`
 
 String with names and their values to replace placeholders in schema files
 

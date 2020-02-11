@@ -8,6 +8,8 @@
 
 const utils = require('../../utils');
 const parser = require('../../parser');
+const helpers = require('../../helpers');
+const { SynchronizationError } = require('../../errors');
 const { Types } = require('../../constants');
 const { INTEGER, CHARACTER, BOOLEAN } = Types.GROUPS;
 
@@ -20,7 +22,8 @@ const _shouldBePrimaryKey = (primaryKey, column) => {
 };
 
 const _getColumnDescription = (primaryKey, column, temp) => {
-  const chunks = [`${column.name} ${column.type}`];
+  const quotedColumnName = helpers.quoteIdent(column.name);
+  const chunks = [`${quotedColumnName} ${column.type}`];
 
   if (column.collate) {
     chunks.push(`collate "${column.collate}"`);
@@ -37,6 +40,14 @@ const _getColumnDescription = (primaryKey, column, temp) => {
   }
 
   return chunks.join(' ');
+};
+
+const _setDefault = (table, columnName, value) => {
+  return `alter table ${table} alter column ${columnName} set default ${value};`;
+};
+
+const _dropDefault = (table, columnName) => {
+  return `alter table ${table} alter column ${columnName} drop default;`;
 };
 
 class QueryGenerator {
@@ -69,14 +80,6 @@ class QueryGenerator {
     return `alter table ${table} add column ${columnDescription};`;
   }
 
-  static setDefault(table, column, value) {
-    return `alter table ${table} alter column ${column.name} set default ${value};`;
-  }
-
-  static dropDefault(table, column) {
-    return `alter table ${table} alter column ${column.name} drop default;`;
-  }
-
   static dropExtension(schema, table, type, extension) {
     if (type === 'index') {
       return `drop index ${schema}.${extension.name};`;
@@ -95,9 +98,10 @@ class QueryGenerator {
       condition,
       name,
     } = extension;
-    const alterTable = `alter table ${table}`;
 
-    columns = columns.join(',');
+    const alterTable = `alter table ${table}`;
+    columns = columns.map(helpers.quoteIdent).join(',');
+
     switch (encodedType) {
       case 'INDEX':
         return `create ${encodedType} on ${table} (${columns});`;
@@ -108,8 +112,11 @@ class QueryGenerator {
 
       case 'FOREIGN KEY': {
         match = match ? ` match ${match}` : null;
-        const refColumns = references.columns.join(',');
-        references = `references ${references.table} (${refColumns})`;
+        const quotedRefColumns = references.columns
+          .map(helpers.quoteIdent)
+          .join(',');
+        const quotedRefTable = helpers.quoteName(references.table);
+        references = `references ${quotedRefTable} (${quotedRefColumns})`;
         const events = `on update ${onUpdate} on delete ${onDelete}`;
         return `${alterTable} add ${encodedType} (${columns}) ${references}${match} ${events};`;
       }
@@ -124,85 +131,89 @@ class QueryGenerator {
   static createTable(table, columns, primaryKey, force, temp) {
     columns = columns
       .map(column => _getColumnDescription(primaryKey, column, temp))
-      .join(',\n  ');
+      .join(', ');
     return [
       force ? `drop table if exists ${table} cascade;` : null,
-      `create${temp ? ' temporary' : ''} table ${table} (\n  ${columns}\n);`,
+      `create${temp ? ' temporary' : ''} table ${table} ( ${columns} );`,
     ];
   }
 
   static alterColumn(table, primaryKey, column, key, value) {
+    const quotedColumnName = helpers.quoteIdent(column.name);
     if (key === 'name') {
-      return `alter table ${table} rename column ${value.old} to ${value.new};`;
+      const prev = helpers.quoteIdent(value.prev);
+      const next = helpers.quoteIdent(value.next);
+      return `alter table ${table} rename column ${prev} to ${next};`;
     } else if (key === 'nullable') {
       if (value === true) {
         if (!_shouldBePrimaryKey(primaryKey, column.name)) {
-          return `alter table ${table} alter column ${column.name} drop not null;`;
+          return `alter table ${table} alter column ${quotedColumnName} drop not null;`;
         }
       } else {
         const setValues = utils.isExist(column.default)
-          ? `update ${table} set ${column.name} = ${column.default} where ${column.name} is null;`
+          ? `update ${table} set ${quotedColumnName} = ${column.default} where ${quotedColumnName} is null;`
           : null;
         return [
           setValues,
-          `alter table ${table} alter column ${column.name} set not null;`,
+          `alter table ${table} alter column ${quotedColumnName} set not null;`,
         ];
       }
     } else if (key === 'type' || key === 'collate') {
-      const oldTypeGroup = parser.getTypeGroup(value.old);
-      const newTypeGroup = parser.getTypeGroup(value.new);
+      const prevTypeGroup = parser.getTypeGroup(value.prev);
+      const nextTypeGroup = parser.getTypeGroup(value.next);
 
       const hasDefault = utils.isExist(column.default);
 
       // If not an array
-      if (value.new.indexOf(']') === -1) {
+      if (value.next.indexOf(']') === -1) {
         const alterColumnType = using => {
           using = using ? ` using (${using})` : '';
 
           const collate = column.collate ? ` collate "${column.collate}"` : '';
-          const alterType = `alter table ${table} alter column ${column.name} type ${column.type}${collate}${using};`;
+          const alterType = `alter table ${table} alter column ${quotedColumnName} type ${column.type}${collate}${using};`;
 
           if (using && hasDefault) {
             return [
-              QueryGenerator.dropDefault(table, column),
+              _dropDefault(table, quotedColumnName),
               alterType,
-              QueryGenerator.setDefault(table, column, column.default),
+              _setDefault(table, quotedColumnName, column.default),
             ];
           } else {
             return alterType;
           }
         };
+
         if (
-          !value.old ||
-          (oldTypeGroup === INTEGER && newTypeGroup === INTEGER) ||
-          (oldTypeGroup === CHARACTER && newTypeGroup === CHARACTER) ||
-          (oldTypeGroup === INTEGER && newTypeGroup === CHARACTER)
+          !value.prev ||
+          (prevTypeGroup === INTEGER && nextTypeGroup === INTEGER) ||
+          (prevTypeGroup === CHARACTER && nextTypeGroup === CHARACTER) ||
+          (prevTypeGroup === INTEGER && nextTypeGroup === CHARACTER)
         ) {
           return alterColumnType();
-        } else if (oldTypeGroup === CHARACTER && newTypeGroup === INTEGER) {
-          return alterColumnType(`trim(${column.name})::integer`);
-        } else if (oldTypeGroup === BOOLEAN && newTypeGroup === INTEGER) {
-          return alterColumnType(`${column.name}::integer`);
-        } else if (oldTypeGroup === INTEGER && newTypeGroup === BOOLEAN) {
+        } else if (prevTypeGroup === CHARACTER && nextTypeGroup === INTEGER) {
+          return alterColumnType(`trim(${quotedColumnName})::integer`);
+        } else if (prevTypeGroup === BOOLEAN && nextTypeGroup === INTEGER) {
+          return alterColumnType(`${quotedColumnName}::integer`);
+        } else if (prevTypeGroup === INTEGER && nextTypeGroup === BOOLEAN) {
           return alterColumnType(
-            `case when ${column.name} = 0 then false else true end`
+            `case when ${quotedColumnName} = 0 then false else true end`
           );
         }
       }
 
       if (column.force === true) {
         const columnDescription = _getColumnDescription(primaryKey, column);
-        return `alter table ${table} drop column ${column.name}, add column ${columnDescription};`;
+        return `alter table ${table} drop column ${quotedColumnName}, add column ${columnDescription};`;
       } else {
-        throw new Error(
-          `To changing the type '${value.old}' => '${value.new}' you need to set 'force: true' for '${column.name}' column`
+        throw new SynchronizationError(
+          `Impossible type change from '${value.prev}' to '${value.next}' without losing column data`
         );
       }
     } else if (key === 'default') {
       if (utils.isExist(value)) {
-        return QueryGenerator.setDefault(table, column, value);
+        return _setDefault(table, quotedColumnName, value);
       } else {
-        return QueryGenerator.dropDefault(table, column);
+        return _dropDefault(table, quotedColumnName);
       }
     }
     return null;

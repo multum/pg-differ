@@ -6,12 +6,12 @@
 npm i pg-differ
 ```
 
-## Writing object definition files
+## Writing object schema files
 
-Then create a folder with your first [object definition file](objects.md) or use the `define` method.
+Then create a folder with your first [object schema file](objects.md) or use the `define` method.
 
 ```bash
-mkdir objects && touch objects/name.js
+mkdir objects && touch objects/name.schema.json
 ```
 
 ## Initialize
@@ -31,7 +31,7 @@ const setup = async () => {
 
   differ.import({
     // or/and use 'differ.define' method
-    path: 'schemas',
+    path: 'objects',
     locals: { schema: 'schema_name' },
   });
 

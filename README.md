@@ -26,7 +26,7 @@
 
 You can find the documentation [on the website](https://multum.github.io/pg-differ/#/)
 
-> If you are using an older version, you can go to the [documentation for v2](https://multum.github.io/pg-differ/v1/#/)
+> If you are using an older version, you can go to the [documentation for v2](https://multum.github.io/pg-differ/v2/#/)
 
 ## Contributing
 

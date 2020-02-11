@@ -94,6 +94,7 @@ declare type AnyOfSchemas = TableProperties | SequenceProperties
 
 declare class DatabaseObject {
   type: ObjectType;
+  properties: AnyOfSchemas;
 
   getSchemaName(): string;
   getObjectName(): string; // object name without schema
@@ -122,12 +123,14 @@ declare class Differ {
 
   sync(options?: SyncOptions): Promise<Array<string>>
 
+  // @ts-ignore
   import(options: string | ImportOptions): Map<string, DatabaseObject>
 
   define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
 
   setDefaultSchema(schema: String): this
 
+  // @ts-ignore
   objects: Map<string, DatabaseObject>
 }
 

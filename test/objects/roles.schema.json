@@ -1,12 +1,14 @@
 {
   "type": "table",
   "properties": {
-    "name": "${tables.users}",
+    "name": "${tables.roles}",
     "columns": [
       {
         "name": "id",
         "type": "bigint",
-        "primaryKey": true
+        "unique": true,
+        "primaryKey": true,
+        "default": "${defaultPrimaryKey}"
       }
     ]
   }

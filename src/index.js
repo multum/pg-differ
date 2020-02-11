@@ -12,6 +12,8 @@ const utils = require('./utils');
 const helpers = require('./helpers');
 const parser = require('./parser');
 const path = require('path');
+const validate = require('./validate');
+const errors = require('./errors');
 
 const Metalize = require('metalize');
 
@@ -59,6 +61,7 @@ class Differ {
 
     this._client = new ConnectionManager(options.connectionConfig, {
       reconnection,
+      logger: this._logger,
     });
     this.objects = new Map();
   }
@@ -112,10 +115,15 @@ class Differ {
         break;
       }
       default:
-        throw new Error(
-          this._logger.formatMessage(`Invalid schema type: ${type}`)
-        );
+        throw new errors.ValidationError([
+          {
+            path: 'type',
+            message: `Invalid schema type: ${type}`,
+            keyword: 'type',
+          },
+        ]);
     }
+    validate[type](properties);
     return new Controller(this, properties);
   }
 
@@ -211,9 +219,10 @@ class Differ {
     if (R.isEmpty(preparedChanges)) {
       return [];
     } else {
-      this._logger.log(preparedChanges.join('\n'));
       for (let i = 0; i < preparedChanges.length; i++) {
-        await this._client.query(preparedChanges[i]);
+        const query = preparedChanges[i];
+        this._logger.log(query);
+        await this._client.query(query);
       }
       return preparedChanges;
     }
@@ -238,7 +247,7 @@ class Differ {
 
       if (options.execute) {
         const results = await this._execute(preparedChanges);
-        if (results.filter(Boolean).length === 0) {
+        if (results.length === 0) {
           this._logger.info('Database does not need updating');
         }
       }
@@ -259,6 +268,12 @@ class Differ {
       throw error;
     }
   }
+}
+
+Differ.Error = errors.BaseError;
+
+for (const error of Object.keys(errors)) {
+  Differ[error] = errors[error];
 }
 
 module.exports = Differ;

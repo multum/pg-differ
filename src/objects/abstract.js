@@ -7,18 +7,16 @@
 'use strict';
 
 const parser = require('../parser');
-const Logger = require('../logger');
+const helpers = require('../helpers');
 
 class AbstractObject {
   constructor(differ, properties) {
     this._differ = differ;
     this._client = differ._client;
-    this._properties = properties;
+    this.properties = properties;
 
     const [schema, name] = parser.name(properties.name);
     this._path = { schema, name };
-
-    this._logger = new Logger({ prefix: `[ '${this.getFullName()}' ]` });
   }
 
   getFullName() {
@@ -31,6 +29,12 @@ class AbstractObject {
 
   getObjectName() {
     return this._path.name;
+  }
+
+  getQuotedFullName() {
+    const quotedSchema = helpers.quoteIdent(this.getSchemaName());
+    const quotedName = helpers.quoteIdent(this._path.name);
+    return `${quotedSchema}.${quotedName}`;
   }
 }
 

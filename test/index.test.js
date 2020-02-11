@@ -1,12 +1,16 @@
 'use strict';
 
+const differ = require('./helpers').createInstance();
+
 let start;
-before(() => (start = Date.now()));
+before(async () => {
+  await differ._client.query(`create schema if not exists "DifferSchema"`);
+  await differ._client.end();
+  start = Date.now();
+});
 
-after(() => console.info(`Total time: ${Date.now() - start}`));
-
-require('./sync');
-require('./alter-columns');
-require('./reconnection');
-require('./schema-validation');
-require('./structure-reading');
+after(async () => {
+  console.info(`Total time: ${Date.now() - start}`);
+  await differ._client.query(`drop schema if exists "DifferSchema" cascade`);
+  return differ._client.end();
+});
