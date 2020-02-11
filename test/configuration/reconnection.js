@@ -19,12 +19,13 @@ describe('reconnection', () => {
       name: 'users',
       columns: [{ name: 'id', type: 'smallint' }],
     });
-
+    let error;
     try {
       await differ.sync();
     } catch (e) {
-      expect(e).to.be.an.instanceOf(Error);
-      expect(e.message).has.equal(`database "${database}" does not exist`);
+      error = e;
     }
+    expect(error).to.be.an.instanceOf(Error);
+    expect(error.message).has.equal(`database "${database}" does not exist`);
   });
 });

@@ -18,13 +18,32 @@ exports.loadJSON = (path, locals, interpolate) => {
     file = file.replace(interpolate, (match, value) => {
       const placeholder = R.path(value.split('.'), locals);
       if (utils.isExist(placeholder)) {
-        return placeholder;
+        return placeholder.replace(/"/g, '\\"'); // quotes escaping
       } else {
         return undefined;
       }
     });
   }
   return JSON.parse(file);
+};
+
+exports.removeQuotes = s => {
+  return s.replace(/"/g, '');
+};
+
+exports.addQuotes = s => {
+  return `"${s}"`;
+};
+
+exports.quoteIdent = s => {
+  return exports.addQuotes(exports.removeQuotes(s));
+};
+
+exports.quoteName = n => {
+  return n
+    .split('.')
+    .map(exports.quoteIdent)
+    .join('.');
 };
 
 exports.readSchemas = ({

@@ -7,6 +7,7 @@
 'use strict';
 
 const parser = require('../parser');
+const helpers = require('../helpers');
 
 class AbstractObject {
   constructor(differ, properties) {
@@ -28,6 +29,12 @@ class AbstractObject {
 
   getObjectName() {
     return this._path.name;
+  }
+
+  getQuotedFullName() {
+    const quotedSchema = helpers.quoteIdent(this.getSchemaName());
+    const quotedName = helpers.quoteIdent(this._path.name);
+    return `${quotedSchema}.${quotedName}`;
   }
 }
 

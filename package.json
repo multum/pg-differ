@@ -29,7 +29,7 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "test": "mocha test/**/index.test.js --no-timeout --exit",
+    "test": "mocha 'test/**/index.test.js' --no-timeout --exit",
     "test::log": "cross-env LOGGING=true npm run test",
     "eslint": "eslint --max-warnings=0 **/*.js",
     "format": "prettier --write src/**/*.js test/**/*.js",
@@ -39,7 +39,7 @@
   "dependencies": {
     "ajv": "6.11.0",
     "chalk": "^3.0.0",
-    "metalize": "0.0.4",
+    "metalize": "0.0.5",
     "minimist": "^1.2.0",
     "pg": "7.18.1",
     "ramda": "0.27.0"

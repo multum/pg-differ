@@ -29,7 +29,7 @@ exports.alterColumnType = (
   return {
     to: ({ type, expectQuery }) => {
       it(`[ ${prevType} ] => [ ${type} ]`, async function() {
-        differ.define('table', {
+        const model = differ.define('table', {
           name: table,
           columns: [{ name: column, type: normalizeType(prevType) }],
         });
@@ -40,9 +40,9 @@ exports.alterColumnType = (
 
         expectQuery = expectQuery.map(query => {
           return query
-            .replace(/\[table]/g, table)
+            .replace(/\[table]/g, model.getQuotedFullName())
             .replace(/\[type]/g, normalizedType)
-            .replace(/\[column]/g, column);
+            .replace(/\[column]/g, `"${column}"`);
         });
 
         differ.define('table', {
@@ -50,7 +50,8 @@ exports.alterColumnType = (
           columns: [{ name: column, type: normalizedType }],
         });
 
-        return exports.expectSyncResult(differ.sync(), expectQuery);
+        await exports.expectSyncResult(differ.sync(), expectQuery);
+        await exports.expectSyncResult(differ.sync(), []);
       });
       return exports.alterColumnType({ table, column, type, expect }, differ);
     },

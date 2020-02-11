@@ -90,7 +90,7 @@ class Table extends AbstractObject {
   }
 
   _getColumnChangeQueries(structure) {
-    const fullName = this.getFullName();
+    const fullName = this.getQuotedFullName();
     const dbColumns = structure.columns.map(column => ({
       ...column,
       default: parser.defaultValueInformationSchema(
@@ -196,7 +196,7 @@ class Table extends AbstractObject {
   }
 
   _createTable({
-    table = this.getFullName(),
+    table = this.getQuotedFullName(),
     columns = this._columns,
     temp = false,
     force,
@@ -211,7 +211,7 @@ class Table extends AbstractObject {
   }
 
   async _getSequenceActualizeQueries(structure, sequenceStructures, options) {
-    const fullName = this.getFullName();
+    const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
     const willBeCreated = this._willBeCreated(structure, options);
 
@@ -245,7 +245,7 @@ class Table extends AbstractObject {
   }
 
   async _getExtensionCleanupQueries(type, structure, options) {
-    const fullName = this.getFullName();
+    const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
     const willBeCreated = this._willBeCreated(structure, options);
 
@@ -256,7 +256,6 @@ class Table extends AbstractObject {
     const existingExtensions = _getExistingExtensions(structure);
 
     const schemaExtensions = await this._getSchemaExtensions(type);
-
     existingExtensions[type].forEach(extension => {
       if (_findExtensionWhere(extension, schemaExtensions)) {
         return;
@@ -275,11 +274,10 @@ class Table extends AbstractObject {
   }
 
   async _getAddExtensionQueries(type, structure) {
-    const fullName = this.getFullName();
+    const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
 
     const existingExtensions = _getExistingExtensions(structure);
-
     const schemaExtensions = await this._getSchemaExtensions(type);
 
     if (!schemaExtensions) {

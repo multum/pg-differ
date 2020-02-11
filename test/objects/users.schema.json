@@ -1,7 +1,7 @@
 {
   "type": "table",
   "properties": {
-    "name": "${USERS}",
+    "name": "${tables.users}",
     "columns": [
       {
         "name": "id",

@@ -219,9 +219,10 @@ class Differ {
     if (R.isEmpty(preparedChanges)) {
       return [];
     } else {
-      this._logger.log(preparedChanges.join('\n'));
       for (let i = 0; i < preparedChanges.length; i++) {
-        await this._client.query(preparedChanges[i]);
+        const query = preparedChanges[i];
+        this._logger.log(query);
+        await this._client.query(query);
       }
       return preparedChanges;
     }
@@ -246,7 +247,7 @@ class Differ {
 
       if (options.execute) {
         const results = await this._execute(preparedChanges);
-        if (results.filter(Boolean).length === 0) {
+        if (results.length === 0) {
           this._logger.info('Database does not need updating');
         }
       }

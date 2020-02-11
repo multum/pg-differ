@@ -1,16 +1,13 @@
 'use strict';
 
 const helpers = require('../helpers');
-const {
-  TABLES: { USERS },
-} = require('../objects');
 
 describe('alter column type', async () => {
   const alterColumnTypeQuery =
     'alter table [table] alter column [column] type [type]';
   helpers
     .alterColumnType({
-      table: USERS,
+      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'varchar(64)',
     })

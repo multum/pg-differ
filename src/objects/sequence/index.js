@@ -20,49 +20,49 @@ class Sequence extends AbstractObject {
   }
 
   async _getChangeQueries(structure, options) {
-    const fullName = this.getFullName();
+    const fullName = this.getQuotedFullName();
     if (options.force) {
       return new ChangeStorage([
         QueryGenerator.drop(fullName),
-        QueryGenerator.create(fullName, this._properties),
+        QueryGenerator.create(fullName, this.properties),
       ]);
     } else {
       if (structure) {
-        const diff = utils.getObjectDifference(this._properties, structure);
+        const diff = utils.getObjectDifference(this.properties, structure);
         if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
           const {
             rows: [{ correct }],
           } = await this._client.query(
             QueryGenerator.hasCorrectCurrValue(
               fullName,
-              this._properties.min,
-              this._properties.max
+              this.properties.min,
+              this.properties.max
             )
           );
           if (!correct) {
-            diff.current = this._properties.min;
+            diff.current = this.properties.min;
           }
         }
         return new ChangeStorage(QueryGenerator.alter(fullName, diff));
       } else {
         return new ChangeStorage(
-          QueryGenerator.create(fullName, this._properties)
+          QueryGenerator.create(fullName, this.properties)
         );
       }
     }
   }
 
   _getIncrementQuery() {
-    return QueryGenerator.increment(this.getFullName());
+    return QueryGenerator.increment(this.getQuotedFullName());
   }
 
   _getRestartQuery(value) {
-    return QueryGenerator.restart(this.getFullName(), value);
+    return QueryGenerator.restart(this.getQuotedFullName(), value);
   }
 
   _getCurrentValue() {
     return this._client
-      .query(QueryGenerator.getCurrentValue(this.getFullName()))
+      .query(QueryGenerator.getCurrentValue(this.getQuotedFullName()))
       .then(({ rows: [{ currentValue }] }) => currentValue);
   }
 }
