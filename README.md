@@ -13,12 +13,10 @@
 ## Features
 
 - [Easy-to-use](https://multum.github.io/pg-differ/#/getting-started)
-- [Table](https://multum.github.io/pg-differ/#/table) support
-- [Sequence](https://multum.github.io/pg-differ/#/sequence) support
-- Adding/changing columns
+- [Table](https://multum.github.io/pg-differ/#/table) and [Sequence](https://multum.github.io/pg-differ/#/sequence) support
+- Update columns without data loss
 - Constraint and index support
 - Dropping of unnecessary constraints/indexes
-- Change logging
 
 <img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 
