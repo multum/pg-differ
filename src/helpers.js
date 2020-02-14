@@ -10,6 +10,7 @@ const fs = require('fs');
 const R = require('ramda');
 const path = require('path');
 const utils = require('./utils');
+const parser = require('./parser');
 const { ImportError } = require('./errors');
 
 exports.loadJSON = (path, locals, interpolate) => {
@@ -39,11 +40,9 @@ exports.quoteIdent = s => {
   return exports.addQuotes(exports.removeQuotes(s));
 };
 
-exports.quoteName = n => {
-  return n
-    .split('.')
-    .map(exports.quoteIdent)
-    .join('.');
+exports.quoteObjectName = (n, defaultSchema) => {
+  const [schema = defaultSchema, name] = parser.name(n);
+  return `${exports.quoteIdent(schema)}.${exports.quoteIdent(name)}`;
 };
 
 exports.readSchemas = ({
@@ -65,8 +64,8 @@ exports.readSchemas = ({
     }
   } else {
     throw new ImportError(
-      pathString,
-      'File or folder is missing at the specified path'
+      'File or folder is missing at the specified path',
+      pathString
     );
   }
 };

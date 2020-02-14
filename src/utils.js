@@ -6,6 +6,8 @@
  */
 'use strict';
 
+const R = require('ramda');
+
 exports.isExist = value => value !== undefined && value !== null;
 
 exports.findByName = (array, name, formerNames) =>
@@ -45,6 +47,10 @@ exports.isObject = target => {
   return target
     ? Object.prototype.toString.call(target) === '[object Object]'
     : false;
+};
+
+exports.findWhere = (props, arrayOfObjects) => {
+  return arrayOfObjects && arrayOfObjects.find(R.whereEq(props));
 };
 
 exports.isEmpty = target => {

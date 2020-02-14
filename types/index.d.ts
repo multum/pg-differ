@@ -84,8 +84,11 @@ interface TableProperties {
 interface SyncOptions {
   transaction?: boolean,
   force?: boolean,
-  execute?: boolean,
   cleanable?: CleanExtensionOptions,
+}
+
+interface ExecuteOptions {
+  transaction?: boolean
 }
 
 declare type ObjectType = 'table' | 'sequence'
@@ -96,10 +99,13 @@ declare class DatabaseObject {
   type: ObjectType;
   properties: AnyOfSchemas;
 
-  getSchemaName(): string;
-  getObjectName(): string; // object name without schema
-  getFullName(): string; // object name with schema
+  getSchemaName(): string;      // 'SchemaName'
+  getObjectName(): string;      // 'object_name'
+  getFullName(): string;        // 'SchemaName.object_name'
+  getQuotedFullName(): string;  // '"SchemaName"."object_name"'
 }
+
+declare type ArrayOfChanges = Array<string>
 
 interface ImportOptions {
   path: string,
@@ -121,12 +127,18 @@ declare class Differ {
 
   constructor(options: DifferOptions);
 
-  sync(options?: SyncOptions): Promise<Array<string>>
+  define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
+
+  end(): Promise<void>
 
   // @ts-ignore
   import(options: string | ImportOptions): Map<string, DatabaseObject>
 
-  define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
+  sync(options?: SyncOptions): Promise<ArrayOfChanges>
+
+  prepare(options?: SyncOptions): Promise<ArrayOfChanges>
+
+  execute(queries: Array<string>, options?: ExecuteOptions): Promise<Array<Object>>
 
   setDefaultSchema(schema: String): this
 

@@ -43,10 +43,6 @@ const _getExistingExtensions = structure => {
     : {};
 };
 
-const _findExtensionWhere = (props, extensions) => {
-  return extensions && extensions.find(R.whereEq(props));
-};
-
 const _getColumnAttributeDiff = (column, dbColumn) => {
   const diff = utils.getObjectDifference(column, dbColumn);
   if (diff.name) {
@@ -77,14 +73,18 @@ class Table extends AbstractObject {
     this._normalizeCheckRows = R.once(this._normalizeCheckRows);
   }
 
+  static willBeCreated(structure, options) {
+    return options.force || !structure;
+  }
+
   _getCreateOrAlterTableQueries(structure, options) {
     if (options.force) {
-      return this._createTable({ force: true });
+      return this._getCreateTableQueries({ force: true });
     } else {
       if (structure) {
         return this._getColumnChangeQueries(structure);
       } else {
-        return this._createTable({ force: false });
+        return this._getCreateTableQueries({ force: false });
       }
     }
   }
@@ -141,7 +141,7 @@ class Table extends AbstractObject {
     const getConstraintName = id => `temp_constraint_check_${id}`;
     const tempTableName = `temp_${this.getObjectName()}`;
 
-    const createQueries = this._createTable({
+    const createQueries = this._getCreateTableQueries({
       table: tempTableName,
       temp: true,
       force: false,
@@ -186,16 +186,12 @@ class Table extends AbstractObject {
     }
   }
 
-  _willBeCreated(structure, options) {
-    return options.force || !structure;
-  }
-
   _addExtension(type, table, extension) {
     const encodedType = parser.encodeExtensionType(type);
     return QueryGenerator.addExtension(encodedType, table, extension);
   }
 
-  _createTable({
+  _getCreateTableQueries({
     table = this.getQuotedFullName(),
     columns = this._columns,
     temp = false,
@@ -213,7 +209,7 @@ class Table extends AbstractObject {
   async _getSequenceActualizeQueries(structure, sequenceStructures, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
-    const willBeCreated = this._willBeCreated(structure, options);
+    const willBeCreated = Table.willBeCreated(structure, options);
 
     if (this._sequences.length === 0 || willBeCreated) {
       return queries;
@@ -247,37 +243,37 @@ class Table extends AbstractObject {
   async _getExtensionCleanupQueries(type, structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
-    const willBeCreated = this._willBeCreated(structure, options);
+    const willBeCreated = Table.willBeCreated(structure, options);
 
     if (options.cleanable[type] !== true || willBeCreated) {
       return queries;
     }
 
-    const existingExtensions = _getExistingExtensions(structure);
-
+    const existingExtensions = _getExistingExtensions(structure)[type];
     const schemaExtensions = await this._getSchemaExtensions(type);
-    existingExtensions[type].forEach(extension => {
-      if (_findExtensionWhere(extension, schemaExtensions)) {
-        return;
+
+    existingExtensions.forEach(({ name, ...props }) => {
+      if (!utils.findWhere(props, schemaExtensions)) {
+        queries.add(
+          QueryGenerator.dropExtension(
+            this.getSchemaName(),
+            fullName,
+            type,
+            name
+          )
+        );
       }
-      queries.add(
-        QueryGenerator.dropExtension(
-          this.getSchemaName(),
-          fullName,
-          type,
-          extension
-        )
-      );
     });
 
     return queries;
   }
 
-  async _getAddExtensionQueries(type, structure) {
+  async _getAddExtensionQueries(type, structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
 
-    const existingExtensions = _getExistingExtensions(structure);
+    const willBeCreated = Table.willBeCreated(structure, options);
+    const existingExtensions = _getExistingExtensions(structure)[type];
     const schemaExtensions = await this._getSchemaExtensions(type);
 
     if (!schemaExtensions) {
@@ -285,8 +281,7 @@ class Table extends AbstractObject {
     }
 
     schemaExtensions.forEach(extension => {
-      const existing = _findExtensionWhere(extension, existingExtensions[type]);
-      if (!existing) {
+      if (willBeCreated || !utils.findWhere(extension, existingExtensions)) {
         queries.add(this._addExtension(type, fullName, extension));
       }
     });

@@ -57,6 +57,23 @@ class ConnectionManager {
     }
     return this.client.query(sql, params);
   }
+
+  async transaction(callback, enable) {
+    let result;
+    if (enable) {
+      await this.query('begin');
+      try {
+        result = await callback();
+      } catch (e) {
+        await this.query('rollback');
+        throw e;
+      }
+      await this.query('commit');
+    } else {
+      result = await callback();
+    }
+    return result;
+  }
 }
 
 module.exports = ConnectionManager;

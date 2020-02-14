@@ -1,22 +1,31 @@
 #!/usr/bin/env node
+/**
+ * Copyright (c) 2018-present Andrew Vereshchak
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 'use strict';
 
 const minimist = require('minimist');
+const chalk = require('chalk');
 const path = require('path');
 const Differ = require('../src');
 const pkg = require('../package.json');
 
 const argv = minimist(process.argv.slice(2), {
   alias: {
+    h: 'help',
+    '?': 'help',
     v: 'version',
     c: 'connectionString',
-    p: 'locals',
-    s: 'silent',
     f: 'force',
+    s: 'silent',
+    S: 'set',
   },
   default: {
-    s: false,
-    f: false,
+    silent: false,
+    force: false,
   },
   boolean: ['version', 'help', 'silent'],
 });
@@ -26,30 +35,42 @@ if (argv.version) {
   process.exit(0);
 }
 
-const logOptions = () => {
-  console.info(`Usage: pg-differ [options]
-  --connectionString, -c     Connection URI to database
-  --silent, -s               Option to disable printing messages through the console
-  --locals, -l               An string with names and their values to replace placeholders in schema files
-  --force, -f                Force synchronization of table (drop and create)
-  --version, -v              Print out the installed version
-  --help                     Show this help
-  `);
-};
-
 if (argv.help) {
-  logOptions();
+  const title = chalk.blue('Usage: pg-differ [options] [path]');
+  const link = 'https://multum.github.io/pg-differ/#/cli';
+
+  // prettier-ignore
+  const args = [
+    { key: '--connectionString, -c', descriptions: 'Connection URI to database' },
+    { key: '--silent, -s', descriptions: 'Option to disable printing messages through the console' },
+    { key: '--set, -S', descriptions: 'Set variable with value to replace placeholders in schema files' },
+    { key: '--force, -f', descriptions: 'Force synchronization of table (drop and create)' },
+    { key: '--version, -v', descriptions: 'Print out the installed version' },
+    { key: '--help, -h, -?', descriptions: 'Show this help' },
+  ];
+
+  const offsetLeft = Math.max(...args.map(([key]) => key.length)) + 4;
+  const message = args.reduce((acc, [key, description]) => {
+    key = chalk.yellow(key) + [...new Array(offsetLeft - key.length)].join(' ');
+    return `${acc}\n  ${key}${description}`;
+  }, title);
+
+  console.info(`${message}\n${link}`);
   process.exit(0);
 }
 
-const getLocals = () =>
-  argv.locals
-    ? argv.locals.split(',').reduce((acc, element) => {
-        const [key, value] = element.trim().split(':');
-        acc[key] = value;
-        return acc;
-      }, {})
-    : null;
+const getLocals = () => {
+  if (argv.set) {
+    const variables = Array.isArray(argv.set) ? argv.set : [argv.set];
+    return variables.reduce((acc, element) => {
+      const [key, value] = element.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+  } else {
+    return null;
+  }
+};
 
 const differ = new Differ({
   logging: !argv.silent,

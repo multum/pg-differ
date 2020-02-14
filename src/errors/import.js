@@ -9,7 +9,7 @@
 const BaseError = require('./base');
 
 class ImportError extends BaseError {
-  constructor(path, message) {
+  constructor(message, path) {
     super(message);
     this.name = 'DifferImportError';
     this.path = path;

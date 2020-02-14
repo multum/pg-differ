@@ -14,11 +14,7 @@ const { Types } = require('../../constants');
 const { INTEGER, CHARACTER, BOOLEAN } = Types.GROUPS;
 
 const _shouldBePrimaryKey = (primaryKey, column) => {
-  if (primaryKey) {
-    return primaryKey.columns.includes(column);
-  } else {
-    return false;
-  }
+  return primaryKey ? primaryKey.columns.includes(column) : false;
 };
 
 const _getColumnDescription = (primaryKey, column, temp) => {
@@ -80,11 +76,11 @@ class QueryGenerator {
     return `alter table ${table} add column ${columnDescription};`;
   }
 
-  static dropExtension(schema, table, type, extension) {
+  static dropExtension(schema, table, type, name) {
     if (type === 'index') {
-      return `drop index ${schema}.${extension.name};`;
+      return `drop index ${schema}.${name};`;
     } else {
-      return `alter table ${table} drop constraint ${extension.name};`;
+      return `alter table ${table} drop constraint ${name};`;
     }
   }
 
@@ -115,7 +111,7 @@ class QueryGenerator {
         const quotedRefColumns = references.columns
           .map(helpers.quoteIdent)
           .join(',');
-        const quotedRefTable = helpers.quoteName(references.table);
+        const quotedRefTable = helpers.quoteObjectName(references.table);
         references = `references ${quotedRefTable} (${quotedRefColumns})`;
         const events = `on update ${onUpdate} on delete ${onDelete}`;
         return `${alterTable} add ${encodedType} (${columns}) ${references}${match} ${events};`;

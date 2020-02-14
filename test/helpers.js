@@ -57,7 +57,7 @@ exports.alterColumnType = (
         await exports.expectSyncResult(differ.sync(), expectQuery);
         await exports.expectSyncResult(differ.sync(), []);
       });
-      return exports.alterColumnType({ table, column, type, expect }, differ);
+      return exports.alterColumnType({ table, column, type }, differ);
     },
   };
 };

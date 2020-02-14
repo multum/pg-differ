@@ -31,7 +31,7 @@ const setup = async () => {
 
   differ.import({
     // or/and use 'differ.define' method
-    path: 'objects',
+    path: './objects',
     locals: { schema: 'schema_name' },
   });
 

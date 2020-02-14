@@ -215,17 +215,31 @@ class Differ {
     );
   }
 
-  async _execute(preparedChanges) {
-    if (R.isEmpty(preparedChanges)) {
-      return [];
-    } else {
-      for (let i = 0; i < preparedChanges.length; i++) {
-        const query = preparedChanges[i];
-        this._logger.log(query);
-        await this._client.query(query);
-      }
-      return preparedChanges;
+  async _execute(queries) {
+    const results = [];
+    for (let i = 0; i < queries.length; i++) {
+      const query = queries[i];
+      this._logger.log(query);
+      results.push(await this._client.query(query));
     }
+    return results;
+  }
+
+  prepare(options) {
+    options = parser.syncOptions(options);
+    return this._client.transaction(
+      () => this._prepare(options),
+      options.transaction
+    );
+  }
+
+  execute(queries, options = {}) {
+    const { transaction = false } = options;
+    return this._client.transaction(() => this._execute(queries), transaction);
+  }
+
+  end() {
+    return this._client.end();
   }
 
   async sync(options) {
@@ -238,35 +252,24 @@ class Differ {
       chalk.green(`Current version PostgreSQL: ${databaseVersion}`)
     );
 
-    if (options.transaction) {
-      await this._client.query('begin');
+    const preparedChanges = await this._client.transaction(
+      () => this._prepare(options),
+      options.transaction
+    );
+    if (preparedChanges.length === 0) {
+      this._logger.info('Database does not need updating');
+    } else {
+      await this._client.transaction(
+        () => this._execute(preparedChanges),
+        options.transaction
+      );
     }
 
-    try {
-      const preparedChanges = await this._prepare(options);
+    this._logger.info(chalk.green('Sync successful!'));
 
-      if (options.execute) {
-        const results = await this._execute(preparedChanges);
-        if (results.length === 0) {
-          this._logger.info('Database does not need updating');
-        }
-      }
+    await this.end();
 
-      if (options.transaction) {
-        await this._client.query('commit');
-      }
-
-      this._logger.info(chalk.green('Sync successful!'));
-
-      await this._client.end();
-      return preparedChanges;
-    } catch (error) {
-      if (options.transaction) {
-        await this._client.query('rollback');
-      }
-      await this._client.end();
-      throw error;
-    }
+    return preparedChanges;
   }
 }
 

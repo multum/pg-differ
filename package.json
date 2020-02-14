@@ -1,7 +1,7 @@
 {
   "name": "pg-differ",
   "version": "2.5.0",
-  "description": "PostgreSQL migration alternative for Node.js",
+  "description": "Node.js migration tool for PostgreSQL",
   "author": {
     "name": "Andrew Vereshchak",
     "email": "andrew.vereshchak@gmail.com"
@@ -31,8 +31,7 @@
   "scripts": {
     "test": "mocha 'test/**/index.test.js' --no-timeout --exit",
     "test::log": "cross-env LOGGING=true npm run test",
-    "eslint": "eslint --max-warnings=0 **/*.js",
-    "format": "prettier --write src/**/*.js test/**/*.js",
+    "format": "prettier --write src/**/*.js bin/**/*.js test/**/*.js",
     "docs::start": "docsify serve docs"
   },
   "license": "MIT",

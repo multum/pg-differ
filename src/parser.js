@@ -8,6 +8,7 @@
 
 const R = require('ramda');
 const utils = require('./utils');
+const helpers = require('./helpers');
 const { ValidationError } = require('./errors');
 const { Types, Columns, Extensions, Sequences } = require('./constants');
 
@@ -34,12 +35,12 @@ exports.normalizeType = type => {
   return values ? `${type}${values.join('')}` : type;
 };
 
-exports.defaultValueInformationSchema = (value, defaultSchema) => {
+exports.defaultValueInformationSchema = value => {
   switch (typeof value) {
     case 'string': {
-      // adding the public scheme in case of its absence
-      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${defaultSchema}.`);
-      //
+      value = value.replace(/(?<=nextval\(')[^']+/, sequence => {
+        return helpers.quoteObjectName(sequence, 'public');
+      });
       return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
     }
     default: {
@@ -99,7 +100,6 @@ exports.encodeExtensionType = key => _encodeExtensionTypes[key] || null;
 const _defaultSyncOptions = {
   transaction: true,
   force: false,
-  execute: true,
   cleanable: {
     primaryKey: true,
     foreignKey: false,
@@ -122,6 +122,7 @@ const _getExtensionDefaults = type => {
     return { ...Extensions.FOREIGN_KEY_DEFAULTS };
   }
 };
+
 exports.syncOptions = options => {
   if (options) {
     return {
@@ -133,6 +134,7 @@ exports.syncOptions = options => {
     return _defaultSyncOptions;
   }
 };
+
 const _normalizeCleanableObject = object => {
   if (object) {
     const encrypted = Object.entries(object).reduce(

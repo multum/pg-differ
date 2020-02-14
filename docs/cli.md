@@ -4,7 +4,7 @@
 
 ```bash
 # connection_string='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
-pg-differ -c ${connection_string} -l 'schema:public, user:u_name' ./objects
+pg-differ -c ${connection_string} --set schema=public ./objects
 ```
 
 ## Properties
@@ -18,14 +18,14 @@ pg-differ -c ${connection_string} -l 'schema:public, user:u_name' ./objects
 
 Connection URI to database
 
-### locals
+### set
 
-- Alias: `-l`
+- Alias: `-S`
 - Default: `null`
 - Required: `false`
-- Example: `'schema:s_name, user:u_name'`
+- Example: `name=value`
 
-String with names and their values to replace placeholders in schema files
+Set variable with value to replace placeholders in schema files
 
 ### silent
 
@@ -52,7 +52,7 @@ Print out the installed version
 
 ### help
 
-- Alias: `-v`
+- Alias: `-h, -?`
 - Required: `false`
 
 Show this help
