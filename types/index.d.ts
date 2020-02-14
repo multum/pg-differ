@@ -74,7 +74,7 @@ interface CheckOptions {
 interface TableProperties {
   name: string,
   columns: Array<ColumnOptions>,
-  primaryKeys?: Array<IndexOptions>,
+  primaryKey?: IndexOptions,
   unique?: Array<IndexOptions>,
   indexes?: Array<IndexOptions>,
   foreignKeys?: Array<ForeignKeyOptions>,

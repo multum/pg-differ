@@ -2,7 +2,7 @@
 
 const helpers = require('../helpers');
 
-describe('alter column type', async () => {
+describe('alter column type', () => {
   const alterColumnTypeQuery =
     'alter table [table] alter column [column] type [type]';
   helpers

@@ -136,11 +136,8 @@
         "$ref": "#/definitions/extension"
       }
     },
-    "primaryKeys": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/extension"
-      }
+    "primaryKey": {
+      "$ref": "#/definitions/extension"
     },
     "foreignKeys": {
       "type": "array",

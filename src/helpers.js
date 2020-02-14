@@ -36,13 +36,15 @@ exports.addQuotes = s => {
   return `"${s}"`;
 };
 
-exports.quoteIdent = s => {
+const quoteIdentifier = s => {
   return exports.addQuotes(exports.removeQuotes(s));
 };
 
+exports.quoteIdentifier = quoteIdentifier;
+
 exports.quoteObjectName = (n, defaultSchema) => {
   const [schema = defaultSchema, name] = parser.name(n);
-  return `${exports.quoteIdent(schema)}.${exports.quoteIdent(name)}`;
+  return `${quoteIdentifier(schema)}.${quoteIdentifier(name)}`;
 };
 
 exports.readSchemas = ({

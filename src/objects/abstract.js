@@ -32,8 +32,8 @@ class AbstractObject {
   }
 
   getQuotedFullName() {
-    const quotedSchema = helpers.quoteIdent(this.getSchemaName());
-    const quotedName = helpers.quoteIdent(this._path.name);
+    const quotedSchema = helpers.quoteIdentifier(this.getSchemaName());
+    const quotedName = helpers.quoteIdentifier(this._path.name);
     return `${quotedSchema}.${quotedName}`;
   }
 }

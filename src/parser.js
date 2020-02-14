@@ -166,7 +166,7 @@ exports.schema = schema => {
   });
 
   const extensions = R.pipe(
-    R.pick(['indexes', 'unique', 'foreignKeys', 'primaryKeys']), // without 'checks'
+    R.pick(['indexes', 'unique', 'foreignKeys', 'checks']),
     R.toPairs,
     R.reduce((acc, [type, elements]) => {
       if (elements) {
@@ -181,9 +181,10 @@ exports.schema = schema => {
     R.mergeWith(R.concat, _getExtensionsFromColumns(columns))
   )(schema);
 
+  extensions.primaryKey = schema.primaryKey ? [schema.primaryKey] : null;
+
   return {
     name: schema.name,
-    checks: schema.checks,
     columns,
     extensions,
   };

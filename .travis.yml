@@ -1,12 +1,12 @@
 language: node_js
 jobs:
   include:
-    - name: 'Node.js 8 / Postgres 9.5'
-      node_js: "8"
+    - name: 'Node.js 10 / Postgres 9.5'
+      node_js: "10"
       addons:
         postgresql: "9.5"
-    - name: 'Node.js 11 / Postgres 10'
-      node_js: "11"
+    - name: 'Node.js 12 / Postgres 10'
+      node_js: "12"
       addons:
         postgresql: "10"
 install:

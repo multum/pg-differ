@@ -5,7 +5,7 @@ const path = require('path');
 const { ImportError } = require('../../src/errors');
 const helpers = require('../helpers');
 
-describe(`method import()'`, () => {
+describe(`method import()`, () => {
   const differ = helpers.createInstance();
 
   it(`should get an error when trying to import a schema from a nonexistent file`, function() {

@@ -17,8 +17,11 @@ const _shouldBePrimaryKey = (primaryKey, column) => {
   return primaryKey ? primaryKey.columns.includes(column) : false;
 };
 
+const _quoteAndJoinColumns = columns =>
+  columns.map(helpers.quoteIdentifier).join(', ');
+
 const _getColumnDescription = (primaryKey, column, temp) => {
-  const quotedColumnName = helpers.quoteIdent(column.name);
+  const quotedColumnName = helpers.quoteIdentifier(column.name);
   const chunks = [`${quotedColumnName} ${column.type}`];
 
   if (column.collate) {
@@ -96,7 +99,7 @@ class QueryGenerator {
     } = extension;
 
     const alterTable = `alter table ${table}`;
-    columns = columns.map(helpers.quoteIdent).join(',');
+    columns = _quoteAndJoinColumns(columns);
 
     switch (encodedType) {
       case 'INDEX':
@@ -108,9 +111,7 @@ class QueryGenerator {
 
       case 'FOREIGN KEY': {
         match = match ? ` match ${match}` : null;
-        const quotedRefColumns = references.columns
-          .map(helpers.quoteIdent)
-          .join(',');
+        const quotedRefColumns = _quoteAndJoinColumns(references.columns);
         const quotedRefTable = helpers.quoteObjectName(references.table);
         references = `references ${quotedRefTable} (${quotedRefColumns})`;
         const events = `on update ${onUpdate} on delete ${onDelete}`;
@@ -135,10 +136,10 @@ class QueryGenerator {
   }
 
   static alterColumn(table, primaryKey, column, key, value) {
-    const quotedColumnName = helpers.quoteIdent(column.name);
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
     if (key === 'name') {
-      const prev = helpers.quoteIdent(value.prev);
-      const next = helpers.quoteIdent(value.next);
+      const prev = helpers.quoteIdentifier(value.prev);
+      const next = helpers.quoteIdentifier(value.next);
       return `alter table ${table} rename column ${prev} to ${next};`;
     } else if (key === 'nullable') {
       if (value === true) {

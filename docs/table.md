@@ -26,6 +26,14 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
 Array of [objects with table column parameters](columns.md)
 
+### primaryKey
+
+- Type: `Object`
+- Default: `null`
+- Required: `false`
+
+[Object with parameters](primaryKey.md) of table primary key
+
 ### indexes
 
 - Type: `Array<Object>`
@@ -49,14 +57,6 @@ Array of [objects with parameters](foreign-key.md) of table foreign keys
 - Required: `false`
 
 Array of [objects with parameters](unique.md) of table unique
-
-### primaryKeys
-
-- Type: `Array<Object>`
-- Default: `null`
-- Required: `false`
-
-Array of [objects with parameters](primaryKey.md) of table primary keys
 
 ### checks
 

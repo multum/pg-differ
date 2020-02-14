@@ -12,6 +12,7 @@ const QueryGenerator = require('./query-generator');
 const AbstractObject = require('../abstract');
 
 const utils = require('../../utils');
+const helpers = require('../../helpers');
 const parser = require('../../parser');
 
 const _setupSequences = (differ, { columns, tableName }) => {
@@ -59,9 +60,8 @@ class Table extends AbstractObject {
     super(differ, properties);
     this.type = 'table';
 
-    const { columns, checks, extensions } = parser.schema(this.properties);
+    const { columns, extensions } = parser.schema(this.properties);
     this._columns = columns;
-    this._checks = checks;
     this._extensions = extensions;
     this._primaryKey = R.path(['primaryKey', 0], extensions);
 
@@ -180,7 +180,7 @@ class Table extends AbstractObject {
 
   _getSchemaExtensions(type) {
     if (type === 'check') {
-      return this._normalizeCheckRows(this._checks);
+      return this._normalizeCheckRows(this._extensions.check);
     } else {
       return this._extensions[type];
     }
@@ -259,7 +259,7 @@ class Table extends AbstractObject {
             this.getSchemaName(),
             fullName,
             type,
-            name
+            helpers.quoteIdentifier(name)
           )
         );
       }
