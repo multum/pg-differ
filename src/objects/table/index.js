@@ -188,7 +188,10 @@ class Table extends AbstractObject {
 
   _addExtension(type, table, extension) {
     const encodedType = parser.encodeExtensionType(type);
-    return QueryGenerator.addExtension(encodedType, table, extension);
+    if (type === 'index') {
+      return QueryGenerator.addIndex(encodedType, table, extension);
+    }
+    return QueryGenerator.addConstraint(encodedType, table, extension);
   }
 
   _getCreateTableQueries({
@@ -242,6 +245,8 @@ class Table extends AbstractObject {
 
   async _getExtensionCleanupQueries(type, structure, options) {
     const fullName = this.getQuotedFullName();
+    const quotedSchema = helpers.quoteIdentifier(this.getSchemaName());
+
     const queries = new ChangeStorage();
     const willBeCreated = Table.willBeCreated(structure, options);
 
@@ -253,14 +258,12 @@ class Table extends AbstractObject {
     const schemaExtensions = await this._getSchemaExtensions(type);
 
     existingExtensions.forEach(({ name, ...props }) => {
+      name = helpers.quoteIdentifier(name);
       if (!utils.findWhere(props, schemaExtensions)) {
         queries.add(
-          QueryGenerator.dropExtension(
-            this.getSchemaName(),
-            fullName,
-            type,
-            helpers.quoteIdentifier(name)
-          )
+          type === 'index'
+            ? QueryGenerator.dropIndex(quotedSchema, name)
+            : QueryGenerator.dropConstraint(fullName, name)
         );
       }
     });

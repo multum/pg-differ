@@ -1,6 +1,6 @@
 'use strict';
 
-const helpers = require('../helpers');
+const helpers = require('../../helpers');
 
 describe('alter column type', () => {
   const alterColumnTypeQuery =

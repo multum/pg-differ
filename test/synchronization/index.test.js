@@ -1,8 +1,10 @@
 'use strict';
 
-require('./column-type');
-require('./column-default');
-require('./foreign-key');
-require('./primary-key');
-require('./check-constraint');
-require('./unique');
+require('./column/type');
+require('./column/default');
+
+require('./index');
+require('./constraints/foreign-key');
+require('./constraints/primary-key');
+require('./constraints/check');
+require('./constraints/unique');

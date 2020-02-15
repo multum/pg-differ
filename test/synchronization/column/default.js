@@ -1,6 +1,6 @@
 'use strict';
 
-const helpers = require('../helpers');
+const helpers = require('../../helpers');
 
 describe('default value of the column', () => {
   it('should set the Literal as the default value', function() {

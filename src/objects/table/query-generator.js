@@ -79,15 +79,20 @@ class QueryGenerator {
     return `alter table ${table} add column ${columnDescription};`;
   }
 
-  static dropExtension(schema, table, type, name) {
-    if (type === 'index') {
-      return `drop index ${schema}.${name};`;
-    } else {
-      return `alter table ${table} drop constraint ${name};`;
-    }
+  static dropIndex(schema, name) {
+    return `drop index ${schema}.${name};`;
   }
 
-  static addExtension(encodedType, table, extension) {
+  static dropConstraint(table, name) {
+    return `alter table ${table} drop constraint ${name};`;
+  }
+
+  static addIndex(encodedType, table, extension) {
+    const columns = _quoteAndJoinColumns(extension.columns);
+    return `create ${encodedType} on ${table} ( ${columns} );`;
+  }
+
+  static addConstraint(encodedType, table, extension) {
     let {
       columns = [],
       references,
@@ -102,25 +107,22 @@ class QueryGenerator {
     columns = _quoteAndJoinColumns(columns);
 
     switch (encodedType) {
-      case 'INDEX':
-        return `create ${encodedType} on ${table} (${columns});`;
-
       case 'UNIQUE':
       case 'PRIMARY KEY':
-        return `${alterTable} add ${encodedType} (${columns});`;
+        return `${alterTable} add ${encodedType} ( ${columns} );`;
 
       case 'FOREIGN KEY': {
         match = match ? ` match ${match}` : null;
         const quotedRefColumns = _quoteAndJoinColumns(references.columns);
         const quotedRefTable = helpers.quoteObjectName(references.table);
-        references = `references ${quotedRefTable} (${quotedRefColumns})`;
+        references = `references ${quotedRefTable} ( ${quotedRefColumns} )`;
         const events = `on update ${onUpdate} on delete ${onDelete}`;
-        return `${alterTable} add ${encodedType} (${columns}) ${references}${match} ${events};`;
+        return `${alterTable} add ${encodedType} ( ${columns} ) ${references}${match} ${events};`;
       }
 
       case 'CHECK': {
         const constraintName = name ? ` constraint ${name}` : '';
-        return `${alterTable} add${constraintName} ${encodedType} (${condition});`;
+        return `${alterTable} add${constraintName} ${encodedType} ( ${condition} );`;
       }
     }
   }
