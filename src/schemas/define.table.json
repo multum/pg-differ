@@ -89,10 +89,7 @@
         "unique": {
           "type": "boolean"
         },
-        "index": {
-          "type": "boolean"
-        },
-        "primaryKey": {
+        "primary": {
           "type": "boolean"
         },
         "nullable": {

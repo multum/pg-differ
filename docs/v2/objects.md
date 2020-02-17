@@ -38,7 +38,7 @@ const table = differ.define.table({
       name: 'id',
       type: 'bigint',
       nullable: false,
-      primaryKey: true,
+      primary: true,
       default: 'nextval(\'schema_name.table_name_id\'::regclass)::sql'
     },
     {

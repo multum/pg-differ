@@ -16,7 +16,7 @@ describe('schema validation', () => {
         error = e;
       }
       expect(error).to.be.an.instanceOf(ValidationError);
-      expect(error.get('properties.columns')[0].keyword).to.equal('type');
+      expect(error.message).to.equal(`[properties.columns]: should be object`);
     }
     {
       let error;
@@ -26,7 +26,7 @@ describe('schema validation', () => {
         error = e;
       }
       expect(error).to.be.an.instanceOf(ValidationError);
-      expect(error.get('properties.cycle')[0].keyword).to.equal('type');
+      expect(error.message).to.equal('[properties.cycle]: should be boolean');
     }
   });
 
@@ -38,7 +38,9 @@ describe('schema validation', () => {
       error = e;
     }
     expect(error).to.be.an.instanceOf(ValidationError);
-    expect(error.get('type')[0].message).to.equal('Invalid schema type: t');
+    expect(error.message).to.equal(
+      `[type]: should be one of ['table', 'sequence']`
+    );
   });
 
   it(`should get a object name validation error`, function() {
@@ -52,8 +54,6 @@ describe('schema validation', () => {
       error = e;
     }
     expect(error).to.be.an.instanceOf(ValidationError);
-    expect(error.get('properties.name')[0].message).to.equal(
-      `Invalid object name: 'public.invalid.name'`
-    );
+    expect(error.message).to.equal(`[properties.name]: invalid value`);
   });
 });

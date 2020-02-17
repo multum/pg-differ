@@ -9,24 +9,12 @@
 const BaseError = require('./base');
 
 class ValidationError extends BaseError {
-  constructor(errors) {
+  constructor({ path, message }) {
     super();
     this.name = 'DifferValidationError';
-    this.message = 'Validation Error';
-    this.errors = errors || [];
-    if (this.errors.length > 0 && this.errors[0].message) {
-      this.message = this.errors
-        .map(e => {
-          const path = e.path ? `[ ${e.path} ] ` : '';
-          return `${path}(${e.keyword}): ${e.message}`;
-        })
-        .join(',\n');
-    }
+    path = path ? `[${path}]: ` : '';
+    this.message = `${path}${message}`;
     Error.captureStackTrace(this, this.constructor);
-  }
-
-  get(path) {
-    return this.errors.filter(error => error.path === path);
   }
 }
 

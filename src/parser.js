@@ -167,16 +167,6 @@ exports.schema = schema => {
     });
   }
 
-  columns = columns.map(column => {
-    column = { ...Columns.DEFAULTS, ...column };
-
-    column.type = exports.normalizeType(column['type']);
-    column.default = exports.encodeValue(column.default);
-    column.autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement);
-
-    return column;
-  });
-
   const extensions = R.pipe(
     R.pick(['indexes', 'unique', 'foreignKeys', 'checks']),
     R.toPairs,
@@ -189,29 +179,43 @@ exports.schema = schema => {
           : elements;
       }
       return acc;
-    }, {}),
-    R.mergeWith(R.concat, _getExtensionsFromColumns(columns))
+    }, {})
   )(schema);
 
   extensions.primaryKey = schema.primaryKey ? [schema.primaryKey] : null;
+
+  columns = columns.map(column => {
+    column = { ...Columns.DEFAULTS, ...column };
+
+    if (column.primary) {
+      if (extensions.primaryKey) {
+        throw new ValidationError({
+          path: `properties.columns['${column.name}']`,
+          message: `table '${schema.name}' must have only one primary key`,
+        });
+      } else {
+        extensions.primaryKey = [{ columns: [column.name] }];
+      }
+    }
+
+    if (column.unique) {
+      extensions.unique = (extensions.unique || []).push({
+        columns: [column.name],
+      });
+    }
+
+    column.type = exports.normalizeType(column['type']);
+    column.default = exports.encodeValue(column.default);
+    column.autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement);
+
+    return column;
+  });
 
   return {
     name: schema.name,
     columns,
     extensions,
   };
-};
-
-const _getExtensionsFromColumns = columns => {
-  return columns.reduce((acc, column) => {
-    ['unique', 'primaryKey'].forEach(key => {
-      if (column[key] === true) {
-        acc[key] = acc[key] || [];
-        acc[key].push({ columns: [column.name] });
-      }
-    });
-    return acc;
-  }, {});
 };
 
 exports.quoteLiteral = value => {
@@ -249,12 +253,8 @@ exports.name = name => {
       ? [chunks[0], chunks[1]]
       : [undefined, chunks[0]];
   }
-  throw new ValidationError([
-    {
-      path: 'properties.name',
-      message: `Invalid object name: ${
-        typeof name === 'string' ? `'${name}'` : name
-      }`,
-    },
-  ]);
+  throw new ValidationError({
+    path: 'properties.name',
+    message: 'invalid value',
+  });
 };

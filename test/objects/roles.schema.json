@@ -6,7 +6,7 @@
       "id": {
         "type": "bigint",
         "unique": true,
-        "primaryKey": true,
+        "primary": true,
         "default": "${defaultPrimaryKey}"
       }
     }

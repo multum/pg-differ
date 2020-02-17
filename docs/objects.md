@@ -33,8 +33,8 @@ differ.define('table', {
   columns: {
     id: {
       type: 'bigint',
-      primaryKey: true,
-      defaultValue: {
+      primary: true,
+      default: {
         type: 'literal',
         value: `nextval('schema_name.table_name_id'::regclass)`,
       },

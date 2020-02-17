@@ -40,7 +40,7 @@ In the case of `nullable === false`, it will set the constraint `NOT NULL`
 
 Deleting column values in case of impossible conversion of values to a new type
 
-### primaryKey
+### primary
 
 - Type: `Boolean`
 - Default: `false`

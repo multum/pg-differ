@@ -29,7 +29,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "test": "mocha 'test/**/index.test.js' --no-timeout --exit",
+    "test": "mocha 'test/**/index.test.js' --timeout 60000 --exit",
     "test::log": "cross-env LOGGING=true npm run test",
     "format": "prettier --write src/**/*.js bin/**/*.js test/**/*.js",
     "docs::start": "docsify serve docs"

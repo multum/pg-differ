@@ -36,7 +36,7 @@ interface ColumnOptions {
   type: string,
   nullable?: boolean,
   force?: boolean,
-  primaryKey?: boolean,
+  primary?: boolean,
   unique?: boolean,
   default?: ColumnValueType,
   autoIncrement?: boolean | AutoIncrementOptions,

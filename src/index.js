@@ -115,13 +115,10 @@ class Differ {
         break;
       }
       default:
-        throw new errors.ValidationError([
-          {
-            path: 'type',
-            message: `Invalid schema type: ${type}`,
-            keyword: 'type',
-          },
-        ]);
+        throw new errors.ValidationError({
+          path: 'type',
+          message: `should be one of ['table', 'sequence']`,
+        });
     }
     validate[type](properties);
     return new Controller(this, properties);
