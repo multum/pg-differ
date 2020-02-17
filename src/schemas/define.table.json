@@ -80,13 +80,9 @@
     "column": {
       "type": "object",
       "required": [
-        "name",
         "type"
       ],
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "type": {
           "type": "string"
         },
@@ -151,10 +147,17 @@
         "$ref": "#/definitions/check"
       }
     },
-    "columns": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/column"
+    "columns":   {
+      "type": "object",
+      "patternProperties": {
+        ".*" : {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {"$ref": "#/definitions/column"}
+          ]
+        }
       }
     }
   }

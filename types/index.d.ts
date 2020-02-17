@@ -7,7 +7,7 @@
 
 interface ReferenceOptions {
   table: string,
-  columns: Array<string>,
+  columns: string[],
 }
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
@@ -22,10 +22,10 @@ declare type CleanExtensionOptions = {
   checks?: boolean
 }
 
-declare type ColumnValueType = string | number | Array<any> | Object
+declare type ColumnValueType = string | number | any[] | Object
 
 interface ForeignKeyOptions {
-  columns: Array<string>
+  columns: string[]
   match?: MatchType,
   onDelete?: ActionType,
   onUpdate?: ActionType,
@@ -33,7 +33,6 @@ interface ForeignKeyOptions {
 }
 
 interface ColumnOptions {
-  name: string,
   type: string,
   nullable?: boolean,
   force?: boolean,
@@ -41,11 +40,11 @@ interface ColumnOptions {
   unique?: boolean,
   default?: ColumnValueType,
   autoIncrement?: boolean | AutoIncrementOptions,
-  formerNames?: Array<string>,
+  formerNames?: string[],
 }
 
 interface IndexOptions {
-  columns: Array<string>,
+  columns: string[],
 }
 
 interface SequenceProperties {
@@ -73,12 +72,12 @@ interface CheckOptions {
 
 interface TableProperties {
   name: string,
-  columns: Array<ColumnOptions>,
+  columns: { [name: string]: ColumnOptions },
   primaryKey?: IndexOptions,
-  unique?: Array<IndexOptions>,
-  indexes?: Array<IndexOptions>,
-  foreignKeys?: Array<ForeignKeyOptions>,
-  checks?: Array<CheckOptions>
+  unique?: IndexOptions[],
+  indexes?:IndexOptions[],
+  foreignKeys?: ForeignKeyOptions[],
+  checks?: CheckOptions[]
 }
 
 interface SyncOptions {
@@ -105,13 +104,13 @@ declare class DatabaseObject {
   getQuotedFullName(): string;  // '"SchemaName"."object_name"'
 }
 
-declare type ArrayOfChanges = Array<string>
+declare type ArrayOfChanges = string[]
 
 interface ImportOptions {
   path: string,
   match?: RegExp,
   interpolate?: RegExp,
-  locals?: { [key: string]: string | number | Object | Array<any>; },
+  locals?: { [key: string]: string | number | Object | any[]; },
 }
 
 interface DifferOptions {
@@ -138,7 +137,7 @@ declare class Differ {
 
   prepare(options?: SyncOptions): Promise<ArrayOfChanges>
 
-  execute(queries: Array<string>, options?: ExecuteOptions): Promise<Array<Object>>
+  execute(queries: string[], options?: ExecuteOptions): Promise<Object[]>
 
   setDefaultSchema(schema: String): this
 

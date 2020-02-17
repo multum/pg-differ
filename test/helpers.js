@@ -66,7 +66,7 @@ exports.alterColumnType = (
       it(`[ ${prevType} ] => [ ${type} ]`, async function() {
         const model = differ.define('table', {
           name: table,
-          columns: [{ name: column, type: prevType }],
+          columns: { [column]: prevType },
         });
 
         const normalizedPrevType = normalizeType(prevType);
@@ -86,7 +86,7 @@ exports.alterColumnType = (
 
         differ.define('table', {
           name: table,
-          columns: [{ name: column, type: normalizedType }],
+          columns: { [column]: normalizedType },
         });
 
         await exports.expectSyncResult(differ.sync(), expectQuery);

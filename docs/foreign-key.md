@@ -2,7 +2,7 @@
 
 ### columns
 
-- Type: `Array<String>`
+- Type: `String[]`
 - Default: `null`
 - Required: `true`
 
@@ -26,7 +26,7 @@ Foreign table name
 
 ### references.columns
 
-- Type: `Array<String>`
+- Type: `String[]`
 - Default: `null`
 - Required: `true`
 

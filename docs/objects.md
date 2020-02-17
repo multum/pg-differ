@@ -30,25 +30,18 @@ differ.define('table', {
       },
     },
   ],
-  columns: [
-    {
-      name: 'id',
+  columns: {
+    id: {
       type: 'bigint',
       primaryKey: true,
-      default: {
+      defaultValue: {
         type: 'literal',
         value: `nextval('schema_name.table_name_id'::regclass)`,
       },
     },
-    {
-      name: 'description',
-      type: 'character varying(255)',
-    },
-    {
-      name: 'body',
-      type: 'json',
-    },
-  ],
+    description: 'character varying(255)',
+    body: 'json',
+  },
 });
 
 differ.define('sequence', {

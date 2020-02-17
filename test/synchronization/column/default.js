@@ -9,7 +9,7 @@ describe('default value of the column', () => {
       {
         properties: {
           name: 'DifferSchema.users',
-          columns: [{ name: 'birthday', type: 'date' }],
+          columns: { birthday: 'date' },
         },
         syncOptions: { force: true },
         ignoreResultCheck: true,
@@ -17,9 +17,9 @@ describe('default value of the column', () => {
       {
         properties: {
           name: 'DifferSchema.users',
-          columns: [
-            { name: 'birthday', type: 'date', default: ['literal', 'now()'] },
-          ],
+          columns: {
+            birthday: { type: 'date', default: ['literal', 'now()'] },
+          },
         },
         expectQueries: [
           `alter table "DifferSchema"."users" alter column "birthday" set default now();`,
@@ -34,7 +34,7 @@ describe('default value of the column', () => {
       {
         properties: {
           name: 'DifferSchema.users',
-          columns: [{ name: 'birthday', type: 'json' }],
+          columns: { birthday: 'json' },
         },
         ignoreResultCheck: true,
         syncOptions: { force: true },
@@ -42,13 +42,12 @@ describe('default value of the column', () => {
       {
         properties: {
           name: 'DifferSchema.users',
-          columns: [
-            {
-              name: 'birthday',
+          columns: {
+            birthday: {
               type: 'json',
               default: ['json', { year: 1990, month: 7, day: 6 }],
             },
-          ],
+          },
         },
         expectQueries: [
           `alter table "DifferSchema"."users" alter column "birthday" set default '{"year":1990,"month":7,"day":6}';`,

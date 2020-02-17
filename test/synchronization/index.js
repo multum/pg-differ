@@ -4,7 +4,7 @@ const common = require('./common');
 
 const roles = {
   name: 'DifferSchema.roles',
-  columns: [{ name: 'id', type: 'bigint' }],
+  columns: { id: 'bigint' },
   indexes: [{ columns: ['id'] }],
 };
 

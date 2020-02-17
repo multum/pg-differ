@@ -4,16 +4,16 @@ const common = require('../common');
 
 const roles = {
   name: 'DifferSchema.roles',
-  columns: [
-    { name: 'id', type: 'bigint' },
-    { name: 'type', type: 'smallint' },
-  ],
+  columns: {
+    id: 'bigint',
+    type: 'smallint',
+  },
   unique: [{ columns: ['id'] }],
 };
 
 const users = {
   name: 'DifferSchema.users',
-  columns: [{ name: 'role', type: 'bigint' }],
+  columns: { role: 'bigint' },
   foreignKeys: [
     {
       columns: ['role'],

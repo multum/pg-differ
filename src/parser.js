@@ -150,19 +150,31 @@ const _normalizeCleanableObject = object => {
 };
 
 exports.schema = schema => {
-  const columns = schema.columns.map(column => {
+  let columns = schema.columns;
+
+  if (utils.isObject(columns)) {
+    columns = Object.entries(columns).map(([name, attributes]) => {
+      if (typeof attributes === 'string') {
+        return {
+          name,
+          type: attributes,
+        };
+      }
+      return {
+        name,
+        ...attributes,
+      };
+    });
+  }
+
+  columns = columns.map(column => {
     column = { ...Columns.DEFAULTS, ...column };
 
-    const type = exports.normalizeType(column['type']);
-    const defaultValue = exports.encodeValue(column.default);
-    const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement);
+    column.type = exports.normalizeType(column['type']);
+    column.default = exports.encodeValue(column.default);
+    column.autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement);
 
-    return {
-      ...column,
-      type,
-      autoIncrement,
-      default: defaultValue,
-    };
+    return column;
   });
 
   const extensions = R.pipe(
@@ -240,7 +252,9 @@ exports.name = name => {
   throw new ValidationError([
     {
       path: 'properties.name',
-      message: `Invalid object name: '${name}'`,
+      message: `Invalid object name: ${
+        typeof name === 'string' ? `'${name}'` : name
+      }`,
     },
   ]);
 };

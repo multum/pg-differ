@@ -11,7 +11,7 @@ describe('schema validation', () => {
     {
       let error;
       try {
-        differ.define('table', { name: 'table_name', columns: {} });
+        differ.define('table', { name: 'table_name', columns: '' });
       } catch (e) {
         error = e;
       }
@@ -46,7 +46,7 @@ describe('schema validation', () => {
     try {
       differ.define('table', {
         name: 'public.invalid.name',
-        columns: [{ name: 'id', type: 'bigint' }],
+        columns: { id: 'bigint' },
       });
     } catch (e) {
       error = e;

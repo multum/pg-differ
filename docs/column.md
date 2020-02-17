@@ -1,12 +1,4 @@
-# columns
-
-### name
-
-- Type: `String`
-- Default: `null`
-- Required: `true`
-
-Column name
+# column
 
 ### type
 
@@ -58,7 +50,7 @@ Define a `UNIQUE` constraint for a column
 
 ### formerNames
 
-- Type: `Array<String>`
+- Type: `Object`
 - Default: `null`
 - Required: `false`
 

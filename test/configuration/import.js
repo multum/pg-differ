@@ -55,6 +55,6 @@ describe(`method import()`, () => {
     expect(imported).to.have.property('size', 1);
     const importedObject = [...imported.values()][0];
     expect(importedObject.getFullName()).has.equal('DifferSchema.roles');
-    expect(importedObject.properties.columns[0].default).has.equal('1099');
+    expect(importedObject.properties.columns['id'].default).has.equal('1099');
   });
 });

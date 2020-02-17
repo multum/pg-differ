@@ -28,11 +28,11 @@ class Logger {
   }
 
   error(message) {
-    this._logging && console.error(chalk.red(this._formatMessage(message)));
+    console.error(chalk.red(this._formatMessage(message)));
   }
 
   warn(message) {
-    this._logging && console.warn(chalk.yellow(this._formatMessage(message)));
+    console.warn(chalk.yellow(this._formatMessage(message)));
   }
 }
 

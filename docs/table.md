@@ -20,11 +20,11 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
 ### columns
 
-- Type: `Array<Object>`
+- Type: `Object<{[name]: Column}>`
 - Default: `null`
 - Required: `true`
 
-Array of [objects with table column parameters](columns.md)
+[Table columns](column.md)
 
 ### primaryKey
 
@@ -36,7 +36,7 @@ Array of [objects with table column parameters](columns.md)
 
 ### indexes
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
@@ -44,7 +44,7 @@ Array of objects with parameters of table indexes
 
 ### foreignKeys
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
@@ -52,7 +52,7 @@ Array of [objects with parameters](foreign-key.md) of table foreign keys
 
 ### unique
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
@@ -60,7 +60,7 @@ Array of [objects with parameters](unique.md) of table unique
 
 ### checks
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 

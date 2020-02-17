@@ -31,8 +31,8 @@ Calculating change queries for updating the database
 
 > Differ.prototype.execute
 
-- Arguments: (`Array<string>`, `options?: { transaction?: boolean }`)
-- Returns: `Promise<Array<Response>>`
+- Arguments: (`String[]`, `options?: { transaction?: boolean }`)
+- Returns: `Promise<Response[]>`
 
 Executing previously prepared change queries
 

@@ -4,7 +4,7 @@ const condition = 'id > 10 AND id < 1000';
 
 const roles = {
   name: 'DifferSchema.roles',
-  columns: [{ name: 'id', type: 'bigint' }],
+  columns: { id: 'bigint' },
   checks: [{ condition }],
 };
 

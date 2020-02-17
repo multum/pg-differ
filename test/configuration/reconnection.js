@@ -17,7 +17,7 @@ describe('reconnection', () => {
 
     differ.define('table', {
       name: 'users',
-      columns: [{ name: 'id', type: 'smallint' }],
+      columns: { id: 'smallint' },
     });
     let error;
     try {

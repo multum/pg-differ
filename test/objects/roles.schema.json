@@ -2,14 +2,13 @@
   "type": "table",
   "properties": {
     "name": "${tables.roles}",
-    "columns": [
-      {
-        "name": "id",
+    "columns": {
+      "id": {
         "type": "bigint",
         "unique": true,
         "primaryKey": true,
         "default": "${defaultPrimaryKey}"
       }
-    ]
+    }
   }
 }

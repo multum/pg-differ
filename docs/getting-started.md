@@ -37,10 +37,10 @@ const setup = async () => {
 
   differ.define('table', {
     name: 'users',
-    columns: [
-      { name: 'id', type: 'bigint', primaryKey: true },
-      { name: 'name', type: 'varchar(255)' },
-    ],
+    columns: {
+      id: { type: 'bigint', primaryKey: true },
+      name: 'varchar(255)',
+    },
   });
 
   return differ.sync();

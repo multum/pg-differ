@@ -2,12 +2,8 @@
   "type": "table",
   "properties": {
     "name": "${tables.users}",
-    "columns": [
-      {
-        "name": "id",
-        "type": "bigint",
-        "primaryKey": true
-      }
-    ]
+    "columns": {
+      "id": "bigint"
+    }
   }
 }
