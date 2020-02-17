@@ -19,7 +19,7 @@ Option to enable logging in the console or callback of the format `function(mess
 ### reconnection
 
 - Type: `Object | Boolean`
-- Default: `{ attempts: Infinity, delay: 5000 }`
+- Default: `{ attempts: 10, delay: 5000 }`
 - Required: `false`
 
 Configuration for reconnection after connection error
@@ -27,7 +27,7 @@ Configuration for reconnection after connection error
 ### reconnection.attempts
 
 - Type: `Number`
-- Default: `Infinity`
+- Default: `10`
 - Required: `false`
 
 Number of reconnection attempts before giving up

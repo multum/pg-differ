@@ -24,7 +24,11 @@ class ConnectionManager {
 
   _connect(attempt) {
     return this.client.connect().catch(error => {
-      if (this._reconnection && attempt < this._reconnection.attempts) {
+      if (
+        error.code === 'ECONNREFUSED' &&
+        this._reconnection &&
+        attempt < this._reconnection.attempts
+      ) {
         return this._retry(error, attempt);
       } else {
         throw error;
@@ -35,9 +39,10 @@ class ConnectionManager {
   _retry(error, attempt) {
     const { delay } = this._reconnection;
     attempt += 1;
-    this._logger.error(error.message);
-    this._logger.info(
-      `Reconnection attempt [ ${attempt} ] will be in ${delay} seconds.`
+    this._logger.error(
+      error.message +
+        '\n' +
+        `Reconnection attempt [${attempt}] will be in ${delay} seconds.`
     );
     return this.end()
       .then(() => utils.delay(delay))

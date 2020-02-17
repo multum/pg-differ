@@ -83,11 +83,8 @@ interface TableProperties {
 interface SyncOptions {
   transaction?: boolean,
   force?: boolean,
+  execute?: boolean,
   cleanable?: CleanExtensionOptions,
-}
-
-interface ExecuteOptions {
-  transaction?: boolean
 }
 
 declare type ObjectType = 'table' | 'sequence'
@@ -128,16 +125,10 @@ declare class Differ {
 
   define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
 
-  end(): Promise<void>
-
   // @ts-ignore
   import(options: string | ImportOptions): Map<string, DatabaseObject>
 
   sync(options?: SyncOptions): Promise<ArrayOfChanges>
-
-  prepare(options?: SyncOptions): Promise<ArrayOfChanges>
-
-  execute(queries: string[], options?: ExecuteOptions): Promise<Object[]>
 
   setDefaultSchema(schema: String): this
 

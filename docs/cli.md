@@ -41,7 +41,7 @@ Option to disable printing messages through the console
 - Default: `false`
 - Required: `false`
 
-Force sync of tables (drop and create)
+Force synchronization of tables and sequences (drop and create)
 
 ### version
 

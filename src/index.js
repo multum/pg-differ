@@ -26,7 +26,7 @@ const Sequence = require('./objects/sequence');
 const _defaultOptions = {
   logging: false,
   connectionConfig: null,
-  reconnection: { attempts: Infinity, delay: 5000 },
+  reconnection: { attempts: 10, delay: 5000 },
 };
 
 class Differ {
@@ -222,20 +222,7 @@ class Differ {
     return results;
   }
 
-  prepare(options) {
-    options = parser.syncOptions(options);
-    return this._client.transaction(
-      () => this._prepare(options),
-      options.transaction
-    );
-  }
-
-  execute(queries, options = {}) {
-    const { transaction = false } = options;
-    return this._client.transaction(() => this._execute(queries), transaction);
-  }
-
-  end() {
+  _end() {
     return this._client.end();
   }
 
@@ -264,7 +251,7 @@ class Differ {
 
     this._logger.info(chalk.green('Sync successful!'));
 
-    await this.end();
+    await this._end();
 
     return preparedChanges;
   }

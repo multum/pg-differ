@@ -18,24 +18,6 @@ Object definition
 
 Defining models from `*.json` files. Equivalent to function calls `differ.define(...)`
 
-### prepare
-
-> Differ.prototype.prepare
-
-- Arguments: (options?: [sync options](sync.md))
-- Returns: `Promise<Changes>`
-
-Calculating change queries for updating the database
-
-### execute
-
-> Differ.prototype.execute
-
-- Arguments: (`String[]`, `options?: { transaction?: boolean }`)
-- Returns: `Promise<Response[]>`
-
-Executing previously prepared change queries
-
 ### sync
 
 > Differ.prototype.sync
@@ -44,14 +26,6 @@ Executing previously prepared change queries
 - Returns: `Promise<Changes>`
 
 Synchronization of previously defined [objects](objects.md)
-
-### end
-
-> Differ.prototype.end
-
-- Returns: `Promise<void>`
-
-Disconnects the client from the PostgreSQL server
 
 ### setDefaultSchema
 
