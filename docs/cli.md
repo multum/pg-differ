@@ -4,10 +4,10 @@
 
 ```bash
 # connection_string='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
-pg-differ -c ${connection_string} --set schema=public ./objects
+pg-differ sync -c ${connection_string} --set schema=public ./objects
 ```
 
-## Properties
+## 'sync' arguments
 
 ### connectionString
 
