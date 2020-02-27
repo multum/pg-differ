@@ -1,40 +1,111 @@
 'use strict';
 
 const helpers = require('../../helpers');
+const expectedSimpleAlterQuery = [
+  'alter table [table] alter column [column] type [type];',
+];
 
 describe('alter column type', () => {
-  const alterColumnTypeQuery =
-    'alter table [table] alter column [column] type [type]';
   helpers
     .alterColumnType({
       table: 'DifferSchema.users',
       column: 'birthday',
-      type: 'varchar(64)',
+      type: 'numeric(16,2)',
     })
     .to({
-      type: 'varchar(255)',
-      expectQuery: [`${alterColumnTypeQuery};`],
+      types: ['numeric(16,4)', 'numeric(16, 1)'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'smallint',
     })
     .to({
+      types: ['integer', 'bigint', 'real', 'double precision'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
       type: 'integer',
-      expectQuery: [`${alterColumnTypeQuery} using (trim([column])::integer);`],
     })
     .to({
-      type: 'boolean',
-      expectQuery: [
-        `${alterColumnTypeQuery} using (case when [column] = 0 then false else true end);`,
+      types: ['bigint', 'real', 'double precision'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'bigint',
+    })
+    .to({
+      types: ['real', 'double precision'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'real',
+    })
+    .to({
+      types: ['double precision'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'character varying(64)',
+    })
+    .to({
+      types: ['character varying(255)', 'character(64)', 'character(255)'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'character(64)',
+    })
+    .to({
+      types: [
+        'character(255)',
+        'character varying(64)',
+        'character varying(255)',
       ],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'timestamp',
     })
     .to({
-      type: 'integer',
-      expectQuery: [`${alterColumnTypeQuery} using ([column]::integer);`],
+      types: ['timestamptz', 'timestamp(5)'],
+      expectQuery: expectedSimpleAlterQuery,
+    });
+
+  helpers
+    .alterColumnType({
+      table: 'DifferSchema.users',
+      column: 'birthday',
+      type: 'time',
     })
     .to({
-      type: 'varchar(255)',
-      expectQuery: [`${alterColumnTypeQuery};`],
-    })
-    .to({
-      type: 'varchar(255)',
-      expectQuery: [],
+      types: ['timez', 'time(2)'],
+      expectQuery: expectedSimpleAlterQuery,
     });
 });

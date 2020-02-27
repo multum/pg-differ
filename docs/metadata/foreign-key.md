@@ -1,4 +1,4 @@
-# foreignKey
+# ForeignKey
 
 ### columns
 

@@ -1,4 +1,4 @@
-# primaryKey
+# Index
 
 ### columns
 

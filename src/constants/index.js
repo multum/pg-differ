@@ -13,7 +13,9 @@ const Sequences = require('./sequences');
 const Processes = require('./processes');
 module.exports = {
   Columns,
-  Types,
+  DataTypes: Types.DataTypes,
+  DataTypeAliases: Types.Aliases,
+  TypePlaceholders: Types.TypePlaceholders,
   Extensions,
   Sequences,
   Processes,

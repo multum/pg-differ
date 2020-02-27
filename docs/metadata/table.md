@@ -24,7 +24,7 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 - Default: `null`
 - Required: `true`
 
-[Table columns](column.md)
+[Table columns](metadata/column.md)
 
 ### primaryKey
 
@@ -32,7 +32,7 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 - Default: `null`
 - Required: `false`
 
-[Object with parameters](primaryKey.md) of table primary key
+[Object with parameters](metadata/primary-key.md) of table primary key
 
 ### indexes
 
@@ -48,7 +48,7 @@ Array of objects with parameters of table indexes
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](foreign-key.md) of table foreign keys
+Array of [objects with parameters](metadata/foreign-key.md) of table foreign keys
 
 ### unique
 
@@ -56,7 +56,7 @@ Array of [objects with parameters](foreign-key.md) of table foreign keys
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](unique.md) of table unique
+Array of [objects with parameters](metadata/unique.md) of table unique
 
 ### checks
 
@@ -64,4 +64,4 @@ Array of [objects with parameters](unique.md) of table unique
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](check.md) of table checks
+Array of [objects with parameters](metadata/check.md) of table checks

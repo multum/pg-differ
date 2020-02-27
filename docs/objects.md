@@ -1,7 +1,7 @@
 # Objects {docsify-ignore-all}
 
-- [Table](table.md)
-- [Sequence](sequence.md)
+- [Table](metadata/table.md)
+- [Sequence](metadata/sequence.md)
 
 ## Usage example
 

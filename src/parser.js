@@ -10,48 +10,75 @@ const R = require('ramda');
 const utils = require('./utils');
 const helpers = require('./helpers');
 const { ValidationError } = require('./errors');
-const { Types, Columns, Extensions, Sequences } = require('./constants');
+const {
+  DataTypes,
+  DataTypeAliases,
+  TypePlaceholders,
+  Columns,
+  Extensions,
+  Sequences,
+} = require('./constants');
 
-exports.getTypeGroup = type => {
-  if (type) {
-    type = exports.trimType(type);
-    return Object.values(Types.GROUPS).find(group => group.includes(type));
+exports.columnType = target => {
+  const params = target.match(/\s?\([\w, ]+\)/);
+
+  const arraySymbolsMatch = target.match(/\[]|\[\w+]/g);
+  if (arraySymbolsMatch) {
+    target = target.replace(arraySymbolsMatch, '').trim();
   }
-};
 
-const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g;
+  let type = target;
+  let components;
 
-exports.trimType = type => type.replace(regExpTypeOptions, '').trim();
-
-exports.normalizeType = type => {
-  const values = type.match(regExpTypeOptions) || [];
-  type = exports.trimType(type);
-
-  // decode type alias
-  const aliasDescription = Types.ALIASES[type];
-  if (utils.isExist(aliasDescription)) {
-    type = Types.ALIASES[type];
+  if (params) {
+    type = type.replace(params, '');
   }
-  return values ? `${type}${values.join('')}` : type;
+  const alias = DataTypeAliases[type];
+  type = alias || type;
+
+  if (params) {
+    let pairs = params[0].trim();
+    pairs = pairs
+      .trim()
+      .substr(1, pairs.length - 2)
+      .split(',')
+      .map(i => (isNaN(i) ? i.trim() : Number(i)));
+
+    if (type === DataTypes.numeric) {
+      const [precision, scale = 0] = pairs;
+      components = [type, precision, scale];
+    } else {
+      components = [type, ...pairs];
+    }
+
+    const paramsString = `(${pairs.join(',')})`;
+    if (TypePlaceholders[type]) {
+      type = TypePlaceholders[type].replace(/\[p]/, paramsString);
+    } else {
+      type = target.replace(params, paramsString);
+    }
+  }
+
+  if (arraySymbolsMatch) {
+    type += arraySymbolsMatch.join('');
+  }
+  return { raw: type, components: components || [type] };
 };
 
 exports.defaultValueInformationSchema = value => {
-  switch (typeof value) {
-    case 'string': {
-      value = value.replace(/(?<=nextval\(')[^']+/, sequence => {
-        return helpers.quoteObjectName(sequence, 'public');
-      });
-      return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
-    }
-    default: {
-      return value;
-    }
+  if (value) {
+    value = value.replace(/(?<=nextval\(')[^']+/, sequence => {
+      return helpers.quoteObjectName(sequence, 'public');
+    });
+    return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
+  } else {
+    return value;
   }
 };
 
 exports.checkCondition = definition => definition.match(/[^(]+(?=\))/)[0];
 
-exports.normalizeAutoIncrement = value => {
+const _normalizeAutoIncrement = value => {
   if (R.is(Object, value)) {
     return {
       ...Sequences.DEFAULTS,
@@ -63,9 +90,9 @@ exports.normalizeAutoIncrement = value => {
   return value;
 };
 
-exports.encodeValue = v => {
+const _encodeValue = v => {
   if (typeof v === 'string') {
-    return exports.quoteLiteral(v);
+    return helpers.quoteLiteral(v);
   }
   const isArray = Array.isArray(v);
   const isObject = utils.isObject(v);
@@ -79,7 +106,7 @@ exports.encodeValue = v => {
       value = v.value;
     }
     if (type === 'json') {
-      return exports.quoteLiteral(JSON.stringify(value));
+      return helpers.quoteLiteral(JSON.stringify(value));
     } else if (type === 'literal') {
       return value;
     }
@@ -204,9 +231,9 @@ exports.schema = schema => {
       });
     }
 
-    column.type = exports.normalizeType(column['type']);
-    column.default = exports.encodeValue(column.default);
-    column.autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement);
+    column.type = exports.columnType(column.type);
+    column.default = _encodeValue(column.default);
+    column.autoIncrement = _normalizeAutoIncrement(column.autoIncrement);
 
     return column;
   });
@@ -216,33 +243,6 @@ exports.schema = schema => {
     columns,
     extensions,
   };
-};
-
-exports.quoteLiteral = value => {
-  const literal = value.slice(0); // create copy
-
-  let hasBackslash = false;
-  let quoted = "'";
-
-  for (let i = 0; i < literal.length; i++) {
-    const c = literal[i];
-    if (c === "'") {
-      quoted += c + c;
-    } else if (c === '\\') {
-      quoted += c + c;
-      hasBackslash = true;
-    } else {
-      quoted += c;
-    }
-  }
-
-  quoted += "'";
-
-  if (hasBackslash === true) {
-    quoted = 'E' + quoted;
-  }
-
-  return quoted;
 };
 
 exports.name = name => {

@@ -2,7 +2,7 @@
 
 const Differ = require('../src');
 const { expect } = require('chai');
-const { normalizeType } = require('../src/parser');
+const parser = require('../src/parser');
 const connectionConfig = require('./pg.config');
 const logging = Boolean(process.env.LOGGING);
 
@@ -42,7 +42,7 @@ exports.alterObject = async (type, ...stages) => {
     const syncResult = await differ.sync(syncOptions);
     if (!ignoreResultCheck) {
       await exports.expectSyncResult(syncResult, expectQueries);
-      await exports.expectSyncResult(differ.sync(), []);
+      await exports.expectSyncResult(differ.sync({ execute: false }), []);
     }
   }
 
@@ -52,8 +52,7 @@ exports.alterObject = async (type, ...stages) => {
 };
 
 exports.expectSyncResult = async (promise, expectQueries) => {
-  const result = await promise;
-  expect(result).to.eql(expectQueries);
+  expect(await promise).to.eql(expectQueries);
 };
 
 exports.alterColumnType = (
@@ -62,37 +61,38 @@ exports.alterColumnType = (
 ) => {
   const prevType = type;
   return {
-    to: ({ type, expectQuery }) => {
-      it(`[ ${prevType} ] => [ ${type} ]`, async function() {
-        const model = differ.define('table', {
-          name: table,
-          columns: { [column]: prevType },
+    to: ({ types, expectQuery }) => {
+      types.forEach(type => {
+        it(`[ ${prevType} ] => [ ${type} ]`, async function() {
+          const model = differ.define('table', {
+            name: table,
+            columns: { [column]: { type: prevType, nullable: false } },
+          });
+
+          const normalizedPrevType = parser.columnType(prevType).raw;
+          await exports.expectSyncResult(differ.sync({ force: true }), [
+            `drop table if exists ${model.getQuotedFullName()} cascade;`,
+            `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} not null );`,
+          ]);
+
+          const normalizedType = parser.columnType(type).raw;
+
+          differ.define('table', {
+            name: table,
+            columns: { [column]: { type: normalizedType, nullable: false } },
+          });
+          await exports.expectSyncResult(
+            differ.sync(),
+            expectQuery.map(query => {
+              return query
+                .replace(/\[table]/g, model.getQuotedFullName())
+                .replace(/\[type]/g, normalizedType)
+                .replace(/\[column]/g, `"${column}"`);
+            })
+          );
+          return exports.expectSyncResult(differ.sync({ execute: false }), []);
         });
-
-        const normalizedPrevType = normalizeType(prevType);
-        await exports.expectSyncResult(differ.sync({ force: true }), [
-          `drop table if exists ${model.getQuotedFullName()} cascade;`,
-          `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} null );`,
-        ]);
-
-        const normalizedType = normalizeType(type);
-
-        expectQuery = expectQuery.map(query => {
-          return query
-            .replace(/\[table]/g, model.getQuotedFullName())
-            .replace(/\[type]/g, normalizedType)
-            .replace(/\[column]/g, `"${column}"`);
-        });
-
-        differ.define('table', {
-          name: table,
-          columns: { [column]: normalizedType },
-        });
-
-        await exports.expectSyncResult(differ.sync(), expectQuery);
-        await exports.expectSyncResult(differ.sync(), []);
       });
-      return exports.alterColumnType({ table, column, type }, differ);
     },
   };
 };

@@ -35,7 +35,6 @@ interface ForeignKeyOptions {
 interface ColumnOptions {
   type: string,
   nullable?: boolean,
-  force?: boolean,
   primary?: boolean,
   unique?: boolean,
   default?: ColumnValueType,

@@ -45,12 +45,18 @@ const _getExistingExtensions = structure => {
 };
 
 const _getColumnAttributeDiff = (column, dbColumn) => {
-  const diff = utils.getObjectDifference(column, dbColumn);
+  const diff = utils.getObjectDifference(
+    { ...column, type: column.type.raw },
+    { ...dbColumn, type: dbColumn.type.raw }
+  );
   if (diff.name) {
-    diff.name = { next: column.name, prev: dbColumn.name };
+    diff.name = { prev: dbColumn.name, next: column.name };
   }
   if (diff.type) {
-    diff.type = { next: column.type, prev: dbColumn.type };
+    diff.type = {
+      prev: dbColumn.type,
+      next: column.type,
+    };
   }
   return diff;
 };
@@ -189,9 +195,9 @@ class Table extends AbstractObject {
   _addExtension(type, table, extension) {
     const encodedType = parser.encodeExtensionType(type);
     if (type === 'index') {
-      return QueryGenerator.addIndex(encodedType, table, extension);
+      return QueryGenerator.createIndex(encodedType, table, extension);
     }
-    return QueryGenerator.addConstraint(encodedType, table, extension);
+    return QueryGenerator.createConstraint(encodedType, table, extension);
   }
 
   _getCreateTableQueries({
@@ -262,8 +268,8 @@ class Table extends AbstractObject {
       if (!utils.findWhere(props, schemaExtensions)) {
         queries.add(
           type === 'index'
-            ? QueryGenerator.dropIndex(quotedSchema, name)
-            : QueryGenerator.dropConstraint(fullName, name)
+            ? QueryGenerator.removeIndex(quotedSchema, name)
+            : QueryGenerator.removeConstraint(fullName, name)
         );
       }
     });

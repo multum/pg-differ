@@ -95,9 +95,6 @@
         "nullable": {
           "type": "boolean"
         },
-        "force": {
-          "type": "boolean"
-        },
         "formerNames": {
           "type": "array",
           "items": {

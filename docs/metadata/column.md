@@ -1,4 +1,4 @@
-# column
+# Column
 
 ### type
 
@@ -10,7 +10,7 @@ Type name (with alias support)
 
 ### default
 
-- Type: [Value](column-value.md)
+- Type: [Value](metadata/column-value.md)
 - Default: `null`
 - Required: `false`
 
@@ -23,14 +23,6 @@ Default value
 - Required: `false`
 
 In the case of `nullable === false`, it will set the constraint `NOT NULL`
-
-### force
-
-- Type: `Boolean`
-- Default: `false`
-- Required: `false`
-
-Deleting column values in case of impossible conversion of values to a new type
 
 ### primary
 
@@ -58,7 +50,7 @@ Array of previous column names that is used to rename
 
 ### autoIncrement
 
-- Type: `Boolean` | [autoIncrement object](auto-increment.md)
+- Type: `Boolean` | [autoIncrement object](metadata/auto-increment.md)
 - Default: `false`
 - Required: `false`
 

@@ -7,11 +7,9 @@
 'use strict';
 
 const utils = require('../../utils');
-const parser = require('../../parser');
 const helpers = require('../../helpers');
+const { isColumnModificationAllowed } = require('./change-rules');
 const { SynchronizationError } = require('../../errors');
-const { Types } = require('../../constants');
-const { INTEGER, CHARACTER, BOOLEAN } = Types.GROUPS;
 
 const _shouldBePrimaryKey = (primaryKey, column) => {
   return primaryKey ? primaryKey.columns.includes(column) : false;
@@ -22,7 +20,7 @@ const _quoteAndJoinColumns = columns =>
 
 const _getColumnDescription = (primaryKey, column, temp) => {
   const quotedColumnName = helpers.quoteIdentifier(column.name);
-  const chunks = [`${quotedColumnName} ${column.type}`];
+  const chunks = [`${quotedColumnName} ${column.type.raw}`];
 
   if (column.collate) {
     chunks.push(`collate "${column.collate}"`);
@@ -79,20 +77,20 @@ class QueryGenerator {
     return `alter table ${table} add column ${columnDescription};`;
   }
 
-  static dropIndex(schema, name) {
+  static removeIndex(schema, name) {
     return `drop index ${schema}.${name};`;
   }
 
-  static dropConstraint(table, name) {
+  static removeConstraint(table, name) {
     return `alter table ${table} drop constraint ${name};`;
   }
 
-  static addIndex(encodedType, table, extension) {
+  static createIndex(encodedType, table, extension) {
     const columns = _quoteAndJoinColumns(extension.columns);
     return `create ${encodedType} on ${table} ( ${columns} );`;
   }
 
-  static addConstraint(encodedType, table, extension) {
+  static createConstraint(encodedType, table, extension) {
     let {
       columns = [],
       references,
@@ -158,54 +156,15 @@ class QueryGenerator {
         ];
       }
     } else if (key === 'type' || key === 'collate') {
-      const prevTypeGroup = parser.getTypeGroup(value.prev);
-      const nextTypeGroup = parser.getTypeGroup(value.next);
-
-      const hasDefault = utils.isExist(column.default);
-
-      // If not an array
-      if (value.next.indexOf(']') === -1) {
-        const alterColumnType = using => {
-          using = using ? ` using (${using})` : '';
-
-          const collate = column.collate ? ` collate "${column.collate}"` : '';
-          const alterType = `alter table ${table} alter column ${quotedColumnName} type ${column.type}${collate}${using};`;
-
-          if (using && hasDefault) {
-            return [
-              _dropDefault(table, quotedColumnName),
-              alterType,
-              _setDefault(table, quotedColumnName, column.default),
-            ];
-          } else {
-            return alterType;
-          }
-        };
-
-        if (
-          !value.prev ||
-          (prevTypeGroup === INTEGER && nextTypeGroup === INTEGER) ||
-          (prevTypeGroup === CHARACTER && nextTypeGroup === CHARACTER) ||
-          (prevTypeGroup === INTEGER && nextTypeGroup === CHARACTER)
-        ) {
-          return alterColumnType();
-        } else if (prevTypeGroup === CHARACTER && nextTypeGroup === INTEGER) {
-          return alterColumnType(`trim(${quotedColumnName})::integer`);
-        } else if (prevTypeGroup === BOOLEAN && nextTypeGroup === INTEGER) {
-          return alterColumnType(`${quotedColumnName}::integer`);
-        } else if (prevTypeGroup === INTEGER && nextTypeGroup === BOOLEAN) {
-          return alterColumnType(
-            `case when ${quotedColumnName} = 0 then false else true end`
-          );
-        }
-      }
-
-      if (column.force === true) {
-        const columnDescription = _getColumnDescription(primaryKey, column);
-        return `alter table ${table} drop column ${quotedColumnName}, add column ${columnDescription};`;
+      if (
+        key === 'collate' ||
+        isColumnModificationAllowed(value.prev, value.next)
+      ) {
+        const collate = column.collate ? ` collate "${column.collate}"` : '';
+        return `alter table ${table} alter column ${quotedColumnName} type ${column.type.raw}${collate};`;
       } else {
         throw new SynchronizationError(
-          `Impossible type change from '${value.prev}' to '${value.next}' without losing column data`
+          `Change the column type from '${value.prev.type.raw}' to '${value.next.type.raw}' can result in data loss`
         );
       }
     } else if (key === 'default') {

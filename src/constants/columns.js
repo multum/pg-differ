@@ -9,7 +9,6 @@
 const DEFAULTS = {
   nullable: true,
   default: null,
-  force: false,
   collate: null,
   formerNames: null,
   autoIncrement: false,

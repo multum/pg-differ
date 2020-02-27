@@ -1,4 +1,4 @@
-# index
+# Unique
 
 ### columns
 

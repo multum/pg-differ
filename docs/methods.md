@@ -4,8 +4,8 @@
 
 > Differ.prototype.define
 
-- Arguments: (objectType: `String`, properties: [TableProperties](table.md#properties) | [SequenceProperties](sequence.md#properties))
-- Returns: [Table](table.md) | [Sequence](sequence.md)
+- Arguments: (objectType: `String`, properties: [TableProperties](metadata/table.md#properties) | [SequenceProperties](metadata/sequence.md#properties))
+- Returns: [Table](metadata/table.md) | [Sequence](metadata/sequence.md)
 
 Object definition
 
