@@ -70,8 +70,8 @@ class Differ {
     const {
       rows: [row],
     } = await this._client.query('select version()');
-    const version = row.version.match(/[0-9]+.[0-9]+/);
-    return version ? Number(version[0]) : null;
+    const version = R.match(/[0-9]+.[0-9]+/, row.version)[0];
+    return Number(version);
   }
 
   setDefaultSchema(schema) {

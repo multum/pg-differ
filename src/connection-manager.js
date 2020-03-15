@@ -39,10 +39,9 @@ class ConnectionManager {
   _retry(error, attempt) {
     const { delay } = this._reconnection;
     attempt += 1;
-    this._logger.error(
-      error.message +
-        '\n' +
-        `Reconnection attempt [${attempt}] will be in ${delay} seconds.`
+    console.error(error);
+    this._logger.info(
+      `Reconnection attempt [${attempt}] will be in ${delay} seconds.`
     );
     return this.end()
       .then(() => utils.delay(delay))

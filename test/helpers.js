@@ -1,10 +1,8 @@
 'use strict';
 
 const Differ = require('../src');
-const { expect } = require('chai');
 const parser = require('../src/parser');
 const connectionConfig = require('./pg.config');
-const logging = Boolean(process.env.LOGGING);
 
 const _validateProperty = (object, property, method) => {
   if (Object.hasOwnProperty.call(object, property)) {
@@ -19,7 +17,6 @@ const _validateProperty = (object, property, method) => {
 exports.createInstance = options => {
   return new Differ({
     connectionConfig,
-    logging,
     ...options,
   });
 };
@@ -52,7 +49,7 @@ exports.alterObject = async (type, ...stages) => {
 };
 
 exports.expectSyncResult = async (promise, expectQueries) => {
-  expect(await promise).to.eql(expectQueries);
+  expect(await promise).toEqual(expectQueries);
 };
 
 exports.alterColumnType = (

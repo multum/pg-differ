@@ -1,7 +1,6 @@
 'use strict';
 
 const helpers = require('../helpers');
-const { expect } = require('chai');
 const connectionConfig = require('../pg.config');
 
 describe('reconnection', () => {
@@ -18,13 +17,6 @@ describe('reconnection', () => {
       name: 'users',
       columns: { id: 'smallint' },
     });
-    let error;
-    try {
-      await differ.sync();
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.be.an.instanceOf(Error);
-    expect(error.code).has.equal('ECONNREFUSED');
+    return expect(differ.sync()).rejects.toThrow(/ECONNREFUSED/);
   });
 });

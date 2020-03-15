@@ -1,10 +1,21 @@
 'use strict';
 
-require('./column/type');
-require('./column/default');
+const common = require('./common');
 
-require('./index');
-require('./constraints/foreign-key');
-require('./constraints/primary-key');
-require('./constraints/check');
-require('./constraints/unique');
+const roles = {
+  name: 'DifferSchema.roles',
+  columns: { id: 'bigint' },
+  indexes: [{ columns: ['id'] }],
+};
+
+common.describeIndexOrConstraintTest(
+  'indexes',
+  {
+    properties: [roles],
+    expectQueries: [`create INDEX on "DifferSchema"."roles" ( "id" );`],
+  },
+  {
+    properties: [{ ...roles, indexes: [] }],
+    expectQueries: [`drop index "DifferSchema"."roles_id_idx";`],
+  }
+);

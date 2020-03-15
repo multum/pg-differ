@@ -50,7 +50,7 @@ exports.isObject = target => {
 };
 
 exports.findWhere = (props, arrayOfObjects) => {
-  return arrayOfObjects && arrayOfObjects.find(R.whereEq(props));
+  return arrayOfObjects.find(object => R.whereEq(props, object));
 };
 
 exports.isEmpty = target => {
