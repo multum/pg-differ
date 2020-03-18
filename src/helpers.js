@@ -77,7 +77,7 @@ exports.quoteLiteral = value => {
 exports.readSchemas = ({
   path: pathString,
   locals,
-  match = /.*\.schema.json$/,
+  pattern = /.*\.schema.json$/,
   interpolate = /\${([\s\S]+?)}/g,
 }) => {
   const _getFile = file => exports.loadJSON(file, locals, interpolate);
@@ -86,7 +86,7 @@ exports.readSchemas = ({
     if (lstat.isDirectory()) {
       return fs
         .readdirSync(pathString)
-        .filter(file => match.test(file))
+        .filter(file => pattern.test(file))
         .map(file => _getFile(path.join(pathString, file)));
     } else if (lstat.isFile()) {
       return [_getFile(pathString)];

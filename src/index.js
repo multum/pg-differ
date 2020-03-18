@@ -203,24 +203,32 @@ class Differ {
   async sync(options) {
     options = parser.syncOptions(options);
 
-    const databaseVersion = await this._getDatabaseVersion();
-
     this._logger.info(chalk.green('Sync started'));
-    this._logger.info(
-      chalk.green(`Current version PostgreSQL: ${databaseVersion}`)
-    );
 
-    const preparedChanges = await this._client.transaction(
-      () => this._prepare(options),
-      options.transaction
-    );
-    if (preparedChanges.length === 0) {
-      this._logger.info('Database does not need updating');
-    } else {
-      await this._client.transaction(
-        () => this._execute(preparedChanges),
+    let preparedChanges;
+
+    try {
+      this._logger.info(
+        chalk.green(
+          `Current version PostgreSQL: ${await this._getDatabaseVersion()}`
+        )
+      );
+
+      preparedChanges = await this._client.transaction(
+        () => this._prepare(options),
         options.transaction
       );
+      if (preparedChanges.length === 0) {
+        this._logger.info('Database does not need updating');
+      } else {
+        await this._client.transaction(
+          () => this._execute(preparedChanges),
+          options.transaction
+        );
+      }
+    } catch (e) {
+      await this._end();
+      throw e;
     }
 
     this._logger.info(chalk.green('Sync successful!'));

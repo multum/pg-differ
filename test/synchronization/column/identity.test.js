@@ -69,12 +69,12 @@ describe('identity', () => {
           columns: {
             id: {
               type: 'integer',
-              identity: { start: 100, min: 100, max: 9999 },
+              identity: { start: 100, min: 0, max: 9999 },
             },
           },
         },
         expectQueries: [
-          'alter table [table] alter column "id" set start 100 set minvalue 100 set maxvalue 9999 restart;',
+          'alter table [table] alter column "id" set start 100 set maxvalue 9999;',
         ],
       }
     );

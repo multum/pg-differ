@@ -11,6 +11,7 @@ const helpers = require('../../helpers');
 const { Sequences } = require('../../constants');
 const { isColumnModificationAllowed } = require('./change-rules');
 const SequenceQueryGenerator = require('../sequence/query-generator');
+const Sequence = require('../sequence');
 const { SynchronizationError } = require('../../errors');
 
 const _identityDescription = ({ generation, ...properties }) => {
@@ -181,14 +182,7 @@ class QueryGenerator {
       }
     });
 
-    if (utils.isExist(properties.min) || utils.isExist(properties.max)) {
-      if (
-        prevProperties.min < properties.min ||
-        prevProperties.max > properties.max
-      ) {
-        options.push('restart');
-      }
-    }
+    Sequence.validateRangeUpdate(prevProperties, properties);
 
     return (
       `alter table ${table}` +

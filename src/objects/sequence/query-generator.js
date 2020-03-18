@@ -14,27 +14,20 @@ class QueryGenerator {
     return `select last_value as "value" from ${name};`;
   }
 
-  static hasCorrectCurrValue(name, min, max) {
-    return `select exists ( 
-      select last_value from ${name}
-        where last_value between ${min} and ${max}
-    ) as correct;`;
-  }
-
   static setAttribute(key, value) {
     switch (key) {
       case 'start':
-        return value ? `start ${value}` : null;
+        return utils.isExist(value) ? `start ${value}` : null;
       case 'increment':
-        return value ? `increment ${value}` : `increment ${DEFAULTS.increment}`;
+        return utils.isExist(value)
+          ? `increment ${value}`
+          : `increment ${DEFAULTS.increment}`;
       case 'min':
-        return value ? `minvalue ${value}` : 'no minvalue';
+        return utils.isExist(value) ? `minvalue ${value}` : 'no minvalue';
       case 'max':
-        return value ? `maxvalue ${value}` : 'no maxvalue';
+        return utils.isExist(value) ? `maxvalue ${value}` : 'no maxvalue';
       case 'cycle':
         return value ? 'cycle' : 'no cycle';
-      case 'current':
-        return utils.isExist(value) ? `restart with ${value}` : null;
       default:
         return null;
     }
@@ -44,15 +37,15 @@ class QueryGenerator {
     return `drop sequence if exists ${name} cascade;`;
   }
 
-  static do(operation, name, attributes) {
-    attributes = Object.entries(attributes).map(([key, value]) => {
+  static do(operation, name, properties) {
+    properties = Object.entries(properties).map(([key, value]) => {
       return QueryGenerator.setAttribute(key, value);
     });
 
-    attributes = attributes.filter(Boolean);
+    properties = properties.filter(Boolean);
 
-    return attributes.length
-      ? `${operation} sequence ${name} ` + attributes.join(' ')
+    return properties.length
+      ? `${operation} sequence ${name} ` + properties.join(' ')
       : null;
   }
 }
