@@ -1,5 +1,6 @@
 'use strict';
 
+const { Client } = require('pg');
 const Differ = require('../src');
 const parser = require('../src/parser');
 const helpers = require('../src/helpers');
@@ -13,6 +14,18 @@ const _validateProperty = (object, property, method) => {
       `Missing required parameter '${property}' for '${method}' method`
     );
   }
+};
+
+exports.getUtils = () => {
+  const utils = {};
+  beforeAll(() => {
+    utils.client = new Client(connectionConfig);
+    return utils.client.connect();
+  });
+  afterAll(() => {
+    return utils.client.end();
+  });
+  return utils;
 };
 
 exports.createInstance = options => {
@@ -62,10 +75,7 @@ exports.alterObject = async (type, ...stages) => {
       await exports.expectSyncResult(differ.sync({ execute: false }), []);
     }
     if (onSync) {
-      onSync(
-        differ,
-        names.map(([, name]) => helpers.quoteObjectName(name))
-      );
+      onSync(names.map(([, name]) => helpers.quoteObjectName(name)));
     }
   }
 

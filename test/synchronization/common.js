@@ -26,7 +26,7 @@ exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
     });
 
     it(`should drop unnecessary '${title}'`, function() {
-      const cleanable = { [type]: true };
+      const allowClean = { [type]: true };
       return helpers.alterObject(
         'table',
         {
@@ -36,12 +36,12 @@ exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
         },
         {
           properties: firstStage.properties,
-          syncOptions: { cleanable },
+          syncOptions: { allowClean },
           expectQueries: [],
         },
         {
           properties: secondStage.properties,
-          syncOptions: { cleanable },
+          syncOptions: { allowClean },
           expectQueries: secondStage.expectQueries,
         }
       );

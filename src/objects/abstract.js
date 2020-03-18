@@ -12,7 +12,6 @@ const helpers = require('../helpers');
 class AbstractObject {
   constructor(differ, properties) {
     this._differ = differ;
-    this._client = differ._client;
     this.properties = properties;
 
     const [schema, name] = parser.name(properties.name);

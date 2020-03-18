@@ -3,6 +3,7 @@
 const helpers = require('../../helpers');
 
 describe('identity', () => {
+  const utils = helpers.getUtils();
   it('should create table with identity column', function() {
     return helpers.alterObject('table', {
       properties: {
@@ -106,7 +107,7 @@ describe('identity', () => {
     );
   });
 
-  it('should actualize identity column', function() {
+  it('should correct identity sequences', function() {
     return helpers.alterObject(
       'table',
       {
@@ -117,8 +118,8 @@ describe('identity', () => {
         },
         syncOptions: { force: true },
         ignoreResultCheck: true,
-        onSync: (differ, tables) => {
-          return differ._client.query(
+        onSync: tables => {
+          return utils.client.query(
             `insert into ${tables[0]} (id) values(100)`
           );
         },
@@ -129,7 +130,7 @@ describe('identity', () => {
             id: { type: 'integer', identity: true },
           },
         },
-        syncOptions: { actualizeIdentityColumns: true },
+        syncOptions: { correctIdentitySequences: true },
         expectQueries: [
           'alter table "DifferSchema"."users" alter column "id" restart with 100;',
         ],

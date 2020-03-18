@@ -49,5 +49,5 @@ differ.define('sequence', {
   start: 100,
 });
 
-differ.sync({ cleanable: { foreignKeys: true } });
+differ.sync({ allowClean: { foreignKeys: true } });
 ```

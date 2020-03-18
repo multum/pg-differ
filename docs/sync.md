@@ -16,7 +16,7 @@
 
 `true` causes change requests to be executed
 
-### cleanable
+### allowClean
 
 - Type: `Object`
 - Default: `{ primaryKeys: true }`
@@ -32,7 +32,7 @@ Object with types `[ indexes | foreignKeys | unique | primaryKeys | checks ]: Bo
 
 Force synchronization of tables and sequences (drop and create)
 
-### actualizeIdentityColumns
+### correctIdentitySequences
 
 - Type: `Boolean`
 - Default: `false`

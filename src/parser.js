@@ -126,9 +126,9 @@ exports.encodeExtensionType = key => _encodeExtensionTypes[key] || null;
 
 const _defaultSyncOptions = {
   transaction: true,
-  actualizeIdentityColumns: false,
   force: false,
-  cleanable: {
+  correctIdentitySequences: false,
+  allowClean: {
     primaryKey: true,
     foreignKey: false,
     unique: false,
@@ -156,14 +156,14 @@ exports.syncOptions = options => {
     return {
       ..._defaultSyncOptions,
       ...options,
-      cleanable: _normalizeCleanableObject(options.cleanable),
+      allowClean: _normalizeAllowClean(options.allowClean),
     };
   } else {
     return _defaultSyncOptions;
   }
 };
 
-const _normalizeCleanableObject = object => {
+const _normalizeAllowClean = object => {
   if (object) {
     const encrypted = Object.entries(object).reduce(
       (acc, [listName, value]) => {
@@ -172,9 +172,9 @@ const _normalizeCleanableObject = object => {
       },
       {}
     );
-    return { ..._defaultSyncOptions.cleanable, ...encrypted };
+    return { ..._defaultSyncOptions.allowClean, ...encrypted };
   }
-  return _defaultSyncOptions.cleanable;
+  return _defaultSyncOptions.allowClean;
 };
 
 exports.schema = schema => {

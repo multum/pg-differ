@@ -44,14 +44,15 @@ class Differ {
       callback: loggingCallback,
     });
 
-    this._client = new ConnectionManager(options.connectionConfig);
+    this._connectionConfig = options.connectionConfig;
+
     this.objects = new Map();
   }
 
-  async _getDatabaseVersion() {
+  async _getDatabaseVersion(client) {
     const {
       rows: [row],
-    } = await this._client.query('select version()');
+    } = await client.query('select version()');
     const version = R.match(/[0-9]+.[0-9]+/, row.version)[0];
     return Number(version);
   }
@@ -112,7 +113,7 @@ class Differ {
     return object;
   }
 
-  async _prepare(options) {
+  async _prepare(client, options) {
     const values = [...this.objects.values()];
 
     const objects = {
@@ -120,10 +121,7 @@ class Differ {
       sequences: values.filter(object => object.type === 'sequence'),
     };
 
-    const metalize = new Metalize({
-      client: this._client,
-      dialect: 'postgres',
-    });
+    const metalize = new Metalize({ client, dialect: 'postgres' });
 
     const metadata = await metalize.read({
       tables: objects.tables.map(t => t.getFullName()),
@@ -147,7 +145,7 @@ class Differ {
       for (const table of objects.tables) {
         const structure = metadata.tables.get(table.getFullName());
         queries.push(
-          table._getExtensionCleanupQueries(extType, structure, options)
+          table._getExtensionCleanupQueries(client, extType, structure, options)
         );
       }
     }
@@ -166,15 +164,17 @@ class Differ {
       for (const table of objects.tables) {
         const structure = metadata.tables.get(table.getFullName());
         queries.push(
-          table._getAddExtensionQueries(extType, structure, options)
+          table._getAddExtensionQueries(client, extType, structure, options)
         );
       }
     }
 
-    if (options.actualizeIdentityColumns) {
+    if (options.correctIdentitySequences) {
       for (const table of objects.tables) {
         const structure = metadata.tables.get(table.getFullName());
-        queries.push(table._getIdentityActualizeQueries(structure, options));
+        queries.push(
+          table._getIdentityActualizeQueries(client, structure, options)
+        );
       }
     }
 
@@ -186,54 +186,52 @@ class Differ {
     );
   }
 
-  async _execute(queries) {
+  async _execute(client, queries) {
     const results = [];
     for (let i = 0; i < queries.length; i++) {
       const query = queries[i];
       this._logger.log(query);
-      results.push(await this._client.query(query));
+      results.push(await client.query(query));
     }
     return results;
-  }
-
-  _end() {
-    return this._client.end();
   }
 
   async sync(options) {
     options = parser.syncOptions(options);
 
+    let preparedChanges;
     this._logger.info(chalk.green('Sync started'));
 
-    let preparedChanges;
+    const client = ConnectionManager.getClient(this._connectionConfig);
+
+    await client.connect();
 
     try {
-      this._logger.info(
-        chalk.green(
-          `Current version PostgreSQL: ${await this._getDatabaseVersion()}`
-        )
-      );
+      const version = await this._getDatabaseVersion(client);
+      this._logger.info(chalk.green(`Current version PostgreSQL: ${version}`));
 
-      preparedChanges = await this._client.transaction(
-        () => this._prepare(options),
+      preparedChanges = await ConnectionManager.transaction(
+        client,
+        () => this._prepare(client, options),
         options.transaction
       );
       if (preparedChanges.length === 0) {
         this._logger.info('Database does not need updating');
       } else {
-        await this._client.transaction(
-          () => this._execute(preparedChanges),
+        await ConnectionManager.transaction(
+          client,
+          () => this._execute(client, preparedChanges),
           options.transaction
         );
       }
     } catch (e) {
-      await this._end();
+      await client.end();
       throw e;
     }
 
     this._logger.info(chalk.green('Sync successful!'));
 
-    await this._end();
+    await client.end();
 
     return preparedChanges;
   }

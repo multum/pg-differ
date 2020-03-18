@@ -9,41 +9,21 @@
 const { Client } = require('pg');
 
 class ConnectionManager {
-  constructor(connectionConfig) {
-    this._connectionConfig = connectionConfig;
-    this.client = null;
+  static getClient(config) {
+    return new Client(config);
   }
 
-  connect() {
-    this.client = new Client(this._connectionConfig);
-    return this.client.connect();
-  }
-
-  async end() {
-    if (this.client !== null) {
-      await this.client.end();
-    }
-    this.client = null;
-  }
-
-  async query(sql, params = []) {
-    if (this.client === null) {
-      await this.connect();
-    }
-    return this.client.query(sql, params);
-  }
-
-  async transaction(callback, enable) {
+  static async transaction(client, callback, enable) {
     let result;
     if (enable) {
-      await this.query('begin');
+      await client.query('begin');
       try {
         result = await callback();
       } catch (e) {
-        await this.query('rollback');
+        await client.query('rollback');
         throw e;
       }
-      await this.query('commit');
+      await client.query('commit');
     } else {
       result = await callback();
     }

@@ -14,7 +14,7 @@ declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
 declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE'
 
-declare type CleanExtensionOptions = {
+declare type CleanOptions = {
   primaryKeys?: boolean,
   indexes?: boolean,
   foreignKeys?: boolean,
@@ -82,8 +82,8 @@ interface SyncOptions {
   transaction?: boolean,
   force?: boolean,
   execute?: boolean,
-  cleanable?: CleanExtensionOptions,
-  actualizeIdentityColumns?: boolean
+  allowClean?: CleanOptions,
+  correctIdentitySequences?: boolean
 }
 
 declare type ObjectType = 'table' | 'sequence'

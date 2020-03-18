@@ -131,7 +131,7 @@ class Table extends AbstractObject {
     return queries;
   }
 
-  async _normalizeCheckRows(rows) {
+  async _normalizeCheckRows(client, rows) {
     if (!rows || R.isEmpty(rows)) {
       return rows;
     }
@@ -144,7 +144,7 @@ class Table extends AbstractObject {
       temp: true,
       force: false,
     });
-    await this._client.query(createQueries.join());
+    await client.query(createQueries.join());
     const queries = rows.reduce(
       (acc, { condition }, i) =>
         acc.add(
@@ -156,9 +156,9 @@ class Table extends AbstractObject {
       new ChangeStorage()
     );
 
-    await this._client.query(queries.join());
+    await client.query(queries.join());
 
-    const normalizedChecks = await this._client
+    const normalizedChecks = await client
       .query(QueryGenerator.getChecks(tempTableName))
       .then(({ rows }) => {
         return rows.map(({ name, definition }) => ({
@@ -166,7 +166,7 @@ class Table extends AbstractObject {
           condition: parser.checkCondition(definition),
         }));
       });
-    await this._client.query(`drop table ${tempTableName};`);
+    await client.query(`drop table ${tempTableName};`);
     return rows.map((_, i) => {
       const nameTempConstraint = getConstraintName(i);
       const { condition } = normalizedChecks.find(
@@ -176,9 +176,9 @@ class Table extends AbstractObject {
     });
   }
 
-  _getSchemaExtensions(type) {
+  _getSchemaExtensions(client, type) {
     if (type === 'check') {
-      return this._normalizeCheckRows(this._extensions.check);
+      return this._normalizeCheckRows(client, this._extensions.check);
     } else {
       return this._extensions[type];
     }
@@ -203,7 +203,7 @@ class Table extends AbstractObject {
     );
   }
 
-  async _getIdentityActualizeQueries(structure, options) {
+  async _getIdentityActualizeQueries(client, structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
     const willBeCreated = Table.willBeCreated(structure, options);
@@ -225,19 +225,17 @@ class Table extends AbstractObject {
       if (receivedColumn && receivedColumn.identity) {
         const {
           rows: [{ name }],
-        } = await this._client.query(
+        } = await client.query(
           QueryGenerator.getIdentityColumnSequence(fullName, column)
         );
 
         const {
           rows: [{ value: curValue }],
-        } = await this._client.query(
-          SequenceQueryGenerator.getCurrentValue(name)
-        );
+        } = await client.query(SequenceQueryGenerator.getCurrentValue(name));
 
         const {
           rows: [{ max: valueForRestart }],
-        } = await this._client.query(
+        } = await client.query(
           QueryGenerator.getMaxValueForRestartSequence(
             fullName,
             column.name,
@@ -257,19 +255,19 @@ class Table extends AbstractObject {
     return queries;
   }
 
-  async _getExtensionCleanupQueries(type, structure, options) {
+  async _getExtensionCleanupQueries(client, type, structure, options) {
     const fullName = this.getQuotedFullName();
     const quotedSchema = helpers.quoteIdentifier(this.getSchemaName());
 
     const queries = new ChangeStorage();
     const willBeCreated = Table.willBeCreated(structure, options);
 
-    if (options.cleanable[type] !== true || willBeCreated) {
+    if (options.allowClean[type] !== true || willBeCreated) {
       return queries;
     }
 
     const existingExtensions = _getExistingExtensions(structure)[type];
-    const schemaExtensions = await this._getSchemaExtensions(type);
+    const schemaExtensions = await this._getSchemaExtensions(client, type);
 
     existingExtensions.forEach(({ name, ...props }) => {
       name = helpers.quoteIdentifier(name);
@@ -285,13 +283,13 @@ class Table extends AbstractObject {
     return queries;
   }
 
-  async _getAddExtensionQueries(type, structure, options) {
+  async _getAddExtensionQueries(client, type, structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
 
     const willBeCreated = Table.willBeCreated(structure, options);
     const existingExtensions = _getExistingExtensions(structure)[type];
-    const schemaExtensions = await this._getSchemaExtensions(type);
+    const schemaExtensions = await this._getSchemaExtensions(client, type);
 
     if (!schemaExtensions) {
       return queries;
