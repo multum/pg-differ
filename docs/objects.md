@@ -1,7 +1,7 @@
 # Objects {docsify-ignore-all}
 
-- [Table](table.md)
-- [Sequence](sequence.md)
+- [Table](metadata/table.md)
+- [Sequence](metadata/sequence.md)
 
 ## Usage example
 
@@ -30,25 +30,18 @@ differ.define('table', {
       },
     },
   ],
-  columns: [
-    {
-      name: 'id',
+  columns: {
+    id: {
       type: 'bigint',
-      primaryKey: true,
+      primary: true,
       default: {
         type: 'literal',
         value: `nextval('schema_name.table_name_id'::regclass)`,
       },
     },
-    {
-      name: 'description',
-      type: 'character varying(255)',
-    },
-    {
-      name: 'body',
-      type: 'json',
-    },
-  ],
+    description: 'character varying(255)',
+    body: 'json',
+  },
 });
 
 differ.define('sequence', {
@@ -56,5 +49,5 @@ differ.define('sequence', {
   start: 100,
 });
 
-differ.sync({ cleanable: { foreignKeys: true } });
+differ.sync({ allowClean: { foreignKeys: true } });
 ```

@@ -9,7 +9,7 @@
 const Ajv = require('ajv');
 const { ValidationError } = require('./errors');
 
-const ajv = new Ajv({ allErrors: true });
+const ajv = new Ajv();
 
 const validate = schema => {
   const validate = ajv.compile(schema);
@@ -17,13 +17,11 @@ const validate = schema => {
     if (validate(object)) {
       return object;
     } else {
-      throw new ValidationError(
-        validate.errors.map(({ dataPath, keyword, message }) => ({
-          path: `properties${dataPath}`,
-          keyword,
-          message,
-        }))
-      );
+      const { dataPath, message } = validate.errors[0];
+      throw new ValidationError({
+        path: `properties${dataPath}`,
+        message,
+      });
     }
   };
 };

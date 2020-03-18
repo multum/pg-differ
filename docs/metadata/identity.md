@@ -1,12 +1,12 @@
-# autoIncrement
+# Identity
 
-### name
+### generation
 
 - Type: `String`
-- Default: `'<tableName>_<columnName>_seq'`
+- Default: `BY DEFAULT`
 - Required: `false`
 
-Sequence name
+`BY DEFAULT`&#124;`ALWAYS`
 
 ### start
 
@@ -47,11 +47,3 @@ Sequence looping when max value is reached
 - Required: `false`
 
 Determines which number will be added to the current value of the sequence
-
-### actual
-
-- Type: `Boolean`
-- Default: `true`
-- Required: `false`
-
-Restart the sequence to the largest column value that uses this sequence

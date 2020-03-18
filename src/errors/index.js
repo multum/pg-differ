@@ -9,5 +9,4 @@
 exports.BaseError = require('./base');
 exports.ValidationError = require('./validation');
 exports.SynchronizationError = require('./synchronization');
-exports.InstanceError = require('./instance');
 exports.ImportError = require('./import');

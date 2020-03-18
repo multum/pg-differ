@@ -8,12 +8,23 @@
 
 const ChangeStorage = require('../../change-storage');
 const utils = require('../../utils');
+const { SynchronizationError } = require('../../errors');
 const QueryGenerator = require('./query-generator');
 const AbstractObject = require('../abstract');
 
 const { Sequences } = require('../../constants');
 
 class Sequence extends AbstractObject {
+  static validateRangeUpdate(prev, next) {
+    if (utils.isExist(next.min) || utils.isExist(next.max)) {
+      if (next.min > prev.min || next.max < prev.max) {
+        throw new SynchronizationError(
+          `You cannot increase 'min' value or decrease 'max'`
+        );
+      }
+    }
+  }
+
   constructor(differ, properties) {
     super(differ, { ...Sequences.DEFAULTS, ...properties });
     this.type = 'sequence';
@@ -24,46 +35,24 @@ class Sequence extends AbstractObject {
     if (options.force) {
       return new ChangeStorage([
         QueryGenerator.drop(fullName),
-        QueryGenerator.create(fullName, this.properties),
+        QueryGenerator.do('create', fullName, this.properties),
       ]);
     } else {
       if (structure) {
-        const diff = utils.getObjectDifference(this.properties, structure);
-        if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
-          const {
-            rows: [{ correct }],
-          } = await this._client.query(
-            QueryGenerator.hasCorrectCurrValue(
-              fullName,
-              this.properties.min,
-              this.properties.max
-            )
-          );
-          if (!correct) {
-            diff.current = this.properties.min;
-          }
-        }
-        return new ChangeStorage(QueryGenerator.alter(fullName, diff));
+        const queries = new ChangeStorage();
+        const diff = utils.getDiff(this.properties, structure);
+
+        if (utils.isEmpty(diff)) return queries;
+
+        Sequence.validateRangeUpdate(structure, diff);
+
+        return queries.add(QueryGenerator.do('alter', fullName, diff));
       } else {
         return new ChangeStorage(
-          QueryGenerator.create(fullName, this.properties)
+          QueryGenerator.do('create', fullName, this.properties)
         );
       }
     }
-  }
-
-  _getIncrementQuery() {
-    return QueryGenerator.increment(this.getQuotedFullName());
-  }
-
-  _getRestartQuery(value) {
-    return QueryGenerator.restart(this.getQuotedFullName(), value);
-  }
-
-  _getCurrentValue() {
-    return this._client
-      .query(QueryGenerator.getCurrentValue(this.getQuotedFullName()))
-      .then(({ rows: [{ currentValue }] }) => currentValue);
   }
 }
 

@@ -26,27 +26,12 @@ const Sequence = require('./objects/sequence');
 const _defaultOptions = {
   logging: false,
   connectionConfig: null,
-  reconnection: { attempts: Infinity, delay: 5000 },
 };
 
 class Differ {
   constructor(options) {
     options = { ..._defaultOptions, ...options };
     this.defaultSchema = 'public';
-    let reconnection;
-
-    if (options.reconnection) {
-      if (typeof options.reconnection === 'boolean') {
-        reconnection = _defaultOptions.reconnection;
-      } else {
-        reconnection = {
-          ..._defaultOptions.reconnection,
-          ...options.reconnection,
-        };
-      }
-    } else {
-      reconnection = false;
-    }
 
     let loggingCallback;
     if (options.logging && typeof options.logging === 'function') {
@@ -59,19 +44,17 @@ class Differ {
       callback: loggingCallback,
     });
 
-    this._client = new ConnectionManager(options.connectionConfig, {
-      reconnection,
-      logger: this._logger,
-    });
+    this._connectionConfig = options.connectionConfig;
+
     this.objects = new Map();
   }
 
-  async _getDatabaseVersion() {
+  async _getDatabaseVersion(client) {
     const {
       rows: [row],
-    } = await this._client.query('select version()');
-    const version = row.version.match(/[0-9]+.[0-9]+/);
-    return version ? Number(version[0]) : null;
+    } = await client.query('select version()');
+    const version = R.match(/[0-9]+.[0-9]+/, row.version)[0];
+    return Number(version);
   }
 
   setDefaultSchema(schema) {
@@ -115,13 +98,10 @@ class Differ {
         break;
       }
       default:
-        throw new errors.ValidationError([
-          {
-            path: 'type',
-            message: `Invalid schema type: ${type}`,
-            keyword: 'type',
-          },
-        ]);
+        throw new errors.ValidationError({
+          path: 'type',
+          message: `should be one of ['table', 'sequence']`,
+        });
     }
     validate[type](properties);
     return new Controller(this, properties);
@@ -133,7 +113,7 @@ class Differ {
     return object;
   }
 
-  async _prepare(options) {
+  async _prepare(client, options) {
     const values = [...this.objects.values()];
 
     const objects = {
@@ -141,14 +121,7 @@ class Differ {
       sequences: values.filter(object => object.type === 'sequence'),
     };
 
-    objects.tables.forEach(table => {
-      objects.sequences.push(...table.getSequences());
-    });
-
-    const metalize = new Metalize({
-      client: this._client,
-      dialect: 'postgres',
-    });
+    const metalize = new Metalize({ client, dialect: 'postgres' });
 
     const metadata = await metalize.read({
       tables: objects.tables.map(t => t.getFullName()),
@@ -172,7 +145,7 @@ class Differ {
       for (const table of objects.tables) {
         const structure = metadata.tables.get(table.getFullName());
         queries.push(
-          table._getExtensionCleanupQueries(extType, structure, options)
+          table._getExtensionCleanupQueries(client, extType, structure, options)
         );
       }
     }
@@ -191,20 +164,18 @@ class Differ {
       for (const table of objects.tables) {
         const structure = metadata.tables.get(table.getFullName());
         queries.push(
-          table._getAddExtensionQueries(extType, structure, options)
+          table._getAddExtensionQueries(client, extType, structure, options)
         );
       }
     }
 
-    for (const table of objects.tables) {
-      const structure = metadata.tables.get(table.getFullName());
-      queries.push(
-        table._getSequenceActualizeQueries(
-          structure,
-          metadata.sequences,
-          options
-        )
-      );
+    if (options.correctIdentitySequences) {
+      for (const table of objects.tables) {
+        const structure = metadata.tables.get(table.getFullName());
+        queries.push(
+          table._getIdentityActualizeQueries(client, structure, options)
+        );
+      }
     }
 
     return Promise.all(queries).then(
@@ -215,58 +186,54 @@ class Differ {
     );
   }
 
-  async _execute(preparedChanges) {
-    if (R.isEmpty(preparedChanges)) {
-      return [];
-    } else {
-      for (let i = 0; i < preparedChanges.length; i++) {
-        const query = preparedChanges[i];
-        this._logger.log(query);
-        await this._client.query(query);
-      }
-      return preparedChanges;
+  async _execute(client, queries) {
+    const results = [];
+    for (let i = 0; i < queries.length; i++) {
+      const query = queries[i];
+      this._logger.log(query);
+      results.push(await client.query(query));
     }
+    return results;
   }
 
   async sync(options) {
     options = parser.syncOptions(options);
 
-    const databaseVersion = await this._getDatabaseVersion();
-
+    let preparedChanges;
     this._logger.info(chalk.green('Sync started'));
-    this._logger.info(
-      chalk.green(`Current version PostgreSQL: ${databaseVersion}`)
-    );
 
-    if (options.transaction) {
-      await this._client.query('begin');
-    }
+    const client = ConnectionManager.getClient(this._connectionConfig);
+
+    await client.connect();
 
     try {
-      const preparedChanges = await this._prepare(options);
+      const version = await this._getDatabaseVersion(client);
+      this._logger.info(chalk.green(`Current version PostgreSQL: ${version}`));
 
-      if (options.execute) {
-        const results = await this._execute(preparedChanges);
-        if (results.length === 0) {
-          this._logger.info('Database does not need updating');
-        }
+      preparedChanges = await ConnectionManager.transaction(
+        client,
+        () => this._prepare(client, options),
+        options.transaction
+      );
+      if (preparedChanges.length === 0) {
+        this._logger.info('Database does not need updating');
+      } else {
+        await ConnectionManager.transaction(
+          client,
+          () => this._execute(client, preparedChanges),
+          options.transaction
+        );
       }
-
-      if (options.transaction) {
-        await this._client.query('commit');
-      }
-
-      this._logger.info(chalk.green('Sync successful!'));
-
-      await this._client.end();
-      return preparedChanges;
-    } catch (error) {
-      if (options.transaction) {
-        await this._client.query('rollback');
-      }
-      await this._client.end();
-      throw error;
+    } catch (e) {
+      await client.end();
+      throw e;
     }
+
+    this._logger.info(chalk.green('Sync successful!'));
+
+    await client.end();
+
+    return preparedChanges;
   }
 }
 

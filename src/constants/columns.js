@@ -9,12 +9,16 @@
 const DEFAULTS = {
   nullable: true,
   default: null,
-  force: false,
   collate: null,
   formerNames: null,
-  autoIncrement: false,
+  identity: false,
+};
+
+const IDENTITY_DEFAULTS = {
+  generation: 'BY DEFAULT',
 };
 
 module.exports = {
   DEFAULTS,
+  IDENTITY_DEFAULTS,
 };

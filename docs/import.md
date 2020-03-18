@@ -8,7 +8,7 @@
 
 Path to the folder with `*.json` files
 
-### match
+### pattern
 
 - Type: `RegExp`
 - Default: `/.*\.schema.json$/`

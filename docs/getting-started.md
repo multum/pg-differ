@@ -1,6 +1,6 @@
 # Getting started
 
-!> pg-differ requires: **[Node.js](https://nodejs.org/)** **v8** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v9.2** or more
+!> pg-differ requires: **[Node.js](https://nodejs.org/)** **v10** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v9.5** or more
 
 ```bash
 npm i pg-differ
@@ -31,16 +31,16 @@ const setup = async () => {
 
   differ.import({
     // or/and use 'differ.define' method
-    path: 'objects',
+    path: './objects',
     locals: { schema: 'schema_name' },
   });
 
   differ.define('table', {
     name: 'users',
-    columns: [
-      { name: 'id', type: 'bigint', primaryKey: true },
-      { name: 'name', type: 'varchar(255)' },
-    ],
+    columns: {
+      id: { type: 'bigint', primary: true },
+      name: 'varchar(255)',
+    },
   });
 
   return differ.sync();

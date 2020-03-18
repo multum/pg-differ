@@ -1,6 +1,6 @@
 <img src='https://multum.github.io/pg-differ/readme-logo.svg' width='560' alt='pg-differ'>
 
-> [PostgreSQL](https://www.postgresql.org/) migration alternative for [Node.js](https://nodejs.org/en/)
+> [Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.postgresql.org/)
 
 ![](https://forthebadge.com/images/badges/built-with-love.svg)
 ![](https://forthebadge.com/images/badges/makes-people-smile.svg)

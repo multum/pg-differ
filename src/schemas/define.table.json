@@ -80,29 +80,19 @@
     "column": {
       "type": "object",
       "required": [
-        "name",
         "type"
       ],
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "type": {
           "type": "string"
         },
         "unique": {
           "type": "boolean"
         },
-        "index": {
-          "type": "boolean"
-        },
-        "primaryKey": {
+        "primary": {
           "type": "boolean"
         },
         "nullable": {
-          "type": "boolean"
-        },
-        "force": {
           "type": "boolean"
         },
         "formerNames": {
@@ -111,7 +101,7 @@
             "type": "string"
           }
         },
-        "autoIncrement": {
+        "identity": {
           "type": [
             "boolean",
             "object"
@@ -136,11 +126,8 @@
         "$ref": "#/definitions/extension"
       }
     },
-    "primaryKeys": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/extension"
-      }
+    "primaryKey": {
+      "$ref": "#/definitions/extension"
     },
     "foreignKeys": {
       "type": "array",
@@ -154,10 +141,17 @@
         "$ref": "#/definitions/check"
       }
     },
-    "columns": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/column"
+    "columns":   {
+      "type": "object",
+      "patternProperties": {
+        ".*" : {
+          "anyOf": [
+            {"$ref": "#/definitions/column"},
+            {
+              "type": "string"
+            }
+          ]
+        }
       }
     }
   }

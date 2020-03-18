@@ -1,8 +1,8 @@
-# unique
+# PrimaryKey
 
 ### columns
 
-- Type: `Array<String>`
+- Type: `String[]`
 - Default: `null`
 - Required: `true`
 

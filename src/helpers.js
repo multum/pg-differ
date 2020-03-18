@@ -10,6 +10,7 @@ const fs = require('fs');
 const R = require('ramda');
 const path = require('path');
 const utils = require('./utils');
+const parser = require('./parser');
 const { ImportError } = require('./errors');
 
 exports.loadJSON = (path, locals, interpolate) => {
@@ -35,21 +36,48 @@ exports.addQuotes = s => {
   return `"${s}"`;
 };
 
-exports.quoteIdent = s => {
+const quoteIdentifier = s => {
   return exports.addQuotes(exports.removeQuotes(s));
 };
 
-exports.quoteName = n => {
-  return n
-    .split('.')
-    .map(exports.quoteIdent)
-    .join('.');
+exports.quoteIdentifier = quoteIdentifier;
+
+exports.quoteObjectName = (n, defaultSchema) => {
+  const [schema = defaultSchema, name] = parser.name(n);
+  return `${quoteIdentifier(schema)}.${quoteIdentifier(name)}`;
+};
+
+exports.quoteLiteral = value => {
+  const literal = value.slice(0); // create copy
+
+  let hasBackslash = false;
+  let quoted = `'`;
+
+  for (let i = 0; i < literal.length; i++) {
+    const c = literal[i];
+    if (c === `'`) {
+      quoted += c + c;
+    } else if (c === '\\') {
+      quoted += c + c;
+      hasBackslash = true;
+    } else {
+      quoted += c;
+    }
+  }
+
+  quoted += `'`;
+
+  if (hasBackslash === true) {
+    quoted = 'E' + quoted;
+  }
+
+  return quoted;
 };
 
 exports.readSchemas = ({
   path: pathString,
   locals,
-  match = /.*\.schema.json$/,
+  pattern = /.*\.schema.json$/,
   interpolate = /\${([\s\S]+?)}/g,
 }) => {
   const _getFile = file => exports.loadJSON(file, locals, interpolate);
@@ -58,15 +86,15 @@ exports.readSchemas = ({
     if (lstat.isDirectory()) {
       return fs
         .readdirSync(pathString)
-        .filter(file => match.test(file))
+        .filter(file => pattern.test(file))
         .map(file => _getFile(path.join(pathString, file)));
     } else if (lstat.isFile()) {
       return [_getFile(pathString)];
     }
   } else {
     throw new ImportError(
-      pathString,
-      'File or folder is missing at the specified path'
+      'File or folder is missing at the specified path',
+      pathString
     );
   }
 };

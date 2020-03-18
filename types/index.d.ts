@@ -7,14 +7,14 @@
 
 interface ReferenceOptions {
   table: string,
-  columns: Array<string>,
+  columns: string[],
 }
 
 declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION'
 
 declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE'
 
-declare type CleanExtensionOptions = {
+declare type CleanOptions = {
   primaryKeys?: boolean,
   indexes?: boolean,
   foreignKeys?: boolean,
@@ -22,10 +22,10 @@ declare type CleanExtensionOptions = {
   checks?: boolean
 }
 
-declare type ColumnValueType = string | number | Array<any> | Object
+declare type ColumnValueType = string | number | any[] | Object
 
 interface ForeignKeyOptions {
-  columns: Array<string>
+  columns: string[]
   match?: MatchType,
   onDelete?: ActionType,
   onUpdate?: ActionType,
@@ -33,19 +33,17 @@ interface ForeignKeyOptions {
 }
 
 interface ColumnOptions {
-  name: string,
   type: string,
   nullable?: boolean,
-  force?: boolean,
-  primaryKey?: boolean,
+  primary?: boolean,
   unique?: boolean,
   default?: ColumnValueType,
-  autoIncrement?: boolean | AutoIncrementOptions,
-  formerNames?: Array<string>,
+  identity?: boolean | IdentityOptions,
+  formerNames?: string[],
 }
 
 interface IndexOptions {
-  columns: Array<string>,
+  columns: string[],
 }
 
 interface SequenceProperties {
@@ -57,14 +55,13 @@ interface SequenceProperties {
   cycle?: boolean,
 }
 
-interface AutoIncrementOptions {
+interface IdentityOptions {
   name?: string,
   start?: string | number,
   min?: string | number,
   max?: string | number,
   increment?: string | number,
-  cycle?: boolean,
-  actual?: boolean
+  cycle?: boolean
 }
 
 interface CheckOptions {
@@ -73,19 +70,20 @@ interface CheckOptions {
 
 interface TableProperties {
   name: string,
-  columns: Array<ColumnOptions>,
-  primaryKeys?: Array<IndexOptions>,
-  unique?: Array<IndexOptions>,
-  indexes?: Array<IndexOptions>,
-  foreignKeys?: Array<ForeignKeyOptions>,
-  checks?: Array<CheckOptions>
+  columns: { [name: string]: ColumnOptions },
+  primaryKey?: IndexOptions,
+  unique?: IndexOptions[],
+  indexes?:IndexOptions[],
+  foreignKeys?: ForeignKeyOptions[],
+  checks?: CheckOptions[]
 }
 
 interface SyncOptions {
   transaction?: boolean,
   force?: boolean,
   execute?: boolean,
-  cleanable?: CleanExtensionOptions,
+  allowClean?: CleanOptions,
+  correctIdentitySequences?: boolean
 }
 
 declare type ObjectType = 'table' | 'sequence'
@@ -96,37 +94,36 @@ declare class DatabaseObject {
   type: ObjectType;
   properties: AnyOfSchemas;
 
-  getSchemaName(): string;
-  getObjectName(): string; // object name without schema
-  getFullName(): string; // object name with schema
+  getSchemaName(): string;      // 'SchemaName'
+  getObjectName(): string;      // 'object_name'
+  getFullName(): string;        // 'SchemaName.object_name'
+  getQuotedFullName(): string;  // '"SchemaName"."object_name"'
 }
+
+declare type ArrayOfChanges = string[]
 
 interface ImportOptions {
   path: string,
   match?: RegExp,
   interpolate?: RegExp,
-  locals?: { [key: string]: string | number | Object | Array<any>; },
+  locals?: { [key: string]: string | number | Object | any[]; },
 }
 
 interface DifferOptions {
   connectionConfig: object,
-  logging?: boolean | Function,
-  reconnection?: boolean | {
-    attempts: number,
-    delay: number
-  }
+  logging?: boolean | Function
 }
 
 declare class Differ {
 
   constructor(options: DifferOptions);
 
-  sync(options?: SyncOptions): Promise<Array<string>>
+  define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
 
   // @ts-ignore
   import(options: string | ImportOptions): Map<string, DatabaseObject>
 
-  define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
+  sync(options?: SyncOptions): Promise<ArrayOfChanges>
 
   setDefaultSchema(schema: String): this
 

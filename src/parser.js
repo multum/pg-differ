@@ -8,63 +8,91 @@
 
 const R = require('ramda');
 const utils = require('./utils');
+const helpers = require('./helpers');
 const { ValidationError } = require('./errors');
-const { Types, Columns, Extensions, Sequences } = require('./constants');
+const {
+  DataTypes,
+  DataTypeAliases,
+  TypePlaceholders,
+  Columns,
+  Extensions,
+} = require('./constants');
 
-exports.getTypeGroup = type => {
-  if (type) {
-    type = exports.trimType(type);
-    return Object.values(Types.GROUPS).find(group => group.includes(type));
+exports.columnType = target => {
+  const params = target.match(/\s?\([\w, ]+\)/);
+
+  const arraySymbolsMatch = target.match(/\[]|\[\w+]/g);
+  if (arraySymbolsMatch) {
+    target = target.replace(arraySymbolsMatch, '').trim();
   }
+
+  let type = target;
+  let components;
+
+  if (params) {
+    type = type.replace(params, '');
+  }
+  const alias = DataTypeAliases[type];
+  type = alias || type;
+
+  if (params) {
+    let pairs = params[0].trim();
+    pairs = pairs
+      .trim()
+      .substr(1, pairs.length - 2)
+      .split(',')
+      .map(i => (isNaN(i) ? i.trim() : Number(i)));
+
+    if (type === DataTypes.numeric) {
+      const [precision, scale = 0] = pairs;
+      components = [type, precision, scale];
+    } else {
+      components = [type, ...pairs];
+    }
+
+    const paramsString = `(${pairs.join(',')})`;
+    if (TypePlaceholders[type]) {
+      type = TypePlaceholders[type].replace(/\[p]/, paramsString);
+    } else {
+      type = target.replace(params, paramsString);
+    }
+  }
+
+  if (arraySymbolsMatch) {
+    type += arraySymbolsMatch.join('');
+  }
+  return { raw: type, components: components || [type] };
 };
 
-const regExpTypeOptions = /\[]|\[\w+]|\(\w+\)|'(\w+|\d+)'/g;
-
-exports.trimType = type => type.replace(regExpTypeOptions, '').trim();
-
-exports.normalizeType = type => {
-  const values = type.match(regExpTypeOptions) || [];
-  type = exports.trimType(type);
-
-  // decode type alias
-  const aliasDescription = Types.ALIASES[type];
-  if (utils.isExist(aliasDescription)) {
-    type = Types.ALIASES[type];
-  }
-  return values ? `${type}${values.join('')}` : type;
-};
-
-exports.defaultValueInformationSchema = (value, defaultSchema) => {
-  switch (typeof value) {
-    case 'string': {
-      // adding the public scheme in case of its absence
-      value = value.replace(/(?<=nextval\(')(?=[^.]*$)/, `${defaultSchema}.`);
-      //
-      return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
-    }
-    default: {
-      return value;
-    }
+exports.defaultValueInformationSchema = value => {
+  if (value) {
+    value = value.replace(/(?<=nextval\(')[^']+/, sequence => {
+      return helpers.quoteObjectName(sequence, 'public');
+    });
+    return value.replace(/::[a-zA-Z ]+(?:\[\d+]|\[]){0,2}$/, '');
+  } else {
+    return value;
   }
 };
 
 exports.checkCondition = definition => definition.match(/[^(]+(?=\))/)[0];
 
-exports.normalizeAutoIncrement = value => {
-  if (R.is(Object, value)) {
-    return {
-      ...Sequences.DEFAULTS,
+const _normalizeIdentity = value => {
+  if (utils.isObject(value)) {
+    value = {
+      ...Columns.IDENTITY_DEFAULTS,
       ...value,
     };
   } else if (value) {
-    return { ...Sequences.DEFAULTS };
+    value = { ...Columns.IDENTITY_DEFAULTS };
   }
+
   return value;
 };
 
-exports.encodeValue = v => {
+const _encodeValue = v => {
   if (typeof v === 'string') {
-    return exports.quoteLiteral(v);
+    return helpers.quoteLiteral(v);
   }
   const isArray = Array.isArray(v);
   const isObject = utils.isObject(v);
@@ -78,7 +106,7 @@ exports.encodeValue = v => {
       value = v.value;
     }
     if (type === 'json') {
-      return exports.quoteLiteral(JSON.stringify(value));
+      return helpers.quoteLiteral(JSON.stringify(value));
     } else if (type === 'literal') {
       return value;
     }
@@ -99,8 +127,8 @@ exports.encodeExtensionType = key => _encodeExtensionTypes[key] || null;
 const _defaultSyncOptions = {
   transaction: true,
   force: false,
-  execute: true,
-  cleanable: {
+  correctIdentitySequences: false,
+  allowClean: {
     primaryKey: true,
     foreignKey: false,
     unique: false,
@@ -122,18 +150,20 @@ const _getExtensionDefaults = type => {
     return { ...Extensions.FOREIGN_KEY_DEFAULTS };
   }
 };
+
 exports.syncOptions = options => {
   if (options) {
     return {
       ..._defaultSyncOptions,
       ...options,
-      cleanable: _normalizeCleanableObject(options.cleanable),
+      allowClean: _normalizeAllowClean(options.allowClean),
     };
   } else {
     return _defaultSyncOptions;
   }
 };
-const _normalizeCleanableObject = object => {
+
+const _normalizeAllowClean = object => {
   if (object) {
     const encrypted = Object.entries(object).reduce(
       (acc, [listName, value]) => {
@@ -142,29 +172,31 @@ const _normalizeCleanableObject = object => {
       },
       {}
     );
-    return { ..._defaultSyncOptions.cleanable, ...encrypted };
+    return { ..._defaultSyncOptions.allowClean, ...encrypted };
   }
-  return _defaultSyncOptions.cleanable;
+  return _defaultSyncOptions.allowClean;
 };
 
 exports.schema = schema => {
-  const columns = schema.columns.map(column => {
-    column = { ...Columns.DEFAULTS, ...column };
+  let columns = schema.columns;
 
-    const type = exports.normalizeType(column['type']);
-    const defaultValue = exports.encodeValue(column.default);
-    const autoIncrement = exports.normalizeAutoIncrement(column.autoIncrement);
-
-    return {
-      ...column,
-      type,
-      autoIncrement,
-      default: defaultValue,
-    };
-  });
+  if (utils.isObject(columns)) {
+    columns = Object.entries(columns).map(([name, attributes]) => {
+      if (typeof attributes === 'string') {
+        return {
+          name,
+          type: attributes,
+        };
+      }
+      return {
+        name,
+        ...attributes,
+      };
+    });
+  }
 
   const extensions = R.pipe(
-    R.pick(['indexes', 'unique', 'foreignKeys', 'primaryKeys']), // without 'checks'
+    R.pick(['indexes', 'unique', 'foreignKeys', 'checks']),
     R.toPairs,
     R.reduce((acc, [type, elements]) => {
       if (elements) {
@@ -172,58 +204,58 @@ exports.schema = schema => {
         const defaults = _getExtensionDefaults(type);
         acc[type] = defaults
           ? elements.map(props => ({ ...defaults, ...props }))
-          : elements;
+          : [...elements];
       }
       return acc;
-    }, {}),
-    R.mergeWith(R.concat, _getExtensionsFromColumns(columns))
+    }, {})
   )(schema);
+
+  let primaryKey = schema.primaryKey;
+
+  columns = columns.map(column => {
+    column = { ...Columns.DEFAULTS, ...column };
+
+    if (column.primary) {
+      if (primaryKey) {
+        throw new ValidationError({
+          path: `properties.columns['${column.name}']`,
+          message: `table '${schema.name}' must have only one primary key`,
+        });
+      } else {
+        primaryKey = { columns: [column.name] };
+      }
+    }
+
+    if (
+      column.identity ||
+      column.primary ||
+      (primaryKey && primaryKey.columns.includes(column.name))
+    ) {
+      column.shouldBeNullable = true;
+    } else {
+      column.shouldBeNullable = false;
+    }
+
+    if (column.unique) {
+      extensions.unique = (extensions.unique || []).push({
+        columns: [column.name],
+      });
+    }
+
+    column.type = exports.columnType(column.type);
+    column.default = _encodeValue(column.default);
+    column.identity = _normalizeIdentity(column.identity);
+
+    return column;
+  });
+
+  extensions.primaryKey = primaryKey ? [primaryKey] : null;
 
   return {
     name: schema.name,
-    checks: schema.checks,
     columns,
     extensions,
   };
-};
-
-const _getExtensionsFromColumns = columns => {
-  return columns.reduce((acc, column) => {
-    ['unique', 'primaryKey'].forEach(key => {
-      if (column[key] === true) {
-        acc[key] = acc[key] || [];
-        acc[key].push({ columns: [column.name] });
-      }
-    });
-    return acc;
-  }, {});
-};
-
-exports.quoteLiteral = value => {
-  const literal = value.slice(0); // create copy
-
-  let hasBackslash = false;
-  let quoted = "'";
-
-  for (let i = 0; i < literal.length; i++) {
-    const c = literal[i];
-    if (c === "'") {
-      quoted += c + c;
-    } else if (c === '\\') {
-      quoted += c + c;
-      hasBackslash = true;
-    } else {
-      quoted += c;
-    }
-  }
-
-  quoted += "'";
-
-  if (hasBackslash === true) {
-    quoted = 'E' + quoted;
-  }
-
-  return quoted;
 };
 
 exports.name = name => {
@@ -234,10 +266,8 @@ exports.name = name => {
       ? [chunks[0], chunks[1]]
       : [undefined, chunks[0]];
   }
-  throw new ValidationError([
-    {
-      path: 'properties.name',
-      message: `Invalid object name: '${name}'`,
-    },
-  ]);
+  throw new ValidationError({
+    path: 'properties.name',
+    message: 'invalid value',
+  });
 };

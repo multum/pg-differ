@@ -15,27 +15,3 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 - Required: `false`
 
 Option to enable logging in the console or callback of the format `function(message) {}` for displaying a message about changes
-
-### reconnection
-
-- Type: `Object | Boolean`
-- Default: `{ attempts: Infinity, delay: 5000 }`
-- Required: `false`
-
-Configuration for reconnection after connection error
-
-### reconnection.attempts
-
-- Type: `Number`
-- Default: `Infinity`
-- Required: `false`
-
-Number of reconnection attempts before giving up
-
-### reconnection.delay
-
-- Type: `Number`
-- Default: `5000`
-- Required: `false`
-
-How long to initially wait before attempting a new reconnection

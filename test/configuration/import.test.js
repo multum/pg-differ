@@ -1,26 +1,20 @@
 'use strict';
 
-const { expect } = require('chai');
 const path = require('path');
 const { ImportError } = require('../../src/errors');
 const helpers = require('../helpers');
 
-describe(`method import()'`, () => {
+describe(`method import()`, () => {
   const differ = helpers.createInstance();
 
   it(`should get an error when trying to import a schema from a nonexistent file`, function() {
-    const folderPath = './invalidSchemas';
+    const folderPath = './invalidPath';
     const expectedPath = path.resolve(__dirname, folderPath); // absolute path
-    let error;
-    try {
-      differ.import(folderPath);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).to.be.an.instanceOf(ImportError);
-    expect(error.path).to.equal(expectedPath);
-    expect(error.message).to.equal(
-      'File or folder is missing at the specified path'
+    expect(() => differ.import(folderPath)).toThrow(
+      new ImportError(
+        'File or folder is missing at the specified path',
+        expectedPath
+      )
     );
   });
 
@@ -31,17 +25,15 @@ describe(`method import()'`, () => {
         tables: { users: 'DifferSchema.users', roles: 'DifferSchema.roles' },
       },
     });
-    expect(importedUsingObjectOptions).to.have.property('size', 2);
-    expect(importedUsingObjectOptions.get('DifferSchema.roles')).to.not.equal(
-      undefined
-    );
+    expect(importedUsingObjectOptions).toHaveProperty('size', 2);
+    expect(importedUsingObjectOptions.get('DifferSchema.roles')).toBeDefined();
   });
 
   it('should import the schema from the file', function() {
     const importedUsingStringOption = differ.import(
       '../objects/users.schema.json'
     );
-    expect(importedUsingStringOption).to.have.property('size', 1);
+    expect(importedUsingStringOption).toHaveProperty('size', 1);
   });
 
   it(`should replace placeholders with values from 'locals'`, function() {
@@ -52,9 +44,9 @@ describe(`method import()'`, () => {
         defaultPrimaryKey: '1099',
       },
     });
-    expect(imported).to.have.property('size', 1);
+    expect(imported).toHaveProperty('size', 1);
     const importedObject = [...imported.values()][0];
-    expect(importedObject.getFullName()).has.equal('DifferSchema.roles');
-    expect(importedObject.properties.columns[0].default).has.equal('1099');
+    expect(importedObject.getFullName()).toEqual('DifferSchema.roles');
+    expect(importedObject.properties.columns['id'].default).toEqual('1099');
   });
 });

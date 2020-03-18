@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 'use strict';
-const chalk = require('chalk');
 
 class Logger {
   constructor(options = {}) {
@@ -25,14 +24,6 @@ class Logger {
 
   log(message) {
     this._logging && this._callback(message);
-  }
-
-  error(message) {
-    this._logging && console.error(chalk.red(this._formatMessage(message)));
-  }
-
-  warn(message) {
-    this._logging && console.warn(chalk.yellow(this._formatMessage(message)));
   }
 }
 

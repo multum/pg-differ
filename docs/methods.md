@@ -1,29 +1,31 @@
 # Methods
 
-### sync
+### define
 
-> Differ.prototype.sync
+> Differ.prototype.define
 
-- Arguments: (options?: [sync options](sync.md))
-- Returns: `Promise<ChangesMap>`
+- Arguments: (objectType: `String`, properties: [TableProperties](metadata/table.md#properties) | [SequenceProperties](metadata/sequence.md#properties))
+- Returns: [Table](metadata/table.md) | [Sequence](metadata/sequence.md)
 
-Synchronization of previously defined [objects](objects.md)
+Object definition
 
 ### import
+
+> Differ.prototype.import
 
 - Arguments: (options: `FolderPath` | [import options](import.md))
 - Returns: `differ`
 
 Defining models from `*.json` files. Equivalent to function calls `differ.define(...)`
 
-### define
+### sync
 
-> Differ.prototype.define
+> Differ.prototype.sync
 
-- Arguments: (objectType: `String`, properties: [TableProperties](table.md#properties) | [SequenceProperties](sequence.md#properties))
-- Returns: [Table](table.md) | [Sequence](sequence.md)
+- Arguments: (options?: [sync options](sync.md))
+- Returns: `Promise<Changes>`
 
-Object definition
+Synchronization of previously defined [objects](objects.md)
 
 ### setDefaultSchema
 
@@ -32,4 +34,4 @@ Object definition
 - Arguments: (schema: `String`)
 - Returns: `differ`
 
-Definition of the **default schema**. By default it is equal to `'public''`
+Definition of the **default schema**. By default it is equal to `'public'`

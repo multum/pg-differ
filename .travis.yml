@@ -1,20 +1,10 @@
 language: node_js
-jobs:
-  include:
-    - name: 'Node.js 8 / Postgres 9.5'
-      node_js: "8"
-      addons:
-        postgresql: "9.5"
-    - name: 'Node.js 11 / Postgres 10'
-      node_js: "11"
-      addons:
-        postgresql: "10"
+node_js: "10"
+addons:
+  postgresql: "10"
 install:
-  - npm install
-  - npm install codecov nyc
-env:
-  global:
-    - LOGGING=true
+  - yarn
+  - yarn add codecov
 script:
-  - nyc --reporter=lcov npm test
+  - yarn test --coverage
   - codecov

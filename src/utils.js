@@ -6,6 +6,8 @@
  */
 'use strict';
 
+const R = require('ramda');
+
 exports.isExist = value => value !== undefined && value !== null;
 
 exports.findByName = (array, name, formerNames) =>
@@ -18,7 +20,7 @@ exports.findByName = (array, name, formerNames) =>
     return false;
   });
 
-exports.getObjectDifference = (object, exclude) => {
+exports.getDiff = (object, exclude) => {
   return Object.keys(object).reduce((acc, key) => {
     const leftValue = object[key];
     const rightValue = exclude[key];
@@ -29,9 +31,9 @@ exports.getObjectDifference = (object, exclude) => {
   }, {});
 };
 
-exports.delay = delay => {
-  return new Promise(resolve => setTimeout(resolve, delay));
-};
+// exports.delay = delay => {
+//   return new Promise(resolve => setTimeout(resolve, delay));
+// };
 
 exports.getCaller = () => {
   const traceFn = Error.prepareStackTrace;
@@ -45,6 +47,10 @@ exports.isObject = target => {
   return target
     ? Object.prototype.toString.call(target) === '[object Object]'
     : false;
+};
+
+exports.findWhere = (props, arrayOfObjects) => {
+  return arrayOfObjects.find(object => R.whereEq(props, object));
 };
 
 exports.isEmpty = target => {

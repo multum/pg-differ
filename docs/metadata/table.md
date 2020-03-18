@@ -20,15 +20,23 @@ The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
 ### columns
 
-- Type: `Array<Object>`
+- Type: `Object<{[name]: Column}>`
 - Default: `null`
 - Required: `true`
 
-Array of [objects with table column parameters](columns.md)
+[Table columns](metadata/column.md)
+
+### primaryKey
+
+- Type: `Object`
+- Default: `null`
+- Required: `false`
+
+[Object with parameters](metadata/primary-key.md) of table primary key
 
 ### indexes
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
@@ -36,32 +44,24 @@ Array of objects with parameters of table indexes
 
 ### foreignKeys
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](foreign-key.md) of table foreign keys
+Array of [objects with parameters](metadata/foreign-key.md) of table foreign keys
 
 ### unique
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](unique.md) of table unique
-
-### primaryKeys
-
-- Type: `Array<Object>`
-- Default: `null`
-- Required: `false`
-
-Array of [objects with parameters](primaryKey.md) of table primary keys
+Array of [objects with parameters](metadata/unique.md) of table unique
 
 ### checks
 
-- Type: `Array<Object>`
+- Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](check.md) of table checks
+Array of [objects with parameters](metadata/check.md) of table checks

@@ -10,67 +10,43 @@ const utils = require('../../utils');
 const { DEFAULTS } = require('../../constants/sequences');
 
 class QueryGenerator {
-  static increment(fullName) {
-    return `nextval('${fullName}'::regclass)`;
+  static getCurrentValue(name) {
+    return `select last_value as "value" from ${name};`;
   }
 
-  static restart(fullName, value) {
-    return `alter sequence ${fullName} restart with ${value};`;
-  }
-
-  static getCurrentValue(fullName) {
-    return `select last_value as "currentValue" from ${fullName};`;
-  }
-
-  static hasCorrectCurrValue(fullName, min, max) {
-    return `select exists ( 
-      select last_value from ${fullName}
-        where last_value between ${min} and ${max}
-    ) as correct;`;
-  }
-
-  static alterOrCreate(operation, name, attributes) {
-    const chunks = Object.entries(attributes)
-      .map(([key, value]) => {
-        switch (key) {
-          case 'start':
-            return value ? `start ${value}` : 'no start';
-          case 'increment':
-            return value
-              ? `increment ${value}`
-              : `increment ${DEFAULTS.increment}`;
-          case 'min':
-            return value ? `minvalue ${value}` : 'no minvalue';
-          case 'max':
-            return value ? `maxvalue ${value}` : 'no maxvalue';
-          case 'cycle':
-            return value ? 'cycle' : 'no cycle';
-          case 'current':
-            return utils.isExist(value) ? `restart with ${value}` : null;
-          default:
-            return null;
-        }
-      })
-      .filter(Boolean);
-
-    if (chunks.length) {
-      chunks.unshift(`${operation} sequence ${name}`);
-      return chunks.join(' ') + ';';
+  static setAttribute(key, value) {
+    switch (key) {
+      case 'start':
+        return utils.isExist(value) ? `start ${value}` : null;
+      case 'increment':
+        return utils.isExist(value)
+          ? `increment ${value}`
+          : `increment ${DEFAULTS.increment}`;
+      case 'min':
+        return utils.isExist(value) ? `minvalue ${value}` : 'no minvalue';
+      case 'max':
+        return utils.isExist(value) ? `maxvalue ${value}` : 'no maxvalue';
+      case 'cycle':
+        return value ? 'cycle' : 'no cycle';
+      default:
+        return null;
     }
-
-    return null;
   }
 
   static drop(name) {
     return `drop sequence if exists ${name} cascade;`;
   }
 
-  static create(name, attributes) {
-    return QueryGenerator.alterOrCreate('create', name, attributes);
-  }
+  static do(operation, name, properties) {
+    properties = Object.entries(properties).map(([key, value]) => {
+      return QueryGenerator.setAttribute(key, value);
+    });
 
-  static alter(name, attributes) {
-    return QueryGenerator.alterOrCreate('alter', name, attributes);
+    properties = properties.filter(Boolean);
+
+    return properties.length
+      ? `${operation} sequence ${name} ` + properties.join(' ')
+      : null;
   }
 }
 

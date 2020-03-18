@@ -8,28 +8,13 @@
 
 const R = require('ramda');
 const ChangeStorage = require('../../change-storage');
-const QueryGenerator = require('./query-generator');
 const AbstractObject = require('../abstract');
+const QueryGenerator = require('./query-generator');
+const SequenceQueryGenerator = require('../sequence/query-generator');
 
 const utils = require('../../utils');
+const helpers = require('../../helpers');
 const parser = require('../../parser');
-
-const _setupSequences = (differ, { columns, tableName }) => {
-  const sequenceColumns = columns.filter(column => column.autoIncrement);
-  if (sequenceColumns.length) {
-    return sequenceColumns.map(column => {
-      const { autoIncrement: properties } = column;
-      const sequence = differ._createObject('sequence', {
-        name: `${tableName}_${column.name}_seq`,
-        ...properties,
-      });
-      column.default = sequence._getIncrementQuery();
-      return [column.name, sequence];
-    });
-  } else {
-    return [];
-  }
-};
 
 const _getExistingExtensions = structure => {
   return structure
@@ -43,17 +28,19 @@ const _getExistingExtensions = structure => {
     : {};
 };
 
-const _findExtensionWhere = (props, extensions) => {
-  return extensions && extensions.find(R.whereEq(props));
-};
-
-const _getColumnAttributeDiff = (column, dbColumn) => {
-  const diff = utils.getObjectDifference(column, dbColumn);
+const _getColumnAttributeDiff = (column, receivedColumn) => {
+  const diff = utils.getDiff(
+    { ...column, type: column.type.raw },
+    { ...receivedColumn, type: receivedColumn.type.raw }
+  );
   if (diff.name) {
-    diff.name = { next: column.name, prev: dbColumn.name };
+    diff.name = { prev: receivedColumn.name, next: column.name };
   }
   if (diff.type) {
-    diff.type = { next: column.type, prev: dbColumn.type };
+    diff.type = {
+      prev: receivedColumn.type,
+      next: column.type,
+    };
   }
   return diff;
 };
@@ -63,35 +50,32 @@ class Table extends AbstractObject {
     super(differ, properties);
     this.type = 'table';
 
-    const { columns, checks, extensions } = parser.schema(this.properties);
+    const { columns, extensions } = parser.schema(this.properties);
     this._columns = columns;
-    this._checks = checks;
     this._extensions = extensions;
-    this._primaryKey = R.path(['primaryKey', 0], extensions);
-
-    this._sequences = _setupSequences(differ, {
-      tableName: this.getObjectName(),
-      columns: this._columns,
-    });
 
     this._normalizeCheckRows = R.once(this._normalizeCheckRows);
   }
 
+  static willBeCreated(structure, options) {
+    return options.force || !structure;
+  }
+
   _getCreateOrAlterTableQueries(structure, options) {
     if (options.force) {
-      return this._createTable({ force: true });
+      return this._getCreateTableQueries({ force: true });
     } else {
       if (structure) {
         return this._getColumnChangeQueries(structure);
       } else {
-        return this._createTable({ force: false });
+        return this._getCreateTableQueries({ force: false });
       }
     }
   }
 
   _getColumnChangeQueries(structure) {
     const fullName = this.getQuotedFullName();
-    const dbColumns = structure.columns.map(column => ({
+    const receivedColumns = structure.columns.map(column => ({
       ...column,
       default: parser.defaultValueInformationSchema(
         column.default,
@@ -100,40 +84,54 @@ class Table extends AbstractObject {
     }));
     const queries = new ChangeStorage();
     this._columns.forEach(column => {
-      const { name, formerNames } = column;
-      const dbColumn = utils.findByName(dbColumns, name, formerNames);
-      if (dbColumn) {
-        const diff = _getColumnAttributeDiff(column, dbColumn);
-        if (utils.isEmpty(diff)) {
-          return;
+      const receivedColumn = utils.findByName(
+        receivedColumns,
+        column.name,
+        column.formerNames
+      );
+      const attributes = ['name', 'nullable', 'type', 'default', 'collate'];
+      if (receivedColumn) {
+        const diff = _getColumnAttributeDiff(
+          R.pick(attributes, column),
+          R.pick(attributes, receivedColumn)
+        );
+
+        if (!column.identity && receivedColumn.identity) {
+          queries.add(QueryGenerator.dropIdentify(fullName, column));
         }
-        ['name', 'nullable', 'type', 'default', 'collate'].forEach(
-          attribute => {
+
+        if (!utils.isEmpty(diff)) {
+          attributes.forEach(attribute => {
             if (Object.prototype.hasOwnProperty.call(diff, attribute)) {
               const key = attribute;
               const value = diff[key];
               queries.add(
-                QueryGenerator.alterColumn(
-                  fullName,
-                  this._primaryKey,
-                  column,
-                  key,
-                  value
-                )
+                QueryGenerator.alterColumn(fullName, column, key, value)
               );
             }
-          }
-        );
+          });
+        }
+
+        if (column.identity) {
+          queries.add(
+            receivedColumn.identity
+              ? QueryGenerator.alterIdentify(
+                  fullName,
+                  column,
+                  receivedColumn.identity,
+                  utils.getDiff(column.identity, receivedColumn.identity)
+                )
+              : QueryGenerator.addIdentify(fullName, column, column.identity)
+          );
+        }
       } else {
-        return queries.add(
-          QueryGenerator.addColumn(fullName, this._primaryKey, column)
-        );
+        queries.add(QueryGenerator.addColumn(fullName, column));
       }
     });
     return queries;
   }
 
-  async _normalizeCheckRows(rows) {
+  async _normalizeCheckRows(client, rows) {
     if (!rows || R.isEmpty(rows)) {
       return rows;
     }
@@ -141,12 +139,12 @@ class Table extends AbstractObject {
     const getConstraintName = id => `temp_constraint_check_${id}`;
     const tempTableName = `temp_${this.getObjectName()}`;
 
-    const createQueries = this._createTable({
+    const createQueries = this._getCreateTableQueries({
       table: tempTableName,
       temp: true,
       force: false,
     });
-    await this._client.query(createQueries.join());
+    await client.query(createQueries.join());
     const queries = rows.reduce(
       (acc, { condition }, i) =>
         acc.add(
@@ -158,9 +156,9 @@ class Table extends AbstractObject {
       new ChangeStorage()
     );
 
-    await this._client.query(queries.join());
+    await client.query(queries.join());
 
-    const normalizedChecks = await this._client
+    const normalizedChecks = await client
       .query(QueryGenerator.getChecks(tempTableName))
       .then(({ rows }) => {
         return rows.map(({ name, definition }) => ({
@@ -168,7 +166,7 @@ class Table extends AbstractObject {
           condition: parser.checkCondition(definition),
         }));
       });
-    await this._client.query(`drop table ${tempTableName};`);
+    await client.query(`drop table ${tempTableName};`);
     return rows.map((_, i) => {
       const nameTempConstraint = getConstraintName(i);
       const { condition } = normalizedChecks.find(
@@ -178,115 +176,127 @@ class Table extends AbstractObject {
     });
   }
 
-  _getSchemaExtensions(type) {
+  _getSchemaExtensions(client, type) {
     if (type === 'check') {
-      return this._normalizeCheckRows(this._checks);
+      return this._normalizeCheckRows(client, this._extensions.check);
     } else {
       return this._extensions[type];
     }
   }
 
-  _willBeCreated(structure, options) {
-    return options.force || !structure;
-  }
-
   _addExtension(type, table, extension) {
     const encodedType = parser.encodeExtensionType(type);
-    return QueryGenerator.addExtension(encodedType, table, extension);
+    if (type === 'index') {
+      return QueryGenerator.createIndex(encodedType, table, extension);
+    }
+    return QueryGenerator.createConstraint(encodedType, table, extension);
   }
 
-  _createTable({
+  _getCreateTableQueries({
     table = this.getQuotedFullName(),
     columns = this._columns,
     temp = false,
     force,
   }) {
     return new ChangeStorage(
-      QueryGenerator.createTable(table, columns, this._primaryKey, force, temp)
+      QueryGenerator.createTable(table, columns, force, temp)
     );
   }
 
-  getSequences() {
-    return this._sequences.map(([, sequence]) => sequence);
-  }
-
-  async _getSequenceActualizeQueries(structure, sequenceStructures, options) {
+  async _getIdentityActualizeQueries(client, structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
-    const willBeCreated = this._willBeCreated(structure, options);
+    const willBeCreated = Table.willBeCreated(structure, options);
 
-    if (this._sequences.length === 0 || willBeCreated) {
+    const columns = this._columns.filter(({ identity }) => identity);
+
+    if (columns.length === 0 || willBeCreated) {
       return queries;
     }
 
-    for (let i = 0; i < this._sequences.length; i++) {
-      const [columnUses, sequence] = this._sequences[i];
-      const exists = sequenceStructures.get(sequence.getFullName());
-      const { actual = true, min, max } = sequence.properties;
-      if (actual && exists) {
-        const sequenceCurValue = await sequence._getCurrentValue();
+    for (let i = 0; i < columns.length; i++) {
+      const column = columns[i];
+      const receivedColumn = utils.findByName(
+        structure.columns,
+        column.name,
+        columns.formerNames
+      );
+
+      if (receivedColumn && receivedColumn.identity) {
+        const {
+          rows: [{ name }],
+        } = await client.query(
+          QueryGenerator.getIdentityColumnSequence(fullName, column)
+        );
+
+        const {
+          rows: [{ value: curValue }],
+        } = await client.query(SequenceQueryGenerator.getCurrentValue(name));
+
         const {
           rows: [{ max: valueForRestart }],
-        } = await this._client.query(
+        } = await client.query(
           QueryGenerator.getMaxValueForRestartSequence(
             fullName,
-            columnUses,
-            min,
-            max,
-            sequenceCurValue
+            column.name,
+            column.identity.min,
+            column.identity.max,
+            curValue
           )
         );
+
         if (utils.isExist(valueForRestart)) {
-          queries.add(sequence._getRestartQuery(valueForRestart));
+          queries.add(
+            QueryGenerator.restartIdentity(fullName, column, valueForRestart)
+          );
         }
       }
     }
     return queries;
   }
 
-  async _getExtensionCleanupQueries(type, structure, options) {
+  async _getExtensionCleanupQueries(client, type, structure, options) {
     const fullName = this.getQuotedFullName();
-    const queries = new ChangeStorage();
-    const willBeCreated = this._willBeCreated(structure, options);
+    const quotedSchema = helpers.quoteIdentifier(this.getSchemaName());
 
-    if (options.cleanable[type] !== true || willBeCreated) {
+    const queries = new ChangeStorage();
+    const willBeCreated = Table.willBeCreated(structure, options);
+
+    if (options.allowClean[type] !== true || willBeCreated) {
       return queries;
     }
 
-    const existingExtensions = _getExistingExtensions(structure);
+    const existingExtensions = _getExistingExtensions(structure)[type];
+    const schemaExtensions = await this._getSchemaExtensions(client, type);
 
-    const schemaExtensions = await this._getSchemaExtensions(type);
-    existingExtensions[type].forEach(extension => {
-      if (_findExtensionWhere(extension, schemaExtensions)) {
-        return;
+    existingExtensions.forEach(({ name, ...props }) => {
+      name = helpers.quoteIdentifier(name);
+      if (!utils.findWhere(props, schemaExtensions)) {
+        queries.add(
+          type === 'index'
+            ? QueryGenerator.removeIndex(quotedSchema, name)
+            : QueryGenerator.removeConstraint(fullName, name)
+        );
       }
-      queries.add(
-        QueryGenerator.dropExtension(
-          this.getSchemaName(),
-          fullName,
-          type,
-          extension
-        )
-      );
     });
 
     return queries;
   }
 
-  async _getAddExtensionQueries(type, structure) {
+  async _getAddExtensionQueries(client, type, structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
 
-    const existingExtensions = _getExistingExtensions(structure);
-    const schemaExtensions = await this._getSchemaExtensions(type);
+    const willBeCreated = Table.willBeCreated(structure, options);
+    const existingExtensions = _getExistingExtensions(structure)[type];
+    const schemaExtensions = await this._getSchemaExtensions(client, type);
 
     if (!schemaExtensions) {
       return queries;
     }
 
     schemaExtensions.forEach(extension => {
-      const existing = _findExtensionWhere(extension, existingExtensions[type]);
-      if (!existing) {
+      if (willBeCreated || !utils.findWhere(extension, existingExtensions)) {
         queries.add(this._addExtension(type, fullName, extension));
       }
     });

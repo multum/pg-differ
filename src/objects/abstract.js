@@ -12,7 +12,6 @@ const helpers = require('../helpers');
 class AbstractObject {
   constructor(differ, properties) {
     this._differ = differ;
-    this._client = differ._client;
     this.properties = properties;
 
     const [schema, name] = parser.name(properties.name);
@@ -32,8 +31,8 @@ class AbstractObject {
   }
 
   getQuotedFullName() {
-    const quotedSchema = helpers.quoteIdent(this.getSchemaName());
-    const quotedName = helpers.quoteIdent(this._path.name);
+    const quotedSchema = helpers.quoteIdentifier(this.getSchemaName());
+    const quotedName = helpers.quoteIdentifier(this._path.name);
     return `${quotedSchema}.${quotedName}`;
   }
 }

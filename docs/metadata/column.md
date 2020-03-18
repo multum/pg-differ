@@ -1,12 +1,4 @@
-# columns
-
-### name
-
-- Type: `String`
-- Default: `null`
-- Required: `true`
-
-Column name
+# Column
 
 ### type
 
@@ -18,7 +10,7 @@ Type name (with alias support)
 
 ### default
 
-- Type: [Value](column-value.md)
+- Type: [Value](metadata/column-value.md)
 - Default: `null`
 - Required: `false`
 
@@ -32,15 +24,7 @@ Default value
 
 In the case of `nullable === false`, it will set the constraint `NOT NULL`
 
-### force
-
-- Type: `Boolean`
-- Default: `false`
-- Required: `false`
-
-Deleting column values in case of impossible conversion of values to a new type
-
-### primaryKey
+### primary
 
 - Type: `Boolean`
 - Default: `false`
@@ -58,15 +42,15 @@ Define a `UNIQUE` constraint for a column
 
 ### formerNames
 
-- Type: `Array<String>`
+- Type: `Object`
 - Default: `null`
 - Required: `false`
 
 Array of previous column names that is used to rename
 
-### autoIncrement
+### identity
 
-- Type: `Boolean` | [autoIncrement object](auto-increment.md)
+- Type: `Boolean` | [identity object](metadata/identity.md)
 - Default: `false`
 - Required: `false`
 

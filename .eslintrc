@@ -1,18 +1,13 @@
 {
   "extends": ["eslint:recommended", "prettier"],
   "plugins": [ "prettier"],
-  "env": {
-    "mocha": true,
-    "node": true,
-    "es6": true
-  },
+  "env": { "jest": true, "node": true, "es6": true, "worker": true },
   "parserOptions": { "ecmaVersion": 2018 },
   "rules": {
     "prettier/prettier": "error",
     "prefer-const": ["error", {"destructuring": "all"}],
     "lines-between-class-members": ["error", "always"],
     "no-console": ["error", { "allow": ["warn", "error", "info"] }],
-    "strict": ["error", "global"],
-    "curly": "warn"
+    "strict": ["error", "global"]
   }
 }

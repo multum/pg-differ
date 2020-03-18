@@ -7,23 +7,34 @@
 'use strict';
 
 const utils = require('../../utils');
-const parser = require('../../parser');
 const helpers = require('../../helpers');
+const { Sequences } = require('../../constants');
+const { isColumnModificationAllowed } = require('./change-rules');
+const SequenceQueryGenerator = require('../sequence/query-generator');
+const Sequence = require('../sequence');
 const { SynchronizationError } = require('../../errors');
-const { Types } = require('../../constants');
-const { INTEGER, CHARACTER, BOOLEAN } = Types.GROUPS;
 
-const _shouldBePrimaryKey = (primaryKey, column) => {
-  if (primaryKey) {
-    return primaryKey.columns.includes(column);
-  } else {
-    return false;
+const _identityDescription = ({ generation, ...properties }) => {
+  let result = `generated ${generation} as identity`;
+
+  if (!utils.isEmpty(properties)) {
+    const options = Object.entries(properties)
+      .map(([key, value]) => {
+        return SequenceQueryGenerator.setAttribute(key, value);
+      })
+      .join(' ');
+    result += options ? ` ( ${options} )` : '';
   }
+
+  return result;
 };
 
-const _getColumnDescription = (primaryKey, column, temp) => {
-  const quotedColumnName = helpers.quoteIdent(column.name);
-  const chunks = [`${quotedColumnName} ${column.type}`];
+const _quoteAndJoinColumns = columns =>
+  columns.map(helpers.quoteIdentifier).join(', ');
+
+const _getColumnDescription = (column, temp) => {
+  const quotedColumnName = helpers.quoteIdentifier(column.name);
+  const chunks = [`${quotedColumnName} ${column.type.raw}`];
 
   if (column.collate) {
     chunks.push(`collate "${column.collate}"`);
@@ -33,24 +44,30 @@ const _getColumnDescription = (primaryKey, column, temp) => {
     chunks.push(`default ${column.default}`);
   }
 
-  if (column.nullable && !_shouldBePrimaryKey(primaryKey, column)) {
-    chunks.push('null');
-  } else {
-    chunks.push('not null');
+  if (!column.shouldBeNullable) {
+    if (column.nullable) {
+      chunks.push('null');
+    } else {
+      chunks.push('not null');
+    }
+  }
+
+  if (column.identity) {
+    chunks.push(_identityDescription(column.identity));
   }
 
   return chunks.join(' ');
 };
 
-const _setDefault = (table, columnName, value) => {
-  return `alter table ${table} alter column ${columnName} set default ${value};`;
-};
-
-const _dropDefault = (table, columnName) => {
-  return `alter table ${table} alter column ${columnName} drop default;`;
-};
-
 class QueryGenerator {
+  static setDefault(table, columnName, value) {
+    return `alter table ${table} alter column ${columnName} set default ${value};`;
+  }
+
+  static dropDefault(table, columnName) {
+    return `alter table ${table} alter column ${columnName} drop default;`;
+  }
+
   static getChecks(table) {
     return `
     select
@@ -64,10 +81,11 @@ class QueryGenerator {
   static getMaxValueForRestartSequence(
     table,
     column,
-    min,
-    max,
+    min = Sequences.DEFAULTS.min,
+    max = Sequences.DEFAULTS.max,
     sequenceCurValue
   ) {
+    column = helpers.quoteIdentifier(column);
     return `
     select max(${column}) as max
       from ${table}
@@ -75,20 +93,25 @@ class QueryGenerator {
       and ${column} > ${sequenceCurValue}`;
   }
 
-  static addColumn(table, primaryKey, column) {
-    const columnDescription = _getColumnDescription(primaryKey, column);
+  static addColumn(table, column) {
+    const columnDescription = _getColumnDescription(column);
     return `alter table ${table} add column ${columnDescription};`;
   }
 
-  static dropExtension(schema, table, type, extension) {
-    if (type === 'index') {
-      return `drop index ${schema}.${extension.name};`;
-    } else {
-      return `alter table ${table} drop constraint ${extension.name};`;
-    }
+  static removeIndex(schema, name) {
+    return `drop index ${schema}.${name};`;
   }
 
-  static addExtension(encodedType, table, extension) {
+  static removeConstraint(table, name) {
+    return `alter table ${table} drop constraint ${name};`;
+  }
+
+  static createIndex(encodedType, table, extension) {
+    const columns = _quoteAndJoinColumns(extension.columns);
+    return `create ${encodedType} on ${table} ( ${columns} );`;
+  }
+
+  static createConstraint(encodedType, table, extension) {
     let {
       columns = [],
       references,
@@ -100,37 +123,32 @@ class QueryGenerator {
     } = extension;
 
     const alterTable = `alter table ${table}`;
-    columns = columns.map(helpers.quoteIdent).join(',');
+    columns = _quoteAndJoinColumns(columns);
 
     switch (encodedType) {
-      case 'INDEX':
-        return `create ${encodedType} on ${table} (${columns});`;
-
       case 'UNIQUE':
       case 'PRIMARY KEY':
-        return `${alterTable} add ${encodedType} (${columns});`;
+        return `${alterTable} add ${encodedType} ( ${columns} );`;
 
       case 'FOREIGN KEY': {
         match = match ? ` match ${match}` : null;
-        const quotedRefColumns = references.columns
-          .map(helpers.quoteIdent)
-          .join(',');
-        const quotedRefTable = helpers.quoteName(references.table);
-        references = `references ${quotedRefTable} (${quotedRefColumns})`;
+        const quotedRefColumns = _quoteAndJoinColumns(references.columns);
+        const quotedRefTable = helpers.quoteObjectName(references.table);
+        references = `references ${quotedRefTable} ( ${quotedRefColumns} )`;
         const events = `on update ${onUpdate} on delete ${onDelete}`;
-        return `${alterTable} add ${encodedType} (${columns}) ${references}${match} ${events};`;
+        return `${alterTable} add ${encodedType} ( ${columns} ) ${references}${match} ${events};`;
       }
 
       case 'CHECK': {
         const constraintName = name ? ` constraint ${name}` : '';
-        return `${alterTable} add${constraintName} ${encodedType} (${condition});`;
+        return `${alterTable} add${constraintName} ${encodedType} ( ${condition} );`;
       }
     }
   }
 
-  static createTable(table, columns, primaryKey, force, temp) {
+  static createTable(table, columns, force, temp) {
     columns = columns
-      .map(column => _getColumnDescription(primaryKey, column, temp))
+      .map(column => _getColumnDescription(column, temp))
       .join(', ');
     return [
       force ? `drop table if exists ${table} cascade;` : null,
@@ -138,17 +156,51 @@ class QueryGenerator {
     ];
   }
 
-  static alterColumn(table, primaryKey, column, key, value) {
-    const quotedColumnName = helpers.quoteIdent(column.name);
+  static dropIdentify(table, column) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+    return `alter table ${table} alter column ${quotedColumnName} drop identity;`;
+  }
+
+  static addIdentify(table, column, properties) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+    return (
+      `alter table ${table} alter column ${quotedColumnName}` +
+      ` add ${_identityDescription(properties)};`
+    );
+  }
+
+  static alterIdentify(table, column, prevProperties, properties) {
+    if (utils.isEmpty(properties)) return null;
+
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+
+    const options = Object.entries(properties).map(([key, value]) => {
+      if (key === 'generation') {
+        return `set generation ${value}`;
+      } else {
+        return `set ${SequenceQueryGenerator.setAttribute(key, value)}`;
+      }
+    });
+
+    Sequence.validateRangeUpdate(prevProperties, properties);
+
+    return (
+      `alter table ${table}` +
+      ` alter column ${quotedColumnName} ${options.join(' ')};`
+    );
+  }
+
+  static alterColumn(table, column, key, value) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
     if (key === 'name') {
-      const prev = helpers.quoteIdent(value.prev);
-      const next = helpers.quoteIdent(value.next);
+      const prev = helpers.quoteIdentifier(value.prev);
+      const next = helpers.quoteIdentifier(value.next);
       return `alter table ${table} rename column ${prev} to ${next};`;
     } else if (key === 'nullable') {
+      if (column.shouldBeNullable) return null;
+
       if (value === true) {
-        if (!_shouldBePrimaryKey(primaryKey, column.name)) {
-          return `alter table ${table} alter column ${quotedColumnName} drop not null;`;
-        }
+        return `alter table ${table} alter column ${quotedColumnName} drop not null;`;
       } else {
         const setValues = utils.isExist(column.default)
           ? `update ${table} set ${quotedColumnName} = ${column.default} where ${quotedColumnName} is null;`
@@ -159,64 +211,37 @@ class QueryGenerator {
         ];
       }
     } else if (key === 'type' || key === 'collate') {
-      const prevTypeGroup = parser.getTypeGroup(value.prev);
-      const nextTypeGroup = parser.getTypeGroup(value.next);
-
-      const hasDefault = utils.isExist(column.default);
-
-      // If not an array
-      if (value.next.indexOf(']') === -1) {
-        const alterColumnType = using => {
-          using = using ? ` using (${using})` : '';
-
-          const collate = column.collate ? ` collate "${column.collate}"` : '';
-          const alterType = `alter table ${table} alter column ${quotedColumnName} type ${column.type}${collate}${using};`;
-
-          if (using && hasDefault) {
-            return [
-              _dropDefault(table, quotedColumnName),
-              alterType,
-              _setDefault(table, quotedColumnName, column.default),
-            ];
-          } else {
-            return alterType;
-          }
-        };
-
-        if (
-          !value.prev ||
-          (prevTypeGroup === INTEGER && nextTypeGroup === INTEGER) ||
-          (prevTypeGroup === CHARACTER && nextTypeGroup === CHARACTER) ||
-          (prevTypeGroup === INTEGER && nextTypeGroup === CHARACTER)
-        ) {
-          return alterColumnType();
-        } else if (prevTypeGroup === CHARACTER && nextTypeGroup === INTEGER) {
-          return alterColumnType(`trim(${quotedColumnName})::integer`);
-        } else if (prevTypeGroup === BOOLEAN && nextTypeGroup === INTEGER) {
-          return alterColumnType(`${quotedColumnName}::integer`);
-        } else if (prevTypeGroup === INTEGER && nextTypeGroup === BOOLEAN) {
-          return alterColumnType(
-            `case when ${quotedColumnName} = 0 then false else true end`
-          );
-        }
-      }
-
-      if (column.force === true) {
-        const columnDescription = _getColumnDescription(primaryKey, column);
-        return `alter table ${table} drop column ${quotedColumnName}, add column ${columnDescription};`;
+      if (
+        key === 'collate' ||
+        isColumnModificationAllowed(value.prev, value.next)
+      ) {
+        const collate = column.collate ? ` collate "${column.collate}"` : '';
+        return `alter table ${table} alter column ${quotedColumnName} type ${column.type.raw}${collate};`;
       } else {
         throw new SynchronizationError(
-          `Impossible type change from '${value.prev}' to '${value.next}' without losing column data`
+          `Change the column type from '${value.prev.raw}' to '${value.next.raw}' can result in data loss`
         );
       }
     } else if (key === 'default') {
       if (utils.isExist(value)) {
-        return _setDefault(table, quotedColumnName, value);
+        return QueryGenerator.setDefault(table, quotedColumnName, value);
       } else {
-        return _dropDefault(table, quotedColumnName);
+        return QueryGenerator.dropDefault(table, quotedColumnName);
       }
     }
     return null;
+  }
+
+  static getIdentityColumnSequence(table, column) {
+    return `select pg_get_serial_sequence('${table}', '${column.name}') as name`;
+  }
+
+  static restartIdentity(table, column, value) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+    return (
+      `alter table ${table}` +
+      ` alter column ${quotedColumnName} restart with ${value};`
+    );
   }
 }
 
