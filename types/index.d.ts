@@ -111,11 +111,7 @@ interface ImportOptions {
 
 interface DifferOptions {
   connectionConfig: object,
-  logging?: boolean | Function,
-  reconnection?: boolean | {
-    attempts: number,
-    delay: number
-  }
+  logging?: boolean | Function
 }
 
 declare class Differ {

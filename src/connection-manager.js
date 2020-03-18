@@ -7,45 +7,16 @@
 'use strict';
 
 const { Client } = require('pg');
-const utils = require('./utils');
 
 class ConnectionManager {
-  constructor(connectionConfig, { reconnection, logger }) {
+  constructor(connectionConfig) {
     this._connectionConfig = connectionConfig;
-    this._reconnection = reconnection;
-    this._logger = logger;
     this.client = null;
   }
 
-  connect(attempt = 0) {
+  connect() {
     this.client = new Client(this._connectionConfig);
-    return this._connect(attempt);
-  }
-
-  _connect(attempt) {
-    return this.client.connect().catch(error => {
-      if (
-        error.code === 'ECONNREFUSED' &&
-        this._reconnection &&
-        attempt < this._reconnection.attempts
-      ) {
-        return this._retry(error, attempt);
-      } else {
-        throw error;
-      }
-    });
-  }
-
-  _retry(error, attempt) {
-    const { delay } = this._reconnection;
-    attempt += 1;
-    console.error(error);
-    this._logger.info(
-      `Reconnection attempt [${attempt}] will be in ${delay} seconds.`
-    );
-    return this.end()
-      .then(() => utils.delay(delay))
-      .then(() => this.connect(attempt));
+    return this.client.connect();
   }
 
   async end() {

@@ -26,27 +26,12 @@ const Sequence = require('./objects/sequence');
 const _defaultOptions = {
   logging: false,
   connectionConfig: null,
-  reconnection: { attempts: 10, delay: 5000 },
 };
 
 class Differ {
   constructor(options) {
     options = { ..._defaultOptions, ...options };
     this.defaultSchema = 'public';
-    let reconnection;
-
-    if (options.reconnection) {
-      if (typeof options.reconnection === 'boolean') {
-        reconnection = _defaultOptions.reconnection;
-      } else {
-        reconnection = {
-          ..._defaultOptions.reconnection,
-          ...options.reconnection,
-        };
-      }
-    } else {
-      reconnection = false;
-    }
 
     let loggingCallback;
     if (options.logging && typeof options.logging === 'function') {
@@ -59,10 +44,7 @@ class Differ {
       callback: loggingCallback,
     });
 
-    this._client = new ConnectionManager(options.connectionConfig, {
-      reconnection,
-      logger: this._logger,
-    });
+    this._client = new ConnectionManager(options.connectionConfig);
     this.objects = new Map();
   }
 
