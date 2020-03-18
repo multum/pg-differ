@@ -8,29 +8,13 @@
 
 const R = require('ramda');
 const ChangeStorage = require('../../change-storage');
-const QueryGenerator = require('./query-generator');
 const AbstractObject = require('../abstract');
+const QueryGenerator = require('./query-generator');
+const SequenceQueryGenerator = require('../sequence/query-generator');
 
 const utils = require('../../utils');
 const helpers = require('../../helpers');
 const parser = require('../../parser');
-
-const _setupSequences = (differ, { columns, tableName }) => {
-  const sequenceColumns = columns.filter(column => column.autoIncrement);
-  if (sequenceColumns.length) {
-    return sequenceColumns.map(column => {
-      const { autoIncrement: properties } = column;
-      const sequence = differ._createObject('sequence', {
-        name: `${tableName}_${column.name}_seq`,
-        ...properties,
-      });
-      column.default = sequence._getIncrementQuery();
-      return [column.name, sequence];
-    });
-  } else {
-    return [];
-  }
-};
 
 const _getExistingExtensions = structure => {
   return structure
@@ -44,17 +28,17 @@ const _getExistingExtensions = structure => {
     : {};
 };
 
-const _getColumnAttributeDiff = (column, dbColumn) => {
-  const diff = utils.getObjectDifference(
+const _getColumnAttributeDiff = (column, receivedColumn) => {
+  const diff = utils.getDiff(
     { ...column, type: column.type.raw },
-    { ...dbColumn, type: dbColumn.type.raw }
+    { ...receivedColumn, type: receivedColumn.type.raw }
   );
   if (diff.name) {
-    diff.name = { prev: dbColumn.name, next: column.name };
+    diff.name = { prev: receivedColumn.name, next: column.name };
   }
   if (diff.type) {
     diff.type = {
-      prev: dbColumn.type,
+      prev: receivedColumn.type,
       next: column.type,
     };
   }
@@ -69,12 +53,6 @@ class Table extends AbstractObject {
     const { columns, extensions } = parser.schema(this.properties);
     this._columns = columns;
     this._extensions = extensions;
-    this._primaryKey = R.path(['primaryKey', 0], extensions);
-
-    this._sequences = _setupSequences(differ, {
-      tableName: this.getObjectName(),
-      columns: this._columns,
-    });
 
     this._normalizeCheckRows = R.once(this._normalizeCheckRows);
   }
@@ -97,7 +75,7 @@ class Table extends AbstractObject {
 
   _getColumnChangeQueries(structure) {
     const fullName = this.getQuotedFullName();
-    const dbColumns = structure.columns.map(column => ({
+    const receivedColumns = structure.columns.map(column => ({
       ...column,
       default: parser.defaultValueInformationSchema(
         column.default,
@@ -106,34 +84,48 @@ class Table extends AbstractObject {
     }));
     const queries = new ChangeStorage();
     this._columns.forEach(column => {
-      const { name, formerNames } = column;
-      const dbColumn = utils.findByName(dbColumns, name, formerNames);
-      if (dbColumn) {
-        const diff = _getColumnAttributeDiff(column, dbColumn);
-        if (utils.isEmpty(diff)) {
-          return;
+      const receivedColumn = utils.findByName(
+        receivedColumns,
+        column.name,
+        column.formerNames
+      );
+      const attributes = ['name', 'nullable', 'type', 'default', 'collate'];
+      if (receivedColumn) {
+        const diff = _getColumnAttributeDiff(
+          R.pick(attributes, column),
+          R.pick(attributes, receivedColumn)
+        );
+
+        if (!column.identity && receivedColumn.identity) {
+          queries.add(QueryGenerator.dropIdentify(fullName, column));
         }
-        ['name', 'nullable', 'type', 'default', 'collate'].forEach(
-          attribute => {
+
+        if (!utils.isEmpty(diff)) {
+          attributes.forEach(attribute => {
             if (Object.prototype.hasOwnProperty.call(diff, attribute)) {
               const key = attribute;
               const value = diff[key];
               queries.add(
-                QueryGenerator.alterColumn(
-                  fullName,
-                  this._primaryKey,
-                  column,
-                  key,
-                  value
-                )
+                QueryGenerator.alterColumn(fullName, column, key, value)
               );
             }
-          }
-        );
+          });
+        }
+
+        if (column.identity) {
+          queries.add(
+            receivedColumn.identity
+              ? QueryGenerator.alterIdentify(
+                  fullName,
+                  column,
+                  receivedColumn.identity,
+                  utils.getDiff(column.identity, receivedColumn.identity)
+                )
+              : QueryGenerator.addIdentify(fullName, column, column.identity)
+          );
+        }
       } else {
-        return queries.add(
-          QueryGenerator.addColumn(fullName, this._primaryKey, column)
-        );
+        queries.add(QueryGenerator.addColumn(fullName, column));
       }
     });
     return queries;
@@ -207,42 +199,58 @@ class Table extends AbstractObject {
     force,
   }) {
     return new ChangeStorage(
-      QueryGenerator.createTable(table, columns, this._primaryKey, force, temp)
+      QueryGenerator.createTable(table, columns, force, temp)
     );
   }
 
-  getSequences() {
-    return this._sequences.map(([, sequence]) => sequence);
-  }
-
-  async _getSequenceActualizeQueries(structure, sequenceStructures, options) {
+  async _getIdentityActualizeQueries(structure, options) {
     const fullName = this.getQuotedFullName();
     const queries = new ChangeStorage();
     const willBeCreated = Table.willBeCreated(structure, options);
 
-    if (this._sequences.length === 0 || willBeCreated) {
+    const columns = this._columns.filter(({ identity }) => identity);
+
+    if (columns.length === 0 || willBeCreated) {
       return queries;
     }
 
-    for (let i = 0; i < this._sequences.length; i++) {
-      const [columnUses, sequence] = this._sequences[i];
-      const exists = sequenceStructures.get(sequence.getFullName());
-      const { actual = true, min, max } = sequence.properties;
-      if (actual && exists) {
-        const sequenceCurValue = await sequence._getCurrentValue();
+    for (let i = 0; i < columns.length; i++) {
+      const column = columns[i];
+      const receivedColumn = utils.findByName(
+        structure.columns,
+        column.name,
+        columns.formerNames
+      );
+
+      if (receivedColumn && receivedColumn.identity) {
+        const {
+          rows: [{ name }],
+        } = await this._client.query(
+          QueryGenerator.getIdentityColumnSequence(fullName, column)
+        );
+
+        const {
+          rows: [{ value: curValue }],
+        } = await this._client.query(
+          SequenceQueryGenerator.getCurrentValue(name)
+        );
+
         const {
           rows: [{ max: valueForRestart }],
         } = await this._client.query(
           QueryGenerator.getMaxValueForRestartSequence(
             fullName,
-            columnUses,
-            min,
-            max,
-            sequenceCurValue
+            column.name,
+            column.identity.min,
+            column.identity.max,
+            curValue
           )
         );
+
         if (utils.isExist(valueForRestart)) {
-          queries.add(sequence._getRestartQuery(valueForRestart));
+          queries.add(
+            QueryGenerator.restartIdentity(fullName, column, valueForRestart)
+          );
         }
       }
     }

@@ -101,7 +101,7 @@
             "type": "string"
           }
         },
-        "autoIncrement": {
+        "identity": {
           "type": [
             "boolean",
             "object"
@@ -145,11 +145,11 @@
       "type": "object",
       "patternProperties": {
         ".*" : {
-          "oneOf": [
+          "anyOf": [
+            {"$ref": "#/definitions/column"},
             {
               "type": "string"
-            },
-            {"$ref": "#/definitions/column"}
+            }
           ]
         }
       }

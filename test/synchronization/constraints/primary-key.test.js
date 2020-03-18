@@ -22,8 +22,8 @@ common.describeIndexOrConstraintTest(
   {
     properties: [{ ...roles, primaryKey: { columns: ['id', 'type'] } }],
     expectQueries: [
-      `alter table "DifferSchema"."roles" drop constraint "roles_pkey";`,
-      `alter table "DifferSchema"."roles" add PRIMARY KEY ( "id", "type" );`,
+      'alter table "DifferSchema"."roles" drop constraint "roles_pkey";',
+      'alter table "DifferSchema"."roles" add PRIMARY KEY ( "id", "type" );',
     ],
   }
 );

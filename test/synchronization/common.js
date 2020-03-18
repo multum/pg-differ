@@ -3,8 +3,11 @@
 const helpers = require('../helpers');
 
 exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
-  describe(type, () => {
-    it(`should create a table and add '${type}'`, function() {
+  const title = type
+    .replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1 $2')
+    .toLowerCase();
+  describe(title, () => {
+    it(`should create a table and add '${title}'`, function() {
       return helpers.alterObject(
         'table',
         {
@@ -22,7 +25,7 @@ exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
       );
     });
 
-    it(`should drop unnecessary '${type}'`, function() {
+    it(`should drop unnecessary '${title}'`, function() {
       const cleanable = { [type]: true };
       return helpers.alterObject(
         'table',

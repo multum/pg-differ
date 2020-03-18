@@ -20,7 +20,7 @@ exports.findByName = (array, name, formerNames) =>
     return false;
   });
 
-exports.getObjectDifference = (object, exclude) => {
+exports.getDiff = (object, exclude) => {
   return Object.keys(object).reduce((acc, key) => {
     const leftValue = object[key];
     const rightValue = exclude[key];

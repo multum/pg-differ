@@ -31,9 +31,6 @@
     },
     "cycle": {
       "type": "boolean"
-    },
-    "actual": {
-      "type": "boolean"
     }
   }
 }

@@ -16,7 +16,6 @@ const {
   TypePlaceholders,
   Columns,
   Extensions,
-  Sequences,
 } = require('./constants');
 
 exports.columnType = target => {
@@ -78,15 +77,16 @@ exports.defaultValueInformationSchema = value => {
 
 exports.checkCondition = definition => definition.match(/[^(]+(?=\))/)[0];
 
-const _normalizeAutoIncrement = value => {
-  if (R.is(Object, value)) {
-    return {
-      ...Sequences.DEFAULTS,
+const _normalizeIdentity = value => {
+  if (utils.isObject(value)) {
+    value = {
+      ...Columns.IDENTITY_DEFAULTS,
       ...value,
     };
   } else if (value) {
-    return { ...Sequences.DEFAULTS };
+    value = { ...Columns.IDENTITY_DEFAULTS };
   }
+
   return value;
 };
 
@@ -126,6 +126,7 @@ exports.encodeExtensionType = key => _encodeExtensionTypes[key] || null;
 
 const _defaultSyncOptions = {
   transaction: true,
+  actualizeIdentityColumns: false,
   force: false,
   cleanable: {
     primaryKey: true,
@@ -203,26 +204,36 @@ exports.schema = schema => {
         const defaults = _getExtensionDefaults(type);
         acc[type] = defaults
           ? elements.map(props => ({ ...defaults, ...props }))
-          : elements;
+          : [...elements];
       }
       return acc;
     }, {})
   )(schema);
 
-  extensions.primaryKey = schema.primaryKey ? [schema.primaryKey] : null;
+  let primaryKey = schema.primaryKey;
 
   columns = columns.map(column => {
     column = { ...Columns.DEFAULTS, ...column };
 
     if (column.primary) {
-      if (extensions.primaryKey) {
+      if (primaryKey) {
         throw new ValidationError({
           path: `properties.columns['${column.name}']`,
           message: `table '${schema.name}' must have only one primary key`,
         });
       } else {
-        extensions.primaryKey = [{ columns: [column.name] }];
+        primaryKey = { columns: [column.name] };
       }
+    }
+
+    if (
+      column.identity ||
+      column.primary ||
+      (primaryKey && primaryKey.columns.includes(column.name))
+    ) {
+      column.shouldBeNullable = true;
+    } else {
+      column.shouldBeNullable = false;
     }
 
     if (column.unique) {
@@ -233,10 +244,12 @@ exports.schema = schema => {
 
     column.type = exports.columnType(column.type);
     column.default = _encodeValue(column.default);
-    column.autoIncrement = _normalizeAutoIncrement(column.autoIncrement);
+    column.identity = _normalizeIdentity(column.identity);
 
     return column;
   });
+
+  extensions.primaryKey = primaryKey ? [primaryKey] : null;
 
   return {
     name: schema.name,

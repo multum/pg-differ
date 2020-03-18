@@ -8,7 +8,6 @@ const expectedSimpleAlterQuery = [
 describe('alter column type', () => {
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'numeric(16,2)',
     })
@@ -19,7 +18,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'smallint',
     })
@@ -30,7 +28,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'integer',
     })
@@ -41,7 +38,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'bigint',
     })
@@ -52,7 +48,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'real',
     })
@@ -63,7 +58,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'character varying(64)',
     })
@@ -74,7 +68,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'character(64)',
     })
@@ -89,7 +82,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'timestamp',
     })
@@ -100,7 +92,6 @@ describe('alter column type', () => {
 
   helpers
     .alterColumnType({
-      table: 'DifferSchema.users',
       column: 'birthday',
       type: 'time',
     })

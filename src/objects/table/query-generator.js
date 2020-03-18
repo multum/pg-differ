@@ -8,17 +8,30 @@
 
 const utils = require('../../utils');
 const helpers = require('../../helpers');
+const { Sequences } = require('../../constants');
 const { isColumnModificationAllowed } = require('./change-rules');
+const SequenceQueryGenerator = require('../sequence/query-generator');
 const { SynchronizationError } = require('../../errors');
 
-const _shouldBePrimaryKey = (primaryKey, column) => {
-  return primaryKey ? primaryKey.columns.includes(column) : false;
+const _identityDescription = ({ generation, ...properties }) => {
+  let result = `generated ${generation} as identity`;
+
+  if (!utils.isEmpty(properties)) {
+    const options = Object.entries(properties)
+      .map(([key, value]) => {
+        return SequenceQueryGenerator.setAttribute(key, value);
+      })
+      .join(' ');
+    result += options ? ` ( ${options} )` : '';
+  }
+
+  return result;
 };
 
 const _quoteAndJoinColumns = columns =>
   columns.map(helpers.quoteIdentifier).join(', ');
 
-const _getColumnDescription = (primaryKey, column, temp) => {
+const _getColumnDescription = (column, temp) => {
   const quotedColumnName = helpers.quoteIdentifier(column.name);
   const chunks = [`${quotedColumnName} ${column.type.raw}`];
 
@@ -30,24 +43,30 @@ const _getColumnDescription = (primaryKey, column, temp) => {
     chunks.push(`default ${column.default}`);
   }
 
-  if (column.nullable && !_shouldBePrimaryKey(primaryKey, column)) {
-    chunks.push('null');
-  } else {
-    chunks.push('not null');
+  if (!column.shouldBeNullable) {
+    if (column.nullable) {
+      chunks.push('null');
+    } else {
+      chunks.push('not null');
+    }
+  }
+
+  if (column.identity) {
+    chunks.push(_identityDescription(column.identity));
   }
 
   return chunks.join(' ');
 };
 
-const _setDefault = (table, columnName, value) => {
-  return `alter table ${table} alter column ${columnName} set default ${value};`;
-};
-
-const _dropDefault = (table, columnName) => {
-  return `alter table ${table} alter column ${columnName} drop default;`;
-};
-
 class QueryGenerator {
+  static setDefault(table, columnName, value) {
+    return `alter table ${table} alter column ${columnName} set default ${value};`;
+  }
+
+  static dropDefault(table, columnName) {
+    return `alter table ${table} alter column ${columnName} drop default;`;
+  }
+
   static getChecks(table) {
     return `
     select
@@ -61,10 +80,11 @@ class QueryGenerator {
   static getMaxValueForRestartSequence(
     table,
     column,
-    min,
-    max,
+    min = Sequences.DEFAULTS.min,
+    max = Sequences.DEFAULTS.max,
     sequenceCurValue
   ) {
+    column = helpers.quoteIdentifier(column);
     return `
     select max(${column}) as max
       from ${table}
@@ -72,8 +92,8 @@ class QueryGenerator {
       and ${column} > ${sequenceCurValue}`;
   }
 
-  static addColumn(table, primaryKey, column) {
-    const columnDescription = _getColumnDescription(primaryKey, column);
+  static addColumn(table, column) {
+    const columnDescription = _getColumnDescription(column);
     return `alter table ${table} add column ${columnDescription};`;
   }
 
@@ -125,9 +145,9 @@ class QueryGenerator {
     }
   }
 
-  static createTable(table, columns, primaryKey, force, temp) {
+  static createTable(table, columns, force, temp) {
     columns = columns
-      .map(column => _getColumnDescription(primaryKey, column, temp))
+      .map(column => _getColumnDescription(column, temp))
       .join(', ');
     return [
       force ? `drop table if exists ${table} cascade;` : null,
@@ -135,17 +155,58 @@ class QueryGenerator {
     ];
   }
 
-  static alterColumn(table, primaryKey, column, key, value) {
+  static dropIdentify(table, column) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+    return `alter table ${table} alter column ${quotedColumnName} drop identity;`;
+  }
+
+  static addIdentify(table, column, properties) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+    return (
+      `alter table ${table} alter column ${quotedColumnName}` +
+      ` add ${_identityDescription(properties)};`
+    );
+  }
+
+  static alterIdentify(table, column, prevProperties, properties) {
+    if (utils.isEmpty(properties)) return null;
+
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+
+    const options = Object.entries(properties).map(([key, value]) => {
+      if (key === 'generation') {
+        return `set generation ${value}`;
+      } else {
+        return `set ${SequenceQueryGenerator.setAttribute(key, value)}`;
+      }
+    });
+
+    if (utils.isExist(properties.min) || utils.isExist(properties.max)) {
+      if (
+        prevProperties.min < properties.min ||
+        prevProperties.max > properties.max
+      ) {
+        options.push('restart');
+      }
+    }
+
+    return (
+      `alter table ${table}` +
+      ` alter column ${quotedColumnName} ${options.join(' ')};`
+    );
+  }
+
+  static alterColumn(table, column, key, value) {
     const quotedColumnName = helpers.quoteIdentifier(column.name);
     if (key === 'name') {
       const prev = helpers.quoteIdentifier(value.prev);
       const next = helpers.quoteIdentifier(value.next);
       return `alter table ${table} rename column ${prev} to ${next};`;
     } else if (key === 'nullable') {
+      if (column.shouldBeNullable) return null;
+
       if (value === true) {
-        if (!_shouldBePrimaryKey(primaryKey, column.name)) {
-          return `alter table ${table} alter column ${quotedColumnName} drop not null;`;
-        }
+        return `alter table ${table} alter column ${quotedColumnName} drop not null;`;
       } else {
         const setValues = utils.isExist(column.default)
           ? `update ${table} set ${quotedColumnName} = ${column.default} where ${quotedColumnName} is null;`
@@ -164,17 +225,29 @@ class QueryGenerator {
         return `alter table ${table} alter column ${quotedColumnName} type ${column.type.raw}${collate};`;
       } else {
         throw new SynchronizationError(
-          `Change the column type from '${value.prev.type.raw}' to '${value.next.type.raw}' can result in data loss`
+          `Change the column type from '${value.prev.raw}' to '${value.next.raw}' can result in data loss`
         );
       }
     } else if (key === 'default') {
       if (utils.isExist(value)) {
-        return _setDefault(table, quotedColumnName, value);
+        return QueryGenerator.setDefault(table, quotedColumnName, value);
       } else {
-        return _dropDefault(table, quotedColumnName);
+        return QueryGenerator.dropDefault(table, quotedColumnName);
       }
     }
     return null;
+  }
+
+  static getIdentityColumnSequence(table, column) {
+    return `select pg_get_serial_sequence('${table}', '${column.name}') as name`;
+  }
+
+  static restartIdentity(table, column, value) {
+    const quotedColumnName = helpers.quoteIdentifier(column.name);
+    return (
+      `alter table ${table}` +
+      ` alter column ${quotedColumnName} restart with ${value};`
+    );
   }
 }
 

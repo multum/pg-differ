@@ -8,7 +8,6 @@
     "prefer-const": ["error", {"destructuring": "all"}],
     "lines-between-class-members": ["error", "always"],
     "no-console": ["error", { "allow": ["warn", "error", "info"] }],
-    "strict": ["error", "global"],
-    "curly": "warn"
+    "strict": ["error", "global"]
   }
 }

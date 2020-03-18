@@ -138,10 +138,6 @@ class Differ {
       sequences: values.filter(object => object.type === 'sequence'),
     };
 
-    objects.tables.forEach(table => {
-      objects.sequences.push(...table.getSequences());
-    });
-
     const metalize = new Metalize({
       client: this._client,
       dialect: 'postgres',
@@ -193,15 +189,11 @@ class Differ {
       }
     }
 
-    for (const table of objects.tables) {
-      const structure = metadata.tables.get(table.getFullName());
-      queries.push(
-        table._getSequenceActualizeQueries(
-          structure,
-          metadata.sequences,
-          options
-        )
-      );
+    if (options.actualizeIdentityColumns) {
+      for (const table of objects.tables) {
+        const structure = metadata.tables.get(table.getFullName());
+        queries.push(table._getIdentityActualizeQueries(structure, options));
+      }
     }
 
     return Promise.all(queries).then(

@@ -48,9 +48,9 @@ Define a `UNIQUE` constraint for a column
 
 Array of previous column names that is used to rename
 
-### autoIncrement
+### identity
 
-- Type: `Boolean` | [autoIncrement object](metadata/auto-increment.md)
+- Type: `Boolean` | [identity object](metadata/identity.md)
 - Default: `false`
 - Required: `false`
 

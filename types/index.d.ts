@@ -38,7 +38,7 @@ interface ColumnOptions {
   primary?: boolean,
   unique?: boolean,
   default?: ColumnValueType,
-  autoIncrement?: boolean | AutoIncrementOptions,
+  identity?: boolean | IdentityOptions,
   formerNames?: string[],
 }
 
@@ -55,14 +55,13 @@ interface SequenceProperties {
   cycle?: boolean,
 }
 
-interface AutoIncrementOptions {
+interface IdentityOptions {
   name?: string,
   start?: string | number,
   min?: string | number,
   max?: string | number,
   increment?: string | number,
-  cycle?: boolean,
-  actual?: boolean
+  cycle?: boolean
 }
 
 interface CheckOptions {
@@ -84,6 +83,7 @@ interface SyncOptions {
   force?: boolean,
   execute?: boolean,
   cleanable?: CleanExtensionOptions,
+  actualizeIdentityColumns?: boolean
 }
 
 declare type ObjectType = 'table' | 'sequence'

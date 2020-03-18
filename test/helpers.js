@@ -2,6 +2,7 @@
 
 const Differ = require('../src');
 const parser = require('../src/parser');
+const helpers = require('../src/helpers');
 const connectionConfig = require('./pg.config');
 
 const _validateProperty = (object, property, method) => {
@@ -24,22 +25,47 @@ exports.createInstance = options => {
 exports.alterObject = async (type, ...stages) => {
   const differ = exports.createInstance();
   for (const stage of stages) {
-    const { properties, expectQueries, syncOptions, ignoreResultCheck } = stage;
+    let names;
+    let {
+      properties,
+      expectQueries,
+      syncOptions,
+      ignoreResultCheck,
+      onSync,
+    } = stage;
 
     if (!ignoreResultCheck) {
       _validateProperty(stage, 'expectQueries', 'helpers.alterObject');
     }
 
     if (Array.isArray(properties)) {
-      properties.forEach(p => differ.define(type, p));
+      names = properties.map((props, index) => {
+        props.name = props.name || `DifferSchema.users[${index}]`;
+        return [`[table[${index}]]`, props.name];
+      });
+      properties.forEach(props => differ.define(type, props));
     } else {
+      properties.name = properties.name || `DifferSchema.users`;
+      names = [['[table]', properties.name]];
       differ.define(type, properties);
     }
 
     const syncResult = await differ.sync(syncOptions);
     if (!ignoreResultCheck) {
+      expectQueries = expectQueries.map(query => {
+        names.forEach(([placeholder, name]) => {
+          query = query.replace(placeholder, helpers.quoteObjectName(name));
+        });
+        return query;
+      });
       await exports.expectSyncResult(syncResult, expectQueries);
       await exports.expectSyncResult(differ.sync({ execute: false }), []);
+    }
+    if (onSync) {
+      onSync(
+        differ,
+        names.map(([, name]) => helpers.quoteObjectName(name))
+      );
     }
   }
 
@@ -53,7 +79,7 @@ exports.expectSyncResult = async (promise, expectQueries) => {
 };
 
 exports.alterColumnType = (
-  { table, column, type },
+  { table = 'DifferSchema.users', column, type },
   differ = exports.createInstance()
 ) => {
   const prevType = type;

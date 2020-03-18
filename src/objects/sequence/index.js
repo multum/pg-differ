@@ -24,11 +24,15 @@ class Sequence extends AbstractObject {
     if (options.force) {
       return new ChangeStorage([
         QueryGenerator.drop(fullName),
-        QueryGenerator.create(fullName, this.properties),
+        QueryGenerator.do('create', fullName, this.properties),
       ]);
     } else {
       if (structure) {
-        const diff = utils.getObjectDifference(this.properties, structure);
+        const queries = new ChangeStorage();
+        const diff = utils.getDiff(this.properties, structure);
+
+        if (utils.isEmpty(diff)) return queries;
+
         if (utils.isExist(diff.min) || utils.isExist(diff.max)) {
           const {
             rows: [{ correct }],
@@ -43,27 +47,16 @@ class Sequence extends AbstractObject {
             diff.current = this.properties.min;
           }
         }
-        return new ChangeStorage(QueryGenerator.alter(fullName, diff));
+
+        queries.add(QueryGenerator.do('alter', fullName, diff));
+
+        return queries;
       } else {
         return new ChangeStorage(
-          QueryGenerator.create(fullName, this.properties)
+          QueryGenerator.do('create', fullName, this.properties)
         );
       }
     }
-  }
-
-  _getIncrementQuery() {
-    return QueryGenerator.increment(this.getQuotedFullName());
-  }
-
-  _getRestartQuery(value) {
-    return QueryGenerator.restart(this.getQuotedFullName(), value);
-  }
-
-  _getCurrentValue() {
-    return this._client
-      .query(QueryGenerator.getCurrentValue(this.getQuotedFullName()))
-      .then(({ rows: [{ currentValue }] }) => currentValue);
   }
 }
 
