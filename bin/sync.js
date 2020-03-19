@@ -19,7 +19,7 @@ const argv = minimist(process.argv.slice(3), {
     h: 'help',
     '?': 'help',
     v: 'version',
-    c: 'connectionString',
+    c: 'connection',
     f: 'force',
     S: 'silent',
     s: 'set',
@@ -42,7 +42,7 @@ if (argv.help) {
 
   // prettier-ignore
   const args = [
-    { key: '--connectionString, -c', descriptions: 'Connection URI to database' },
+    { key: '--connection, -c', descriptions: 'Connection URI to database' },
     { key: '--silent, -S', descriptions: 'Option to disable printing messages through the console' },
     { key: '--set, -s', descriptions: 'Set variable with value to replace placeholders in schema files' },
     { key: '--force, -f', descriptions: 'Force synchronization of tables and sequences (drop and create)' },
@@ -76,7 +76,7 @@ const getLocals = () => {
 const differ = new Differ({
   logging: !argv.silent,
   connectionConfig: {
-    connectionString: argv.connectionString,
+    connectionString: argv.connection,
   },
 });
 

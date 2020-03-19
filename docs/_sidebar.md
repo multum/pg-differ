@@ -1,6 +1,7 @@
 <!-- docs/_sidebar.md -->
 
 - [Readme](/)
+- [Changelog](changelog)
 - [Getting started](getting-started.md)
 - [Configuration](configuration.md)
 - [Objects](objects.md)
@@ -13,5 +14,4 @@
   - [Unique](metadata/unique.md)
   - [Index](metadata/index.md)
 - [Methods](methods.md)
-- [Changelog](changelog)
 - [CLI](cli.md)

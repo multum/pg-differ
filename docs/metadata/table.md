@@ -18,50 +18,38 @@ differ.sync().then(() => console.log('database ready'));
 
 The name of the format table is `'schema_name.table_name'` or `'table_name'`
 
-### columns
+### [columns](metadata/column.md)
 
 - Type: `Object<{[name]: Column}>`
 - Default: `null`
 - Required: `true`
 
-[Table columns](metadata/column.md)
-
-### primaryKey
+### [primaryKey](metadata/primary-key.md)
 
 - Type: `Object`
 - Default: `null`
 - Required: `false`
 
-[Object with parameters](metadata/primary-key.md) of table primary key
-
-### indexes
+### [indexes](metadata/index.md)
 
 - Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
-Array of objects with parameters of table indexes
-
-### foreignKeys
+### [foreignKeys](metadata/foreign-key.md)
 
 - Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](metadata/foreign-key.md) of table foreign keys
-
-### unique
+### [unique](metadata/unique.md)
 
 - Type: `Object[]`
 - Default: `null`
 - Required: `false`
 
-Array of [objects with parameters](metadata/unique.md) of table unique
-
-### checks
+### [checks](metadata/check.md)
 
 - Type: `Object[]`
 - Default: `null`
 - Required: `false`
-
-Array of [objects with parameters](metadata/check.md) of table checks

@@ -14,4 +14,4 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 - Default: `console.info`
 - Required: `false`
 
-Option to enable logging in the console or callback of the format `function(message) {}` for displaying a message about changes
+Option to enable logging in the console or callback of the format `function(...messages) {}` for displaying a message about changes

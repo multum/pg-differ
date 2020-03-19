@@ -40,6 +40,14 @@ Define a `PRIMARY KEY` constraint for a column
 
 Define a `UNIQUE` constraint for a column
 
+### [identity](metadata/identity.md)
+
+- Type: `Boolean` | [identity object](metadata/identity.md)
+- Default: `false`
+- Required: `false`
+
+Creates a sequence and writes the increment function in the `default` field of the current column
+
 ### formerNames
 
 - Type: `Object`
@@ -47,11 +55,3 @@ Define a `UNIQUE` constraint for a column
 - Required: `false`
 
 Array of previous column names that is used to rename
-
-### identity
-
-- Type: `Boolean` | [identity object](metadata/identity.md)
-- Default: `false`
-- Required: `false`
-
-Creates a sequence and writes the increment function in the `default` field of the current column
