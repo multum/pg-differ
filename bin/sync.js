@@ -10,7 +10,7 @@
 const minimist = require('minimist');
 const chalk = require('chalk');
 const path = require('path');
-const Differ = require('../src');
+const Differ = require('../lib');
 const pkg = require('../package.json');
 
 const argv = minimist(process.argv.slice(3), {

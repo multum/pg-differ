@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { ImportError } = require('../../src/errors');
+const { ImportError } = require('../../lib/errors');
 const helpers = require('../helpers');
 
 describe(`method import()`, () => {

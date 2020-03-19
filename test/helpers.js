@@ -1,9 +1,9 @@
 'use strict';
 
 const { Client } = require('pg');
-const Differ = require('../src');
-const parser = require('../src/parser');
-const helpers = require('../src/helpers');
+const Differ = require('../lib');
+const parser = require('../lib/parser');
+const helpers = require('../lib/helpers');
 const connectionConfig = require('./pg.config');
 
 const _validateProperty = (object, property, method) => {
