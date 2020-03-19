@@ -100,7 +100,9 @@ declare class DatabaseObject {
   getQuotedFullName(): string;  // '"SchemaName"."object_name"'
 }
 
-declare type ArrayOfChanges = string[]
+interface SyncResult {
+  queries: string[]
+}
 
 interface ImportOptions {
   path: string,
@@ -123,7 +125,7 @@ declare class Differ {
   // @ts-ignore
   import(options: string | ImportOptions): Map<string, DatabaseObject>
 
-  sync(options?: SyncOptions): Promise<ArrayOfChanges>
+  sync(options?: SyncOptions): Promise<SyncResult>
 
   setDefaultSchema(schema: String): this
 

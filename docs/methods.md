@@ -23,7 +23,7 @@ Defining models from `*.json` files. Equivalent to function calls `differ.define
 > Differ.prototype.sync
 
 - Arguments: (options?: [sync options](sync.md))
-- Returns: `Promise<Changes>`
+- Returns: `Promise<{ queries: String[] }>`
 
 Synchronization of previously defined [objects](objects.md)
 

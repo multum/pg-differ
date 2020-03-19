@@ -85,7 +85,8 @@ exports.alterObject = async (type, ...stages) => {
 };
 
 exports.expectSyncResult = async (promise, expectQueries) => {
-  expect(await promise).toEqual(expectQueries);
+  const result = await promise;
+  expect(result.queries).toEqual(expectQueries);
 };
 
 exports.alterColumnType = (options, differ = exports.createInstance()) => {

@@ -233,7 +233,7 @@ class Differ {
 
     await client.end();
 
-    return preparedChanges;
+    return { queries: preparedChanges };
   }
 }
 
