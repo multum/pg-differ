@@ -20,7 +20,7 @@ Connection URI to database
 
 ### set
 
-- Alias: `-S`
+- Alias: `-s`
 - Default: `null`
 - Required: `false`
 - Example: `name=value`
@@ -29,7 +29,7 @@ Set variable with value to replace placeholders in schema files
 
 ### silent
 
-- Alias: `-s`
+- Alias: `-S`
 - Default: `false`
 - Required: `false`
 

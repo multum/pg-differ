@@ -88,10 +88,14 @@ exports.expectSyncResult = async (promise, expectQueries) => {
   expect(await promise).toEqual(expectQueries);
 };
 
-exports.alterColumnType = (
-  { table = 'DifferSchema.users', column, type },
-  differ = exports.createInstance()
-) => {
+exports.alterColumnType = (options, differ = exports.createInstance()) => {
+  if (typeof options === 'string') {
+    const type = options;
+    options = { type };
+  }
+
+  const { table = 'DifferSchema.users', column = 'birthday', type } = options;
+
   const prevType = type;
   return {
     to: ({ types, expectQuery }) => {
@@ -99,20 +103,20 @@ exports.alterColumnType = (
         it(`[ ${prevType} ] => [ ${type} ]`, async function() {
           const model = differ.define('table', {
             name: table,
-            columns: { [column]: { type: prevType, nullable: false } },
+            columns: { [column]: prevType },
           });
 
           const normalizedPrevType = parser.columnType(prevType).raw;
           await exports.expectSyncResult(differ.sync({ force: true }), [
             `drop table if exists ${model.getQuotedFullName()} cascade;`,
-            `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} not null );`,
+            `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} null );`,
           ]);
 
           const normalizedType = parser.columnType(type).raw;
 
           differ.define('table', {
             name: table,
-            columns: { [column]: { type: normalizedType, nullable: false } },
+            columns: { [column]: normalizedType },
           });
           await exports.expectSyncResult(
             differ.sync(),

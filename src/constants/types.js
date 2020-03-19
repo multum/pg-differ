@@ -12,6 +12,7 @@ const DataTypes = {
   boolean: 'boolean',
   characterVarying: 'character varying',
   character: 'character',
+  text: 'text',
   doublePrecision: 'double precision',
   integer: 'integer',
   numeric: 'numeric',

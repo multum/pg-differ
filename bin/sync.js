@@ -21,8 +21,8 @@ const argv = minimist(process.argv.slice(3), {
     v: 'version',
     c: 'connectionString',
     f: 'force',
-    s: 'silent',
-    S: 'set',
+    S: 'silent',
+    s: 'set',
   },
   default: {
     silent: false,
@@ -43,8 +43,8 @@ if (argv.help) {
   // prettier-ignore
   const args = [
     { key: '--connectionString, -c', descriptions: 'Connection URI to database' },
-    { key: '--silent, -s', descriptions: 'Option to disable printing messages through the console' },
-    { key: '--set, -S', descriptions: 'Set variable with value to replace placeholders in schema files' },
+    { key: '--silent, -S', descriptions: 'Option to disable printing messages through the console' },
+    { key: '--set, -s', descriptions: 'Set variable with value to replace placeholders in schema files' },
     { key: '--force, -f', descriptions: 'Force synchronization of tables and sequences (drop and create)' },
     { key: '--version, -v', descriptions: 'Print out the installed version' },
     { key: '--help, -h, -?', descriptions: 'Show this help' },

@@ -51,4 +51,28 @@ describe('default value of the column', () => {
       }
     );
   });
+
+  it('should remove unnecessary default value', function() {
+    return helpers.alterObject(
+      'table',
+      {
+        properties: {
+          columns: {
+            birthday: {
+              type: 'timestamp',
+              default: ['literal', 'now()'],
+            },
+          },
+        },
+        ignoreResultCheck: true,
+        syncOptions: { force: true },
+      },
+      {
+        properties: { columns: { birthday: 'timestamp' } },
+        expectQueries: [
+          'alter table [table] alter column "birthday" drop default;',
+        ],
+      }
+    );
+  });
 });

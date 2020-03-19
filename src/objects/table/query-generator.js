@@ -194,8 +194,7 @@ class QueryGenerator {
     const quotedColumnName = helpers.quoteIdentifier(column.name);
     if (key === 'name') {
       const prev = helpers.quoteIdentifier(value.prev);
-      const next = helpers.quoteIdentifier(value.next);
-      return `alter table ${table} rename column ${prev} to ${next};`;
+      return `alter table ${table} rename column ${prev} to ${quotedColumnName};`;
     } else if (key === 'nullable') {
       if (column.shouldBeNullable) return null;
 

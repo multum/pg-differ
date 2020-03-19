@@ -1,6 +1,6 @@
 # Getting started
 
-!> pg-differ requires: **[Node.js](https://nodejs.org/)** **v10** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v9.5** or more
+!> pg-differ requires: **[Node.js](https://nodejs.org/)** **v10** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v10** or more
 
 ```bash
 npm i pg-differ

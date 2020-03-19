@@ -8,7 +8,7 @@ describe('identity', () => {
     return helpers.alterObject('table', {
       properties: {
         columns: {
-          id: { type: 'integer', identity: true },
+          id: { type: 'int', identity: true },
         },
       },
       syncOptions: { force: true },
@@ -26,7 +26,7 @@ describe('identity', () => {
         properties: {
           columns: {
             id: {
-              type: 'integer',
+              type: 'int',
               identity: { start: 100, min: 100, max: 9999 },
             },
           },
@@ -38,7 +38,7 @@ describe('identity', () => {
         properties: {
           columns: {
             id: {
-              type: 'integer',
+              type: 'int',
               identity: { max: 10000 },
             },
           },
@@ -57,7 +57,7 @@ describe('identity', () => {
         properties: {
           columns: {
             id: {
-              type: 'integer',
+              type: 'int',
               identity: { start: 0, min: 0, max: 100 },
             },
           },
@@ -69,7 +69,7 @@ describe('identity', () => {
         properties: {
           columns: {
             id: {
-              type: 'integer',
+              type: 'int',
               identity: { start: 100, min: 0, max: 9999 },
             },
           },
@@ -87,7 +87,7 @@ describe('identity', () => {
       {
         properties: {
           columns: {
-            id: { type: 'integer', identity: true },
+            id: { type: 'int', identity: true },
           },
         },
         syncOptions: { force: true },
@@ -96,7 +96,7 @@ describe('identity', () => {
       {
         properties: {
           columns: {
-            id: { type: 'integer', identity: false },
+            id: { type: 'int', identity: false },
           },
         },
         expectQueries: [
@@ -113,7 +113,7 @@ describe('identity', () => {
       {
         properties: {
           columns: {
-            id: { type: 'integer', identity: true },
+            id: { type: 'int', identity: true },
           },
         },
         syncOptions: { force: true },
@@ -127,12 +127,12 @@ describe('identity', () => {
       {
         properties: {
           columns: {
-            id: { type: 'integer', identity: true },
+            id: { type: 'int', identity: true },
           },
         },
         syncOptions: { correctIdentitySequences: true },
         expectQueries: [
-          'alter table "DifferSchema"."users" alter column "id" restart with 100;',
+          'alter table [table] alter column "id" restart with 100;',
         ],
       }
     );
