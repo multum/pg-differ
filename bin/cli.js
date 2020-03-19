@@ -11,4 +11,11 @@ const command = process.argv[2];
 
 if (command === 'sync') {
   require('./sync');
+} else {
+  const allCommands = ['sync'];
+  console.error(
+    `Command '${command}' not found. Please use one of:` +
+      allCommands.map(command => `\n   ${command}`).join('')
+  );
+  process.exit(1);
 }

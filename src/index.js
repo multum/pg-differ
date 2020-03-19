@@ -76,7 +76,7 @@ class Differ {
       options.path = path.resolve(callerPath, options.path);
     }
 
-    const schemas = helpers.readSchemas(options);
+    const schemas = helpers.importSchemas(options);
 
     return new Map(
       schemas.map(schema => [
@@ -169,7 +169,7 @@ class Differ {
       }
     }
 
-    if (options.correctIdentitySequences) {
+    if (options.adjustIdentitySequences) {
       for (const table of objects.tables) {
         const structure = metadata.tables.get(table.getFullName());
         queries.push(

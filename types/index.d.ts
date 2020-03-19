@@ -83,7 +83,7 @@ interface SyncOptions {
   force?: boolean,
   execute?: boolean,
   allowClean?: CleanOptions,
-  correctIdentitySequences?: boolean
+  adjustIdentitySequences?: boolean
 }
 
 declare type ObjectType = 'table' | 'sequence'

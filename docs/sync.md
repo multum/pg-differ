@@ -32,7 +32,7 @@ Object with types `[ indexes | foreignKeys | unique | primaryKeys | checks ]: Bo
 
 Force synchronization of tables and sequences (drop and create)
 
-### correctIdentitySequences
+### adjustIdentitySequences
 
 - Type: `Boolean`
 - Default: `false`

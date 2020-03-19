@@ -12,7 +12,7 @@ describe(`method import()`, () => {
     const expectedPath = path.resolve(__dirname, folderPath); // absolute path
     expect(() => differ.import(folderPath)).toThrow(
       new ImportError(
-        'File or folder is missing at the specified path',
+        'Schema files not found at the specified path',
         expectedPath
       )
     );

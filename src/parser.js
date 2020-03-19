@@ -127,7 +127,7 @@ exports.encodeExtensionType = key => _encodeExtensionTypes[key] || null;
 const _defaultSyncOptions = {
   transaction: true,
   force: false,
-  correctIdentitySequences: false,
+  adjustIdentitySequences: false,
   allowClean: {
     primaryKey: true,
     foreignKey: false,

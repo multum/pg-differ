@@ -74,27 +74,33 @@ exports.quoteLiteral = value => {
   return quoted;
 };
 
-exports.readSchemas = ({
+exports.importSchemas = ({
   path: pathString,
   locals,
   pattern = /.*\.schema.json$/,
   interpolate = /\${([\s\S]+?)}/g,
 }) => {
-  const _getFile = file => exports.loadJSON(file, locals, interpolate);
+  const files = [];
+
   if (fs.existsSync(pathString)) {
     const lstat = fs.lstatSync(pathString);
     if (lstat.isDirectory()) {
-      return fs
-        .readdirSync(pathString)
-        .filter(file => pattern.test(file))
-        .map(file => _getFile(path.join(pathString, file)));
+      fs.readdirSync(pathString).forEach(file => {
+        if (pattern.test(file)) {
+          files.push(path.join(pathString, file));
+        }
+      });
     } else if (lstat.isFile()) {
-      return [_getFile(pathString)];
+      files.push(pathString);
     }
-  } else {
+  }
+
+  if (utils.isEmpty(files)) {
     throw new ImportError(
-      'File or folder is missing at the specified path',
+      'Schema files not found at the specified path',
       pathString
     );
   }
+
+  return files.map(file => exports.loadJSON(file, locals, interpolate));
 };

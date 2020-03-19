@@ -107,7 +107,7 @@ describe('identity', () => {
     );
   });
 
-  it('should correct identity sequences', function() {
+  it('should adjust identity sequences', function() {
     return helpers.alterObject(
       'table',
       {
@@ -130,7 +130,7 @@ describe('identity', () => {
             id: { type: 'int', identity: true },
           },
         },
-        syncOptions: { correctIdentitySequences: true },
+        syncOptions: { adjustIdentitySequences: true },
         expectQueries: [
           'alter table [table] alter column "id" restart with 100;',
         ],
