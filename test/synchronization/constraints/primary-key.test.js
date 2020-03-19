@@ -1,6 +1,6 @@
 'use strict';
 
-const common = require('../common');
+const helpers = require('../../helpers');
 
 const roles = {
   name: 'DifferSchema.roles',
@@ -11,7 +11,7 @@ const roles = {
   primaryKey: { columns: ['id'] },
 };
 
-common.describeIndexOrConstraintTest(
+helpers.describeIndexOrConstraintTest(
   'primaryKeys',
   {
     properties: [roles],

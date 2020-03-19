@@ -1,4 +1,5 @@
 'use strict';
+
 const { Client } = require('pg');
 const connectionConfig = require('./pg.config');
 module.exports = async () => {

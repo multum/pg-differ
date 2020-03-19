@@ -8,9 +8,9 @@ const roles = {
   checks: [{ condition }],
 };
 
-const common = require('../common');
+const helpers = require('../../helpers');
 
-common.describeIndexOrConstraintTest(
+helpers.describeIndexOrConstraintTest(
   'checks',
   {
     properties: [roles],
