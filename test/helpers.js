@@ -1,8 +1,7 @@
 'use strict';
 
 const { Client } = require('pg');
-const Differ = require('../lib');
-const parser = require('../lib/parser');
+const Differ = require('../');
 const helpers = require('../lib/helpers');
 const connectionConfig = require('./pg.config');
 
@@ -37,6 +36,7 @@ exports.createInstance = options => {
 
 exports.alterObject = async (type, ...stages) => {
   const differ = exports.createInstance();
+  const defaultTable = `DifferSchema.users`;
   for (const stage of stages) {
     let names;
     let {
@@ -53,12 +53,12 @@ exports.alterObject = async (type, ...stages) => {
 
     if (Array.isArray(properties)) {
       names = properties.map((props, index) => {
-        props.name = props.name || `DifferSchema.users[${index}]`;
+        props.name = props.name || `${defaultTable}[${index}]`;
         return [`[table[${index}]]`, props.name];
       });
       properties.forEach(props => differ.define(type, props));
     } else {
-      properties.name = properties.name || `DifferSchema.users`;
+      properties.name = properties.name || defaultTable;
       names = [['[table]', properties.name]];
       differ.define(type, properties);
     }
@@ -78,10 +78,6 @@ exports.alterObject = async (type, ...stages) => {
       onSync(names.map(([, name]) => helpers.quoteObjectName(name)));
     }
   }
-
-  return {
-    differ,
-  };
 };
 
 exports.expectSyncResult = async (promise, expectQueries) => {
@@ -89,58 +85,12 @@ exports.expectSyncResult = async (promise, expectQueries) => {
   expect(result.queries).toEqual(expectQueries);
 };
 
-exports.alterColumnType = (options, differ = exports.createInstance()) => {
-  if (typeof options === 'string') {
-    const type = options;
-    options = { type };
-  }
-
-  const { table = 'DifferSchema.users', column = 'birthday', type } = options;
-
-  const prevType = type;
-  return {
-    to: ({ types, expectQuery }) => {
-      types.forEach(type => {
-        it(`[ ${prevType} ] => [ ${type} ]`, async function() {
-          const model = differ.define('table', {
-            name: table,
-            columns: { [column]: prevType },
-          });
-
-          const normalizedPrevType = parser.columnType(prevType).raw;
-          await exports.expectSyncResult(differ.sync({ force: true }), [
-            `drop table if exists ${model.getQuotedFullName()} cascade;`,
-            `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} null );`,
-          ]);
-
-          const normalizedType = parser.columnType(type).raw;
-
-          differ.define('table', {
-            name: table,
-            columns: { [column]: normalizedType },
-          });
-          await exports.expectSyncResult(
-            differ.sync(),
-            expectQuery.map(query => {
-              return query
-                .replace(/\[table]/g, model.getQuotedFullName())
-                .replace(/\[type]/g, normalizedType)
-                .replace(/\[column]/g, `"${column}"`);
-            })
-          );
-          return exports.expectSyncResult(differ.sync({ execute: false }), []);
-        });
-      });
-    },
-  };
-};
-
 exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
   const title = type
     .replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1 $2')
     .toLowerCase();
   describe(title, () => {
-    it(`should create a table and add '${title}'`, function() {
+    it(`should create a table and add "${title}"`, function() {
       return exports.alterObject(
         'table',
         {
@@ -158,7 +108,7 @@ exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
       );
     });
 
-    it(`should drop unnecessary '${title}'`, function() {
+    it(`should drop unnecessary "${title}"`, function() {
       const allowClean = { [type]: true };
       return exports.alterObject(
         'table',

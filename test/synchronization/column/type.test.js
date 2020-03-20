@@ -1,73 +1,111 @@
 'use strict';
 
 const helpers = require('../../helpers');
-const expectedSimpleAlterQuery = [
-  'alter table [table] alter column [column] type [type];',
-];
+const parser = require('../../../lib/parser');
 
 describe('alter column type', () => {
-  helpers.alterColumnType('numeric(16,2)').to({
-    types: ['numeric(16,4)', 'numeric(16, 1)'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+  [
+    {
+      from: 'numeric(16,2)',
+      to: ['numeric(16,4)', 'numeric(16,1)'],
+    },
+    {
+      from: 'smallint',
+      to: ['integer', 'bigint', 'real', 'double precision'],
+    },
+    {
+      from: 'integer',
+      to: ['bigint', 'real', 'double precision'],
+    },
+    {
+      from: 'bigint',
+      to: ['real', 'double precision'],
+    },
+    {
+      from: 'real',
+      to: ['double precision'],
+    },
+    {
+      from: 'character varying(64)',
+      to: ['character varying(255)', 'character(64)', 'character(255)', 'text'],
+    },
+    {
+      from: 'character(64)',
+      to: [
+        'character(255)',
+        'character varying(64)',
+        'character varying(255)',
+        'text',
+      ],
+    },
+    {
+      from: 'timestamp',
+      to: ['timestamptz', 'timestamptz(5)', 'timestamp(5)'],
+    },
+    {
+      from: 'timestamptz',
+      to: ['timestamptz(5)', 'timestamp', 'timestamp(5)'],
+    },
+    {
+      from: 'time',
+      to: ['timetz', 'time(2)'],
+    },
+    {
+      from: 'timetz',
+      to: ['time', 'time(2)', 'timetz(2)'],
+    },
+    {
+      from: 'numeric(16)[]',
+      to: ['numeric(24)[]'],
+    },
+    {
+      from: 'numeric(24)',
+      to: ['numeric(16)'],
+      forbidden: true,
+    },
+    {
+      from: 'numeric(24)[]',
+      to: ['numeric(24)[][]'],
+      forbidden: true,
+    },
+  ].forEach(({ from: prevType, to: types, forbidden }) => {
+    const differ = helpers.createInstance();
 
-  helpers.alterColumnType('smallint').to({
-    types: ['integer', 'bigint', 'real', 'double precision'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+    const table = 'DifferSchema.users';
+    const column = 'birthday';
 
-  helpers.alterColumnType('integer').to({
-    types: ['bigint', 'real', 'double precision'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+    types.forEach(type => {
+      it(`${prevType} --> ${type}`, async function() {
+        const model = differ.define('table', {
+          name: table,
+          columns: { [column]: prevType },
+        });
 
-  helpers.alterColumnType('bigint').to({
-    types: ['real', 'double precision'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+        const normalizedPrevType = parser.dataType(prevType).raw;
+        await helpers.expectSyncResult(differ.sync({ force: true }), [
+          `drop table if exists ${model.getQuotedFullName()} cascade;`,
+          `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} null );`,
+        ]);
 
-  helpers.alterColumnType('real').to({
-    types: ['double precision'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+        const normalizedType = parser.dataType(type).raw;
 
-  helpers.alterColumnType('character varying(64)').to({
-    types: [
-      'character varying(255)',
-      'character(64)',
-      'character(255)',
-      'text',
-    ],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+        differ.define('table', {
+          name: table,
+          columns: { [column]: normalizedType },
+        });
 
-  helpers.alterColumnType('character(64)').to({
-    types: [
-      'character(255)',
-      'character varying(64)',
-      'character varying(255)',
-      'text',
-    ],
-    expectQuery: expectedSimpleAlterQuery,
-  });
+        if (forbidden) {
+          await expect(differ.sync({ execute: false })).rejects.toThrow(
+            `Change the column type from '${normalizedPrevType}' to '${normalizedType}' can result in data loss`
+          );
+        } else {
+          await helpers.expectSyncResult(differ.sync(), [
+            `alter table "DifferSchema"."users" alter column "birthday" type ${normalizedType};`,
+          ]);
 
-  helpers.alterColumnType('timestamp').to({
-    types: ['timestamptz', 'timestamptz(5)', 'timestamp(5)'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
-
-  helpers.alterColumnType('timestamptz').to({
-    types: ['timestamptz(5)', 'timestamp', 'timestamp(5)'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
-
-  helpers.alterColumnType('time').to({
-    types: ['timez', 'time(2)'],
-    expectQuery: expectedSimpleAlterQuery,
-  });
-
-  helpers.alterColumnType('timez').to({
-    types: ['time', 'time(2)', 'timez(2)'],
-    expectQuery: expectedSimpleAlterQuery,
+          return helpers.expectSyncResult(differ.sync({ execute: false }), []);
+        }
+      });
+    });
   });
 });

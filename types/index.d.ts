@@ -108,7 +108,7 @@ interface ImportOptions {
   path: string,
   match?: RegExp,
   interpolate?: RegExp,
-  locals?: { [key: string]: string | number | Object | any[]; },
+  locals?: { [key: string]: any; },
 }
 
 interface DifferOptions {
@@ -120,13 +120,49 @@ declare class Differ {
 
   constructor(options: DifferOptions);
 
-  define(objectType: ObjectType, metadata: AnyOfSchemas): DatabaseObject
+  /**
+   * @example
+   * differ.define('sequence', {
+   *   name: 'roles_seq',
+   *   max: 9999
+   * });
+   * differ.define('table', {
+   *   name: 'users',
+   *   columns: {
+   *     id: 'integer',
+   *     birthday: {
+   *       type: 'timestamp',
+   *       default: ['literal', 'now()']
+   *     }
+   *   }
+   * });
+   */
+  define(type: ObjectType, metadata: AnyOfSchemas): DatabaseObject
 
+  /**
+   * @example
+   * await differ.import('./objects');
+   * await differ.import({
+   *   path: './objects',
+   *   interpolate: /\[([\s\S]+?)]/g,
+   *   pattern: /.*\.schema.json$/
+   * });
+   */
   // @ts-ignore
   import(options: string | ImportOptions): Map<string, DatabaseObject>
 
+
+  /**
+   * @example
+   * await differ.sync();
+   * await differ.sync({ force: true });
+   */
   sync(options?: SyncOptions): Promise<SyncResult>
 
+  /**
+   * @example
+   * await differ.setDefaultSchema('DifferSchema');
+   */
   setDefaultSchema(schema: String): this
 
   // @ts-ignore

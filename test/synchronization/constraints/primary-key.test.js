@@ -16,6 +16,7 @@ helpers.describeIndexOrConstraintTest(
   {
     properties: [roles],
     expectQueries: [
+      'alter table "DifferSchema"."roles" alter column "id" set not null;',
       `alter table "DifferSchema"."roles" add PRIMARY KEY ( "id" );`,
     ],
   },
@@ -23,6 +24,7 @@ helpers.describeIndexOrConstraintTest(
     properties: [{ ...roles, primaryKey: { columns: ['id', 'type'] } }],
     expectQueries: [
       'alter table "DifferSchema"."roles" drop constraint "roles_pkey";',
+      'alter table "DifferSchema"."roles" alter column "type" set not null;',
       'alter table "DifferSchema"."roles" add PRIMARY KEY ( "id", "type" );',
     ],
   }

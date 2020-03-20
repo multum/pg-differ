@@ -7,13 +7,6 @@
 
 Synchronization of previously defined tables and their seeds
 
-### import
-
-- Arguments: (options: `FolderPath` | [import options](import.md))
-- Returns: `Differ`
-
-Defining models from `*.json` files. Equivalent to function calls `differ.define(...)`
-
 ### define.table
 
 - Arguments: (properties: [TableProperties](table.md#properties))

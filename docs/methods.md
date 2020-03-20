@@ -14,7 +14,7 @@ Object definition
 > Differ.prototype.import
 
 - Arguments: (options: `FolderPath` | [import options](import.md))
-- Returns: `differ`
+- Returns: `this`
 
 Defining models from `*.json` files. Equivalent to function calls `differ.define(...)`
 
@@ -32,6 +32,6 @@ Synchronization of previously defined [objects](objects.md)
 > Differ.prototype.setDefaultSchema
 
 - Arguments: (schema: `String`)
-- Returns: `differ`
+- Returns: `this`
 
 Definition of the **default schema**. By default it is equal to `'public'`
