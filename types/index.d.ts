@@ -128,10 +128,7 @@ declare class Differ {
    *   name: 'users',
    *   columns: {
    *     id: 'integer',
-   *     birthday: {
-   *       type: 'timestamp',
-   *       default: ['literal', 'now()']
-   *     }
+   *     birthday: { type: 'timestamp', default: ['literal', 'now()'] }
    *   }
    * });
    */
@@ -147,7 +144,7 @@ declare class Differ {
    * });
    */
   // @ts-ignore
-  import(options: string | ImportOptions): Map<string, DatabaseObject>
+  import(options: string | ImportOptions): this
 
 
   /**

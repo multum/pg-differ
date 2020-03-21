@@ -21,30 +21,37 @@ After that you can run the module or use the [CLI](cli.md)
 ```javascript
 const Differ = require('pg-differ');
 
-const setup = async () => {
-  const differ = new Differ({
-    connectionConfig: {},
-    logging: true, // default value of console.log
-  });
+const differ = new Differ({
+  connectionConfig: { ... },
+  logging: true, // default value of console.log
+});
 
-  differ.setDefaultSchema('user_schema'); // by default 'public'
+differ.setDefaultSchema('CustomSchema'); // by default 'public'
 
-  differ.import({
-    // or/and use 'differ.define' method
-    path: './objects',
-    locals: { schema: 'schema_name' },
-  });
+differ.import({
+  // or/and use 'differ.define' method
+  path: './objects',
+  locals: { table: 'children' },
+});
 
-  differ.define('table', {
-    name: 'users',
-    columns: {
-      id: { type: 'bigint', primary: true },
-      name: 'varchar(255)',
+const users = differ.define('table', {
+  name: 'users',
+  foreignKeys: [
+    {
+      columns: ['id'],
+      references: { table: 'children', columns: ['id'] },
     },
-  });
+  ],
+  columns: {
+    id: { type: 'bigint', primary: true },
+    birthday: { type: 'timestamp', default: ['literal', 'now()'] },
+    description: 'character varying(255)',
+  },
+});
 
-  return differ.sync();
-};
+// users.getObjectName() === 'CustomSchema.users'
 
-setup().then(() => console.log('database ready'));
+await differ.sync({ allowClean: { foreignKeys: true } });
+
+console.log('database ready');
 ```

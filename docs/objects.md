@@ -3,51 +3,26 @@
 - [Table](metadata/table.md)
 - [Sequence](metadata/sequence.md)
 
-## Usage example
-
 ```javascript
 const Differ = require('pg-differ');
 
 const differ = new Differ({
-  connectionConfig: {},
+  connectionConfig: { ... },
   logging: true, // default value of console.log
 });
 
-differ.import({
-  // or/and use 'differ.define' method
-  path: 'schemas',
-  locals: { schema: 'schema_name' },
-});
-
 differ.define('table', {
-  name: 'schema_name.table_name',
-  foreignKeys: [
-    {
-      columns: ['id'],
-      references: {
-        table: 'reference_table_name',
-        columns: ['id'],
-      },
-    },
-  ],
+  name: 'public.users',
   columns: {
-    id: {
-      type: 'bigint',
-      primary: true,
-      default: {
-        type: 'literal',
-        value: `nextval('schema_name.table_name_id'::regclass)`,
-      },
-    },
-    description: 'character varying(255)',
-    body: 'json',
+    id: { type: 'bigint', primary: true },
+    birthday: 'timestamp',
   },
 });
 
 differ.define('sequence', {
-  name: 'schema_name.table_name_id',
+  name: 'public.children_seq',
   start: 100,
 });
 
-differ.sync({ allowClean: { foreignKeys: true } });
+await differ.sync({ allowClean: { foreignKeys: true } });
 ```
