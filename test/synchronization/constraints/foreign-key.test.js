@@ -1,6 +1,6 @@
 'use strict';
 
-const helpers = require('../../helpers');
+const testFactories = require('../test-factories');
 
 const roles = {
   name: 'DifferSchema.roles',
@@ -25,7 +25,7 @@ const users = {
   ],
 };
 
-helpers.describeIndexOrConstraintTest(
+testFactories.indexOrConstraintTest(
   'foreignKeys',
   {
     properties: [roles, users],

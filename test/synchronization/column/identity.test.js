@@ -65,12 +65,12 @@ describe('identity', () => {
           columns: {
             id: {
               type: 'int',
-              identity: { start: 100, min: 0, max: 9999 },
+              identity: { generation: 'ALWAYS', start: 100, min: 0, max: 9999 },
             },
           },
         },
         expectQueries: [
-          'alter table [table] alter column "id" set start 100 set maxvalue 9999;',
+          'alter table [table] alter column "id" set generated ALWAYS set start 100 set maxvalue 9999;',
         ],
       }
     );

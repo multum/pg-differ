@@ -1,4 +1,5 @@
 'use strict';
+
 const helpers = require('../helpers');
 
 describe(`method differ.setDefaultSchema()`, () => {

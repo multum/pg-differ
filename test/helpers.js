@@ -5,13 +5,10 @@ const Differ = require('../');
 const helpers = require('../lib/helpers');
 const connectionConfig = require('./pg.config');
 
-const _validateProperty = (object, property, method) => {
-  if (Object.hasOwnProperty.call(object, property)) {
-    return true;
-  } else {
-    throw new Error(
-      `Missing required parameter '${property}' for '${method}' method`
-    );
+exports.validateProperty = (context, property, object) => {
+  if (!Object.hasOwnProperty.call(object, property)) {
+    context = context ? ` in ${context}` : '';
+    throw new Error(`Missing required parameter '${property}'` + context);
   }
 };
 
@@ -48,7 +45,7 @@ exports.alterObject = async (type, ...stages) => {
     } = stage;
 
     if (!ignoreResultCheck) {
-      _validateProperty(stage, 'expectQueries', 'helpers.alterObject');
+      exports.validateProperty('helpers.alterObject()', 'expectQueries', stage);
     }
 
     if (Array.isArray(properties)) {
@@ -83,51 +80,4 @@ exports.alterObject = async (type, ...stages) => {
 exports.expectSyncResult = async (promise, expectQueries) => {
   const result = await promise;
   expect(result.queries).toEqual(expectQueries);
-};
-
-exports.describeIndexOrConstraintTest = (type, firstStage, secondStage) => {
-  const title = type
-    .replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1 $2')
-    .toLowerCase();
-  describe(title, () => {
-    it(`should create a table and add "${title}"`, function() {
-      return exports.alterObject(
-        'table',
-        {
-          properties: firstStage.properties.map(props => ({
-            name: props.name,
-            columns: props.columns,
-          })),
-          syncOptions: { force: true },
-          ignoreResultCheck: true,
-        },
-        {
-          properties: firstStage.properties,
-          expectQueries: firstStage.expectQueries,
-        }
-      );
-    });
-
-    it(`should drop unnecessary "${title}"`, function() {
-      const allowClean = { [type]: true };
-      return exports.alterObject(
-        'table',
-        {
-          properties: firstStage.properties,
-          syncOptions: { force: true },
-          ignoreResultCheck: true,
-        },
-        {
-          properties: firstStage.properties,
-          syncOptions: { allowClean },
-          expectQueries: [],
-        },
-        {
-          properties: secondStage.properties,
-          syncOptions: { allowClean },
-          expectQueries: secondStage.expectQueries,
-        }
-      );
-    });
-  });
 };

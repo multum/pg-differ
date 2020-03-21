@@ -1,5 +1,7 @@
 'use strict';
 
+const testFactories = require('../test-factories');
+
 const condition = 'id > 10 AND id < 1000';
 
 const roles = {
@@ -8,9 +10,7 @@ const roles = {
   checks: [{ condition }],
 };
 
-const helpers = require('../../helpers');
-
-helpers.describeIndexOrConstraintTest(
+testFactories.indexOrConstraintTest(
   'checks',
   {
     properties: [roles],
