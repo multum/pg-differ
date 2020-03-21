@@ -8,14 +8,14 @@ describe(`method differ.setDefaultSchema()`, () => {
 
     const users = differ.objects.get('users');
 
-    expect(differ.defaultSchema).toEqual('public');
-    expect(users.getFullName()).toEqual('public.users');
-    expect(users.getQuotedFullName()).toEqual('"public"."users"');
+    expect(differ.getDefaultSchema()).toEqual('public');
+    expect(users.getObjectName()).toEqual('public.users');
+    expect(users.getQuotedObjectName()).toEqual('"public"."users"');
 
     differ.setDefaultSchema('DifferSchema');
 
-    expect(differ.defaultSchema).toEqual('DifferSchema');
-    expect(users.getFullName()).toEqual('DifferSchema.users');
-    expect(users.getQuotedFullName()).toEqual('"DifferSchema"."users"');
+    expect(differ.getDefaultSchema()).toEqual('DifferSchema');
+    expect(users.getObjectName()).toEqual('DifferSchema.users');
+    expect(users.getQuotedObjectName()).toEqual('"DifferSchema"."users"');
   });
 });

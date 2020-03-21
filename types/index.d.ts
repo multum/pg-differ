@@ -94,10 +94,8 @@ declare class DatabaseObject {
   type: ObjectType;
   properties: AnyOfSchemas;
 
-  getSchemaName(): string;      // 'SchemaName'
-  getObjectName(): string;      // 'object_name'
-  getFullName(): string;        // 'SchemaName.object_name'
-  getQuotedFullName(): string;  // '"SchemaName"."object_name"'
+  getObjectName(): string;      // 'SchemaName.object_name'
+  getQuotedObjectName(): string;  // '"SchemaName"."object_name"'
 }
 
 interface SyncResult {
@@ -141,8 +139,8 @@ declare class Differ {
 
   /**
    * @example
-   * await differ.import('./objects');
-   * await differ.import({
+   * differ.import('./objects');
+   * differ.import({
    *   path: './objects',
    *   interpolate: /\[([\s\S]+?)]/g,
    *   pattern: /.*\.schema.json$/
@@ -161,9 +159,17 @@ declare class Differ {
 
   /**
    * @example
-   * await differ.setDefaultSchema('DifferSchema');
+   * differ.setDefaultSchema('DifferSchema');
    */
-  setDefaultSchema(schema: String): this
+  setDefaultSchema(schema: string): this
+
+  /**
+   * @example
+   * differ.getDefaultSchema() === 'public';
+   * differ.setDefaultSchema('DifferSchema');
+   * differ.getDefaultSchema() === 'DifferSchema';
+   */
+  getDefaultSchema(): string
 
   // @ts-ignore
   objects: Map<string, DatabaseObject>

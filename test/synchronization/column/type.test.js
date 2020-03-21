@@ -83,8 +83,8 @@ describe('alter column type', () => {
 
         const normalizedPrevType = parser.dataType(prevType).raw;
         await helpers.expectSyncResult(differ.sync({ force: true }), [
-          `drop table if exists ${model.getQuotedFullName()} cascade;`,
-          `create table ${model.getQuotedFullName()} ( "${column}" ${normalizedPrevType} null );`,
+          `drop table if exists ${model.getQuotedObjectName()} cascade;`,
+          `create table ${model.getQuotedObjectName()} ( "${column}" ${normalizedPrevType} null );`,
         ]);
 
         const normalizedType = parser.dataType(type).raw;
