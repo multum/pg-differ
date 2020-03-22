@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const helpers = require('../helpers');
 
 describe(`logging`, () => {
-  it(`should change default schema`, async function() {
+  it(`should change default schema`, async function () {
     const logger = jest.fn();
     const differ = helpers.createInstance({ logging: logger });
     await differ.sync();

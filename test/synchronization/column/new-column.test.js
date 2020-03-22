@@ -3,7 +3,7 @@
 const helpers = require('../../helpers');
 
 describe('new column', () => {
-  it('should add the new column', function() {
+  it('should add the new column', function () {
     const properties = { columns: { id: 'int' } };
     return helpers.alterObject(
       'table',

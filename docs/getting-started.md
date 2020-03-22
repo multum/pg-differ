@@ -16,7 +16,7 @@ mkdir objects && touch objects/name.schema.json
 
 ## Initialize
 
-After that you can run the module or use the [CLI](cli.md)
+> You can also use the _CLI_
 
 ```javascript
 const Differ = require('pg-differ');

@@ -5,7 +5,7 @@ const helpers = require('../helpers');
 describe('schema validation', () => {
   const differ = helpers.createInstance();
 
-  it('incorrect object schema structure', function() {
+  it('incorrect object schema structure', function () {
     expect(() => {
       differ.define('table', { name: 'table_name', columns: '' });
     }).toThrow('properties.columns > should be object');
@@ -14,13 +14,13 @@ describe('schema validation', () => {
     }).toThrow('properties.cycle > should be boolean');
   });
 
-  it('invalid schema type', function() {
+  it('invalid schema type', function () {
     expect(() => {
       differ.define('t', {});
     }).toThrow(`type > should be one of ['table', 'sequence']`);
   });
 
-  it(`invalid object name`, function() {
+  it(`invalid object name`, function () {
     expect(() => {
       differ.define('table', {
         name: 'invalid.table.name',
@@ -29,7 +29,7 @@ describe('schema validation', () => {
     }).toThrow(`properties.name > invalid value`);
   });
 
-  it(`multiple primary keys`, function() {
+  it(`multiple primary keys`, function () {
     expect(() => {
       differ.define('table', {
         name: 'users',

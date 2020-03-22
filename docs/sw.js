@@ -9,7 +9,7 @@ const HOSTNAME_WHITELIST = [
 ];
 
 // The Util Function to hack URLs of intercepted requests
-const getFixedUrl = req => {
+const getFixedUrl = (req) => {
   const now = Date.now();
   const url = new URL(req.url);
 
@@ -36,7 +36,7 @@ const getFixedUrl = req => {
  *
  *  waitUntil(): activating ====> activated
  */
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
@@ -46,7 +46,7 @@ self.addEventListener('activate', event => {
  *
  *  void respondWith(Promise<Response> r)
  */
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
   // Skip some of cross-origin requests, like those for Google Analytics.
   if (HOSTNAME_WHITELIST.indexOf(new URL(event.request.url).hostname) > -1) {
     // Stale-while-revalidate
@@ -55,7 +55,7 @@ self.addEventListener('fetch', event => {
     const cached = caches.match(event.request);
     const fixedUrl = getFixedUrl(event.request);
     const fetched = fetch(fixedUrl, { cache: 'no-store' });
-    const fetchedCopy = fetched.then(resp => resp.clone());
+    const fetchedCopy = fetched.then((resp) => resp.clone());
 
     // Call respondWith() with whatever we get first.
     // If the fetch fails (e.g disconnected), wait for the cache.
@@ -63,7 +63,7 @@ self.addEventListener('fetch', event => {
     // If neither yields a response, return offline pages.
     event.respondWith(
       Promise.race([fetched.catch(() => cached), cached])
-        .then(resp => resp || fetched)
+        .then((resp) => resp || fetched)
         .catch(() => {
           /* eat any errors */
         })

@@ -3,7 +3,7 @@
 const helpers = require('../../helpers');
 
 describe('rename column', () => {
-  it('should rename the column and change its type', function() {
+  it('should rename the column and change its type', function () {
     return helpers.alterObject(
       'table',
       {

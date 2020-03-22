@@ -24,7 +24,7 @@ exports.getUtils = () => {
   return utils;
 };
 
-exports.createInstance = options => {
+exports.createInstance = (options) => {
   return new Differ({
     connectionConfig,
     ...options,
@@ -53,7 +53,7 @@ exports.alterObject = async (type, ...stages) => {
         props.name = props.name || `${defaultTable}[${index}]`;
         return [`[table[${index}]]`, props.name];
       });
-      properties.forEach(props => differ.define(type, props));
+      properties.forEach((props) => differ.define(type, props));
     } else {
       properties.name = properties.name || defaultTable;
       names = [['[table]', properties.name]];
@@ -62,7 +62,7 @@ exports.alterObject = async (type, ...stages) => {
 
     const syncResult = await differ.sync(syncOptions);
     if (!ignoreResultCheck) {
-      expectQueries = expectQueries.map(query => {
+      expectQueries = expectQueries.map((query) => {
         names.forEach(([placeholder, name]) => {
           query = query.replace(placeholder, helpers.quoteObjectName(name));
         });

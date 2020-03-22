@@ -11,7 +11,7 @@ describe('table', () => {
     );
   });
 
-  it('should add the new table', function() {
+  it('should add the new table', function () {
     return helpers.alterObject('table', {
       properties: {
         name: 'DifferSchema.users',

@@ -30,7 +30,7 @@
   },
   "scripts": {
     "test": "jest --run-in-band",
-    "format": "prettier --write lib/**/*.js bin/**/*.js test/**/*.js",
+    "format": "prettier --write .",
     "docs": "docsify serve docs"
   },
   "license": "MIT",
@@ -43,12 +43,12 @@
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.0",
+    "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.2",
     "husky": "^4.2.3",
     "jest": "^25.1.0",
     "lint-staged": "^10.0.8",
-    "prettier": "^1.19.1"
+    "prettier": "^2.0.1"
   },
   "husky": {
     "hooks": {

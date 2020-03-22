@@ -23,14 +23,14 @@ describe(`sequence`, () => {
     );
   });
 
-  it(`should create a sequence`, async function() {
+  it(`should create a sequence`, async function () {
     const differ = helpers.createInstance();
     differ.define('sequence', properties);
     await helpers.expectSyncResult(differ.sync(), [createQuery]);
     return helpers.expectSyncResult(differ.sync(), []);
   });
 
-  it(`should force create a sequence`, async function() {
+  it(`should force create a sequence`, async function () {
     const differ = helpers.createInstance();
     differ.define('sequence', properties);
     await helpers.expectSyncResult(differ.sync({ force: true }), [
@@ -40,7 +40,7 @@ describe(`sequence`, () => {
     return helpers.expectSyncResult(differ.sync(), []);
   });
 
-  it(`should update the sequence`, async function() {
+  it(`should update the sequence`, async function () {
     const differ = helpers.createInstance();
     differ.define('sequence', properties);
     await differ.sync({ force: true });
@@ -56,7 +56,7 @@ describe(`sequence`, () => {
     ]);
   });
 
-  it(`should get an error making incorrect changes`, async function() {
+  it(`should get an error making incorrect changes`, async function () {
     const differ = helpers.createInstance();
     differ.define('sequence', properties);
     await differ.sync({ force: true });

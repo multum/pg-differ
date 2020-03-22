@@ -74,8 +74,8 @@ describe('alter column type', () => {
     const table = 'DifferSchema.users';
     const column = 'birthday';
 
-    types.forEach(type => {
-      it(`${prevType} --> ${type}`, async function() {
+    types.forEach((type) => {
+      it(`${prevType} --> ${type}`, async function () {
         const model = differ.define('table', {
           name: table,
           columns: { [column]: prevType },

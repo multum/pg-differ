@@ -5,7 +5,7 @@ const { ImportError } = require('../../');
 const helpers = require('../helpers');
 
 describe(`method differ.import()`, () => {
-  it(`should get an error when trying to import a schema from a nonexistent file`, function() {
+  it(`should get an error when trying to import a schema from a nonexistent file`, function () {
     const folderPath = './invalidPath';
     const expectedPath = path.resolve(__dirname, folderPath); // absolute path
     expect(() => helpers.createInstance().import(folderPath)).toThrow(
@@ -16,7 +16,7 @@ describe(`method differ.import()`, () => {
     );
   });
 
-  it('should import the schema from the folder', function() {
+  it('should import the schema from the folder', function () {
     const differ = helpers.createInstance();
     const returnValue = differ.import({
       path: '../objects',
@@ -29,13 +29,13 @@ describe(`method differ.import()`, () => {
     expect(differ.objects.get('DifferSchema.roles')).toBeDefined();
   });
 
-  it('should import the schema from the file', function() {
+  it('should import the schema from the file', function () {
     const differ = helpers.createInstance();
     differ.import('../objects/users.schema.json');
     expect(differ.objects).toHaveProperty('size', 1);
   });
 
-  it(`should replace placeholders with values from 'locals'`, function() {
+  it(`should replace placeholders with values from 'locals'`, function () {
     const differ = helpers.createInstance();
     differ.import({
       path: '../objects/roles.schema.json',

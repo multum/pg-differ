@@ -3,7 +3,7 @@
 const helpers = require('../helpers');
 
 describe(`method differ.setDefaultSchema()`, () => {
-  it(`should change default schema`, function() {
+  it(`should change default schema`, function () {
     const differ = helpers.createInstance();
     differ.define('table', { name: 'users', columns: { id: 'int' } });
 

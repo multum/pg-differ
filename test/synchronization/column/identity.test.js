@@ -4,7 +4,7 @@ const helpers = require('../../helpers');
 
 describe('identity', () => {
   const utils = helpers.getUtils();
-  it('should create table with identity column', function() {
+  it('should create table with identity column', function () {
     return helpers.alterObject('table', {
       properties: {
         columns: {
@@ -19,7 +19,7 @@ describe('identity', () => {
     });
   });
 
-  it('should add the identity column', function() {
+  it('should add the identity column', function () {
     return helpers.alterObject(
       'table',
       {
@@ -45,7 +45,7 @@ describe('identity', () => {
     );
   });
 
-  it('should change the identity column', function() {
+  it('should change the identity column', function () {
     return helpers.alterObject(
       'table',
       {
@@ -76,7 +76,7 @@ describe('identity', () => {
     );
   });
 
-  it('should remove identity attribute of column', function() {
+  it('should remove identity attribute of column', function () {
     return helpers.alterObject(
       'table',
       {
@@ -102,7 +102,7 @@ describe('identity', () => {
     );
   });
 
-  it('should adjust identity sequences', function() {
+  it('should adjust identity sequences', function () {
     return helpers.alterObject(
       'table',
       {
@@ -113,7 +113,7 @@ describe('identity', () => {
         },
         syncOptions: { force: true },
         ignoreResultCheck: true,
-        onSync: tables => {
+        onSync: (tables) => {
           return utils.client.query(
             `insert into ${tables[0]} (id) values(100)`
           );

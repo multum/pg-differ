@@ -3,7 +3,7 @@
 const helpers = require('../../helpers');
 
 describe('default value of the column', () => {
-  it('should set the Literal as the default value', function() {
+  it('should set the Literal as the default value', function () {
     return helpers.alterObject(
       'table',
       {
@@ -26,7 +26,7 @@ describe('default value of the column', () => {
     );
   });
 
-  it('should set the JSON as the default value', function() {
+  it('should set the JSON as the default value', function () {
     return helpers.alterObject(
       'table',
       {
@@ -52,7 +52,7 @@ describe('default value of the column', () => {
     );
   });
 
-  it('should remove unnecessary default value', function() {
+  it('should remove unnecessary default value', function () {
     return helpers.alterObject(
       'table',
       {

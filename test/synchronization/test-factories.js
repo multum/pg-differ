@@ -7,11 +7,11 @@ exports.indexOrConstraintTest = (type, firstStage, secondStage) => {
     .replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1 $2')
     .toLowerCase();
   describe(title, () => {
-    it(`should create a table and add "${title}"`, function() {
+    it(`should create a table and add "${title}"`, function () {
       return helpers.alterObject(
         'table',
         {
-          properties: firstStage.properties.map(props => ({
+          properties: firstStage.properties.map((props) => ({
             name: props.name,
             columns: props.columns,
           })),
@@ -25,7 +25,7 @@ exports.indexOrConstraintTest = (type, firstStage, secondStage) => {
       );
     });
 
-    it(`should drop unnecessary "${title}"`, function() {
+    it(`should drop unnecessary "${title}"`, function () {
       const allowClean = { [type]: true };
       return helpers.alterObject(
         'table',
