@@ -2,13 +2,20 @@
 const utils = require('../../lib/utils');
 
 describe(`utils`, () => {
-  const object = { foo: { bar: [3, 2, 1] } };
   it.each([
-    ['foo', object.foo],
-    ['foo.bar', object.foo.bar],
-    ['foo.bar[0]', object.foo.bar[0]],
+    ['foo', { bar: [3, 2, 1] }],
+    ['foo.bar', [3, 2, 1]],
+    ['foo.bar[0]', 3],
+    ['[1][0]', 4],
+    ['baz[0]', undefined],
   ])('utils.get("%s")', (path, expected) => {
-    expect(utils.get(path, object)).toEqual(expected);
+    expect(
+      utils.get(path, {
+        foo: { bar: [3, 2, 1] },
+        baz: null,
+        1: [4],
+      })
+    ).toEqual(expected);
   });
 
   it.each([
