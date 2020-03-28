@@ -1,13 +1,5 @@
 # Table
 
-## Usage example {docsify-ignore}
-
-```javascript
-const differ = new Differ();
-differ.define('table', properties);
-differ.sync().then(() => console.log('database ready'));
-```
-
 ## Properties {docsify-ignore}
 
 ### name
