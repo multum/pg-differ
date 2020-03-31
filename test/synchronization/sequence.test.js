@@ -3,16 +3,15 @@ const helpers = require('../helpers');
 
 const properties = {
   name: `DifferSchema.users_seq`,
-  min: 0,
-  start: 0,
+  min: 1,
+  start: 1,
   max: 10000,
   increment: 10,
   cycle: false,
 };
 
 const createQuery =
-  'create sequence "DifferSchema"."users_seq"' +
-  ' start 0 increment 10 no cycle maxvalue 10000 minvalue 0';
+  'create sequence "DifferSchema"."users_seq" increment 10 maxvalue 10000';
 
 describe(`sequence`, () => {
   const utils = helpers.getUtils();
@@ -52,7 +51,7 @@ describe(`sequence`, () => {
       cycle: true,
     });
     return helpers.expectSyncResult(differ.sync(), [
-      'alter sequence "DifferSchema"."users_seq" cycle maxvalue 10010',
+      'alter sequence "DifferSchema"."users_seq" maxvalue 10010 cycle',
     ]);
   });
 

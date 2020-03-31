@@ -70,7 +70,7 @@ describe('identity', () => {
           },
         },
         expectQueries: [
-          'alter table [table] alter column "id" set generated ALWAYS set start 100 set maxvalue 9999;',
+          'alter table [table] alter column "id" set generated ALWAYS set maxvalue 9999 set start 100;',
         ],
       }
     );
