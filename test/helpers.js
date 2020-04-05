@@ -1,18 +1,15 @@
 'use strict';
 
+const { spawn } = require('child_process');
 const { Client } = require('pg');
-const Differ = require('../');
-const helpers = require('../lib/helpers');
+const fs = require('fs');
+const path = require('path');
+const Differ = require('../lib');
 const connectionConfig = require('./pg.config');
 
-exports.validateProperty = (context, property, object) => {
-  if (!Object.hasOwnProperty.call(object, property)) {
-    context = context ? ` in ${context}` : '';
-    throw new Error(`Missing required parameter '${property}'` + context);
-  }
-};
+const rootPath = path.join(__dirname, '..');
 
-exports.getUtils = () => {
+const getUtils = () => {
   const utils = {};
   beforeAll(() => {
     utils.client = new Client(connectionConfig);
@@ -24,60 +21,51 @@ exports.getUtils = () => {
   return utils;
 };
 
-exports.createInstance = (options) => {
-  return new Differ({
-    connectionConfig,
-    ...options,
+const getDiffer = (options) => {
+  return new Differ({ connectionConfig, ...options });
+};
+
+const execute = (processPath, args = []) => {
+  const childProcess = spawn('node', [processPath, ...args]);
+  return new Promise((resolve, reject) => {
+    childProcess.stderr.once('data', (error) => {
+      reject(error.toString());
+    });
+    childProcess.on('error', reject);
+    childProcess.on('close', (code) => {
+      return code === 0 ? resolve() : reject();
+    });
+    // childProcess.stdout.pipe(concat(console.info));
   });
 };
 
-exports.alterObject = async (type, ...stages) => {
-  const differ = exports.createInstance();
-  const defaultTable = `DifferSchema.users`;
-  for (const stage of stages) {
-    let names;
-    let {
-      properties,
-      expectQueries,
-      syncOptions,
-      ignoreResultCheck,
-      onSync,
-    } = stage;
-
-    if (!ignoreResultCheck) {
-      exports.validateProperty('helpers.alterObject()', 'expectQueries', stage);
-    }
-
-    if (Array.isArray(properties)) {
-      names = properties.map((props, index) => {
-        props.name = props.name || `${defaultTable}[${index}]`;
-        return [`[table[${index}]]`, props.name];
+/**
+ * Recursive fs.rmdirSync
+ * @param {string} target
+ * @param {Object} options
+ * @param {boolean} options.recursive
+ */
+const rmdirSync = (target, options = {}) => {
+  if (fs.existsSync(target)) {
+    if (options.recursive) {
+      fs.readdirSync(target).forEach((file) => {
+        const currentPath = path.join(target, file);
+        if (fs.lstatSync(currentPath).isDirectory()) {
+          rmdirSync(currentPath, options);
+        } else {
+          // delete file
+          fs.unlinkSync(currentPath);
+        }
       });
-      properties.forEach((props) => differ.define(type, props));
-    } else {
-      properties.name = properties.name || defaultTable;
-      names = [['[table]', properties.name]];
-      differ.define(type, properties);
     }
-
-    const syncResult = await differ.sync(syncOptions);
-    if (!ignoreResultCheck) {
-      expectQueries = expectQueries.map((query) => {
-        names.forEach(([placeholder, name]) => {
-          query = query.replace(placeholder, helpers.quoteObjectName(name));
-        });
-        return query;
-      });
-      await exports.expectSyncResult(syncResult, expectQueries);
-      await exports.expectSyncResult(differ.sync({ execute: false }), []);
-    }
-    if (onSync) {
-      onSync(names.map(([, name]) => helpers.quoteObjectName(name)));
-    }
+    fs.rmdirSync(target);
   }
 };
 
-exports.expectSyncResult = async (promise, expectQueries) => {
-  const result = await promise;
-  expect(result.queries).toEqual(expectQueries);
+module.exports = {
+  rootPath,
+  getUtils,
+  getDiffer,
+  execute,
+  rmdirSync,
 };

@@ -30,7 +30,7 @@ In the case of `nullable === false`, it will set the constraint `NOT NULL`
 - Default: `false`
 - Required: `false`
 
-Define a `PRIMARY KEY` constraint for a column
+Define a `primary key` constraint for a column
 
 ### unique
 
@@ -38,7 +38,7 @@ Define a `PRIMARY KEY` constraint for a column
 - Default: `false`
 - Required: `false`
 
-Define a `UNIQUE` constraint for a column
+Define a `unique` constraint for a column
 
 ### [identity](metadata/identity.md)
 

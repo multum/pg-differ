@@ -4,6 +4,11 @@ const helpers = require('../../helpers');
 const parser = require('../../../lib/parser');
 
 describe('alter column type', () => {
+  let differ;
+  beforeEach(() => {
+    differ = helpers.getDiffer();
+  });
+
   [
     {
       from: 'numeric(16,2)',
@@ -69,23 +74,23 @@ describe('alter column type', () => {
       forbidden: true,
     },
   ].forEach(({ from: prevType, to: types, forbidden }) => {
-    const differ = helpers.createInstance();
-
     const table = 'DifferSchema.users';
     const column = 'birthday';
 
     types.forEach((type) => {
       it(`${prevType} --> ${type}`, async function () {
-        const model = differ.define('table', {
+        differ.define('table', {
           name: table,
           columns: { [column]: prevType },
         });
 
         const normalizedPrevType = parser.dataType(prevType).raw;
-        await helpers.expectSyncResult(differ.sync({ force: true }), [
-          `drop table if exists ${model.getQuotedObjectName()} cascade;`,
-          `create table ${model.getQuotedObjectName()} ( "${column}" ${normalizedPrevType} null );`,
-        ]);
+        expect(await differ.sync({ force: true })).toMatchObject({
+          queries: [
+            `drop table if exists "DifferSchema"."users" cascade;`,
+            `create table "DifferSchema"."users" ( "${column}" ${normalizedPrevType} null );`,
+          ],
+        });
 
         const normalizedType = parser.dataType(type).raw;
 
@@ -99,11 +104,14 @@ describe('alter column type', () => {
             `Change the column type from '${normalizedPrevType}' to '${normalizedType}' can result in data loss`
           );
         } else {
-          await helpers.expectSyncResult(differ.sync(), [
-            `alter table "DifferSchema"."users" alter column "birthday" type ${normalizedType};`,
-          ]);
-
-          return helpers.expectSyncResult(differ.sync({ execute: false }), []);
+          expect(await differ.sync()).toMatchObject({
+            queries: [
+              `alter table "DifferSchema"."users" alter column "birthday" type ${normalizedType};`,
+            ],
+          });
+          expect(await differ.sync({ execute: false })).toMatchObject({
+            queries: [],
+          });
         }
       });
     });

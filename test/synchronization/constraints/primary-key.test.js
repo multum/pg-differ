@@ -1,31 +1,21 @@
 'use strict';
 
-const testFactories = require('../test-factories');
+const TestFactories = require('../test-factories');
 
-const roles = {
-  name: 'DifferSchema.roles',
-  columns: {
-    id: 'bigint',
-    type: 'smallint',
-  },
-  primaryKey: { columns: ['id'] },
-};
-
-testFactories.indexOrConstraintTest(
-  'primaryKeys',
-  {
-    properties: [roles],
-    expectQueries: [
-      'alter table "DifferSchema"."roles" alter column "id" set not null;',
-      `alter table "DifferSchema"."roles" add PRIMARY KEY ( "id" );`,
-    ],
-  },
-  {
-    properties: [{ ...roles, primaryKey: { columns: ['id', 'type'] } }],
-    expectQueries: [
-      'alter table "DifferSchema"."roles" drop constraint "roles_pkey";',
-      'alter table "DifferSchema"."roles" alter column "type" set not null;',
-      'alter table "DifferSchema"."roles" add PRIMARY KEY ( "id", "type" );',
-    ],
-  }
-);
+TestFactories.indexOrConstraintTest('primaryKeys', {
+  properties: [
+    {
+      name: 'DifferSchema.users',
+      columns: { id: 'bigint', age: 'smallint' },
+      primaryKey: { columns: ['id'] },
+    },
+  ],
+  expectQueries: [
+    'alter table "DifferSchema"."users" alter column "id" set not null;',
+    `alter table "DifferSchema"."users" add primary key ( "id" );`,
+  ],
+  expectDropQueries: [
+    'alter table "DifferSchema"."users" drop constraint "users_pkey";',
+    'alter table "DifferSchema"."users" alter column "id" drop not null;',
+  ],
+});

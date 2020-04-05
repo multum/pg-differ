@@ -6,7 +6,7 @@ const helpers = require('../helpers');
 describe(`logging`, () => {
   it(`should change default schema`, async function () {
     const logger = jest.fn();
-    const differ = helpers.createInstance({ logging: logger });
+    const differ = helpers.getDiffer({ logging: logger });
     await differ.sync();
     expect(logger).toHaveBeenCalled();
     expect(logger.mock.calls).toEqual([

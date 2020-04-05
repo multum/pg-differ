@@ -2,6 +2,7 @@
 
 const { Client } = require('pg');
 const connectionConfig = require('./pg.config');
+
 module.exports = async () => {
   const client = new Client(connectionConfig);
   await client.connect();

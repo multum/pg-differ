@@ -3,7 +3,7 @@
 const helpers = require('../helpers');
 
 describe('schema validation', () => {
-  const differ = helpers.createInstance();
+  const differ = helpers.getDiffer();
 
   it('incorrect object schema structure', function () {
     expect(() => {

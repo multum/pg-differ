@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Copyright (c) 2018-present Andrew Vereshchak
  *
@@ -7,85 +6,67 @@
  */
 'use strict';
 
-const minimist = require('minimist');
-const chalk = require('chalk');
 const path = require('path');
 const Differ = require('../lib');
-const pkg = require('../package.json');
 
-const argv = minimist(process.argv.slice(3), {
-  stopEarly: false,
-  alias: {
-    h: 'help',
-    '?': 'help',
-    v: 'version',
-    c: 'connection',
-    f: 'force',
-    S: 'silent',
-    s: 'set',
-  },
-  default: {
-    silent: false,
-    force: false,
-  },
-  boolean: ['version', 'help', 'silent'],
-});
+module.exports.builder = (yargs) => {
+  yargs
+    .usage('\n$0 sync [options]')
+    .option('path', {
+      alias: 'p',
+      describe: 'Directory path',
+      demandOption: true,
+      type: 'string',
+    })
+    .option('connection', {
+      alias: 'c',
+      describe: 'Connection URI to database',
+      type: 'string',
+    })
+    .option('set', {
+      alias: 's',
+      describe: 'Variable to replace placeholder in schema files',
+      type: 'string',
+    })
+    .option('force', {
+      alias: 'f',
+      default: false,
+      describe: 'Force synchronization of tables and sequences',
+      type: 'boolean',
+    })
+    .option('silent', {
+      alias: 'S',
+      default: false,
+      describe: 'Disable printing messages through the console',
+      type: 'boolean',
+    });
+};
 
-if (argv.version) {
-  console.info(pkg.version);
-  process.exit(0);
-}
+module.exports.handler = (argv) => {
+  let locals = null;
 
-if (argv.help) {
-  const title = chalk.blue('Usage: pg-differ [options] [path]');
-  const link = 'https://multum.github.io/pg-differ/#/cli';
-
-  // prettier-ignore
-  const args = [
-    { key: '--connection, -c', descriptions: 'Connection URI to database' },
-    { key: '--silent, -S', descriptions: 'Option to disable printing messages through the console' },
-    { key: '--set, -s', descriptions: 'Set variable with value to replace placeholders in schema files' },
-    { key: '--force, -f', descriptions: 'Force synchronization of tables and sequences (drop and create)' },
-    { key: '--version, -v', descriptions: 'Print out the installed version' },
-    { key: '--help, -h, -?', descriptions: 'Show this help' },
-  ];
-
-  const offsetLeft = Math.max(...args.map(([key]) => key.length)) + 4;
-  const message = args.reduce((acc, [key, description]) => {
-    key = chalk.yellow(key) + [...new Array(offsetLeft - key.length)].join(' ');
-    return `${acc}\n  ${key}${description}`;
-  }, title);
-
-  console.info(`${message}\n${link}`);
-  process.exit(0);
-}
-
-const getLocals = () => {
   if (argv.set) {
     const variables = Array.isArray(argv.set) ? argv.set : [argv.set];
-    return variables.reduce((acc, element) => {
+    locals = variables.reduce((acc, element) => {
       const [key, value] = element.trim().split('=');
       acc[key] = value;
       return acc;
     }, {});
-  } else {
-    return null;
   }
+
+  const differ = new Differ({
+    logging: !argv.silent,
+    connectionConfig: {
+      connectionString: argv.connection,
+    },
+  });
+
+  const directory = path.resolve(process.cwd(), argv.path);
+
+  differ.import({ path: directory, locals });
+
+  differ
+    .sync({ force: argv.force })
+    .then(() => process.exit(0))
+    .catch((error) => console.error(error) || process.exit(1));
 };
-
-const differ = new Differ({
-  logging: !argv.silent,
-  connectionConfig: {
-    connectionString: argv.connection,
-  },
-});
-
-differ.import({
-  path: path.resolve(process.cwd(), argv._[0] || './'),
-  locals: getLocals(),
-});
-
-differ
-  .sync({ force: argv.force })
-  .then(() => process.exit(0))
-  .catch((error) => console.error(error) || process.exit(1));

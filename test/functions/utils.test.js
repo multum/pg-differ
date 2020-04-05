@@ -42,4 +42,11 @@ describe(`utils`, () => {
     const i = expect(utils.findWhereEq(expected, array));
     mustBeFound ? i.toEqual(expected) : i.toBeUndefined();
   });
+
+  it.each([
+    [{ foo: 1, bar: 2 }, ['bar'], { foo: 1 }],
+    [{ foo: 1, bar: 2, baz: 3 }, ['foo', 'bar'], { baz: 3 }],
+  ])('utils.omit() [%#]', (object, keys, expected) => {
+    expect(utils.omit(keys, object)).toEqual(expected);
+  });
 });

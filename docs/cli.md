@@ -1,58 +1,47 @@
 # CLI
 
-## Usage example
+## Usage example {docsify-ignore}
 
 ```bash
-# connection_string='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
-pg-differ sync --connection ${connection_string} --set schema=public ./objects
+# connection='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
+
+# 'sync' command
+pg-differ sync --connection ${connection} --set mySchema=public --path ./objects --silent
+
+# 'generate' command
+pg-differ generate --connection ${connection} --table public.users --table public.roles --path ./objects
 ```
 
-## _sync_ arguments
+### sync
 
-### connection
+```
+pg-differ sync [options]
 
-- Alias: `-c`
-- Default: `null`
-- Required: `false`
-- Example: [Connection URI](https://node-postgres.com/features/connecting#connection-uri)
+Synchronization previously prepared schemes
 
-Connection URI to database
+Options:
+  --help            Show help                                                         [boolean]
+  --version         Show version number                                               [boolean]
+  --path, -p        Directory path                                          [string] [required]
+  --connection, -c  Connection URI to database                                         [string]
+  --set, -s         Variable to replace placeholder in schema files                    [string]
+  --force, -f       Force synchronization of tables and sequences    [boolean] [default: false]
+  --silent, -S      Disable printing messages through the console    [boolean] [default: false]
+```
 
-### set
+### generate
 
-- Alias: `-s`
-- Default: `null`
-- Required: `false`
-- Example: `name=value`
+```
+pg-differ generate [options]
 
-Set variable with value to replace placeholders in schema files
+Generating schemas for existing database objects
 
-### silent
-
-- Alias: `-S`
-- Default: `false`
-- Required: `false`
-
-Option to disable printing messages through the console
-
-### force
-
-- Alias: `-f`
-- Default: `false`
-- Required: `false`
-
-Force synchronization of tables and sequences (drop and create)
-
-### version
-
-- Alias: `-v`
-- Required: `false`
-
-Print out the installed version
-
-### help
-
-- Alias: `-h, -?`
-- Required: `false`
-
-Show this help
+Options:
+  --help            Show help                                        [boolean]
+  --version         Show version number                              [boolean]
+  --path, -p        Directory path                         [string] [required]
+  --connection, -c  Connection URI to database                        [string]
+  --group, -g       Grouping by schema names        [boolean] [default: false]
+  --table, -t       Table name                                        [string]
+  --sequence, -s    Sequence name                                     [string]
+```

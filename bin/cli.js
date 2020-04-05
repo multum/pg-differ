@@ -7,15 +7,28 @@
  */
 'use strict';
 
-const command = process.argv[2];
+const yargs = require('yargs');
 
-if (command === 'sync') {
-  require('./sync');
-} else {
-  const allCommands = ['sync'];
-  console.error(
-    `Command '${command}' not found. Please use one of:` +
-      allCommands.map((command) => `\n   ${command}`).join('')
+const cli = yargs
+  .help()
+  .version()
+  .strict()
+  .strictCommands()
+  .detectLocale(false)
+  .wrap(yargs.terminalWidth())
+  .scriptName('pg-differ')
+  .usage('\n$0 [command] [options]')
+  .command(
+    'sync',
+    'Synchronization previously prepared schemes',
+    require('./sync')
+  )
+  .command(
+    'generate',
+    'Generating schemas for existing database objects',
+    require('./generate')
   );
-  process.exit(1);
+
+if (!cli.argv._[0]) {
+  cli.showHelp();
 }

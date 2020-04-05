@@ -4,6 +4,11 @@ const helpers = require('../helpers');
 
 describe('table', () => {
   const utils = helpers.getUtils();
+  let differ;
+
+  beforeEach(() => {
+    differ = helpers.getDiffer();
+  });
 
   beforeAll(() => {
     return utils.client.query(
@@ -11,13 +16,14 @@ describe('table', () => {
     );
   });
 
-  it('should add the new table', function () {
-    return helpers.alterObject('table', {
-      properties: {
-        name: 'DifferSchema.users',
-        columns: { id: 'bigint' },
-      },
-      expectQueries: ['create table [table] ( "id" bigint null );'],
+  it('should add the new table', async function () {
+    differ.define('table', {
+      name: 'DifferSchema.users',
+      columns: { id: 'bigint' },
+    });
+
+    expect(await differ.sync()).toMatchObject({
+      queries: ['create table "DifferSchema"."users" ( "id" bigint null );'],
     });
   });
 });
