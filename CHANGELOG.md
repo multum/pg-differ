@@ -1,11 +1,13 @@
 ## 3.1.0
 
 #### Enhancement
-* added `generate` command to **_CLI_** :tada:
+
+- added `generate` command to **_CLI_** :tada:
 
 #### Internal
-* cosmetic improvement codebase :sparkles:
-* update dependencies :package:
+
+- cosmetic improvement codebase :sparkles:
+- update dependencies :package:
 
 ## 3.0.0
 

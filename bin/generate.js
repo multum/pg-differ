@@ -15,7 +15,7 @@ const parser = require('../lib/parser');
 const { Columns, Sequences, Constraints } = require('../lib/constants');
 
 const toArray = (target) => {
-  if (target !== null && target !== undefined) {
+  if (utils.isExist(target)) {
     return Array.isArray(target) ? target : [target];
   } else {
     return [];

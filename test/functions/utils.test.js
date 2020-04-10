@@ -38,8 +38,8 @@ describe(`utils`, () => {
     [[{ foo: 1, bar: [1, 2] }], { foo: 1, bar: [1, 2] }, true],
     [[{ foo: 1, bar: [1, 2] }, { foo: 1 }], { foo: 1, bar: [1, 2] }, true],
     [[{ foo: 1 }, { foo: 2 }], { foo: 1, bar: 1 }, false],
-  ])('utils.findWhereEq() [%#]', (array, expected, mustBeFound) => {
-    const i = expect(utils.findWhereEq(expected, array));
+  ])('utils.findWhere() [%#]', (array, expected, mustBeFound) => {
+    const i = expect(utils.findWhere(expected, array));
     mustBeFound ? i.toEqual(expected) : i.toBeUndefined();
   });
 
