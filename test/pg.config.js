@@ -1,10 +1,10 @@
 'use strict';
 
-const host = '127.0.0.1',
-  port = 5432,
-  database = 'postgres',
-  user = 'postgres',
-  password = 'postgres';
+const host = process.env.POSTGRES_HOST || 'localhost',
+  database = process.env.POSTGRES_DATABASE || 'postgres',
+  password = process.env.POSTGRES_PASSWORD || 'postgres',
+  user = process.env.POSTGRES_USER || 'postgres',
+  port = process.env.POSTGRES_PORT || 25432;
 
 module.exports = {
   connectionString: `postgresql://${user}:${password}@${host}:${port}/${database}`,
