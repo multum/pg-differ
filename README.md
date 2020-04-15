@@ -4,18 +4,20 @@
 
 _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.postgresql.org/)_
 
-![](https://img.shields.io/travis/com/multum/pg-differ.svg?style=flat-square)
-[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat-square)](https://github.com/multum/pg-differ/blob/master/LICENSE)
-[![](https://img.shields.io/npm/v/pg-differ.svg?style=flat-square)](https://www.npmjs.com/package/pg-differ)
-![](https://img.shields.io/codecov/c/github/multum/pg-differ.svg?style=flat-square)
+![](https://img.shields.io/travis/com/multum/pg-differ.svg?style=flat)
+[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat)](https://github.com/multum/pg-differ/blob/master/LICENSE)
+[![](https://img.shields.io/npm/v/pg-differ.svg?style=flat)](https://www.npmjs.com/package/pg-differ)
+![](https://img.shields.io/codecov/c/github/multum/pg-differ.svg?style=flat)
 
 ## Features
 
+- Fully tested
 - [Easy-to-use](https://multum.github.io/pg-differ/#/getting-started)
+- Fully documented
 - [Table](https://multum.github.io/pg-differ/#/metadata/table) and [Sequence](https://multum.github.io/pg-differ/#/metadata/sequence) support
 - Update columns without data loss
 - Constraint and index support
-- Dropping of unnecessary constraints/indexes
+- Removing unnecessary constraints/indexes
 
 <img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 

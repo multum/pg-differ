@@ -2,7 +2,7 @@
 
 ### columns
 
-- Type: `String[]`
+- Type: `string[]`
 - Default: `null`
 - Required: `true`
 
@@ -10,7 +10,7 @@ List of column names
 
 ### references
 
-- Type: `Object`
+- Type: `object`
 - Default: `null`
 - Required: `true`
 
@@ -18,7 +18,7 @@ Object with foreign table parameters
 
 ### references.table
 
-- Type: `String`
+- Type: `string`
 - Default: `null`
 - Required: `true`
 
@@ -26,7 +26,7 @@ Foreign table name
 
 ### references.columns
 
-- Type: `String[]`
+- Type: `string[]`
 - Default: `null`
 - Required: `true`
 
@@ -34,7 +34,7 @@ Foreign table column names
 
 ### match
 
-- Type: `String`
+- Type: `string`
 - Default: `'SIMPLE'`
 - Required: `false`
 
@@ -42,7 +42,7 @@ Object with required parameters for the `type: 'foreignKey'` index
 
 ### onDelete
 
-- Type: `String`
+- Type: `string`
 - Default: `'NO ACTION'`
 - Required: `false`
 
@@ -50,7 +50,7 @@ Object with required parameters for the `type: 'foreignKey'` index
 
 ### onUpdate
 
-- Type: `String`
+- Type: `string`
 - Default: `'NO ACTION'`
 - Required: `false`
 

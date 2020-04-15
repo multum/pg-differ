@@ -4,7 +4,7 @@
 
 ### name
 
-- Type: `String`
+- Type: `string`
 - Default: `null`
 - Required: `true`
 
@@ -12,7 +12,7 @@ Sequence name
 
 ### start
 
-- Type: `String | Number`
+- Type: `string | number`
 - Default: `1`
 - Required: `false`
 
@@ -20,7 +20,7 @@ Start value
 
 ### min
 
-- Type: `String | Number`
+- Type: `string | number`
 - Default: `1`
 - Required: `false`
 
@@ -28,7 +28,7 @@ Minimum value
 
 ### max
 
-- Type: `String | Number`
+- Type: `string | number`
 - Default: `9223372036854775807`
 - Required: `false`
 
@@ -36,7 +36,7 @@ Maximum value
 
 ### cycle
 
-- Type: `Boolean`
+- Type: `boolean`
 - Default: `false`
 - Required: `false`
 
@@ -44,7 +44,7 @@ Sequence looping when max value is reached
 
 ### increment
 
-- Type: `String | Number`
+- Type: `string | number`
 - Default: `1`
 - Required: `false`
 

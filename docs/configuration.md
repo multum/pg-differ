@@ -2,7 +2,7 @@
 
 ### connectionConfig
 
-- Type: `Object`
+- Type: `object`
 - Default: `null`
 - Required: `true`
 
@@ -10,7 +10,7 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 
 ### logging
 
-- Type: `Boolean | Function`
+- Type: `boolean | function`
 - Default: `console.info`
 - Required: `false`
 

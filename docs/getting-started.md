@@ -22,7 +22,7 @@ mkdir objects && touch objects/name.schema.json
 const Differ = require('pg-differ');
 
 const differ = new Differ({
-  connectionConfig: { ... },
+  connectionConfig: {},
   logging: true, // default value of console.log
 });
 
@@ -51,7 +51,7 @@ const users = differ.define('table', {
 
 // users.getObjectName() === 'CustomSchema.users'
 
-await differ.sync({ allowClean: { foreignKeys: true } });
-
-console.log('database ready');
+differ
+  .sync({ allowClean: { foreignKeys: true } })
+  .then(() => console.log('database ready'));
 ```

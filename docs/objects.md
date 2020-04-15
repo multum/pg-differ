@@ -7,7 +7,7 @@
 const Differ = require('pg-differ');
 
 const differ = new Differ({
-  connectionConfig: { ... },
+  connectionConfig: {},
   logging: true, // default value of console.log
 });
 
@@ -24,5 +24,7 @@ differ.define('sequence', {
   start: 100,
 });
 
-await differ.sync({ allowClean: { foreignKeys: true } });
+differ
+  .sync({ allowClean: { foreignKeys: true } })
+  .then(() => console.log('database ready'));
 ```

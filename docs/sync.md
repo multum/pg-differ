@@ -2,7 +2,7 @@
 
 ### transaction
 
-- Type: `Boolean`
+- Type: `boolean`
 - Default: `true`
 - Required: `false`
 
@@ -10,7 +10,7 @@
 
 ### execute
 
-- Type: `Boolean`
+- Type: `boolean`
 - Default: `true`
 - Required: `false`
 
@@ -18,15 +18,15 @@
 
 ### allowClean
 
-- Type: `Object`
+- Type: `object`
 - Default: `{ primaryKeys: true }`
 - Required: `false`
 
-Object with types `[ indexes | foreignKeys | unique | primaryKeys | checks ]: Boolean`, which are deleted from the database if they are not defined in the table schema
+Object with types `[ indexes | foreignKeys | unique | primaryKeys | checks ]: boolean`, which are deleted from the database if they are not defined in the table schema
 
 ### force
 
-- Type: `Boolean`
+- Type: `boolean`
 - Default: `false`
 - Required: `false`
 
@@ -34,7 +34,7 @@ Force synchronization of tables and sequences (drop and create)
 
 ### adjustIdentitySequences
 
-- Type: `Boolean`
+- Type: `boolean`
 - Default: `false`
 - Required: `false`
 

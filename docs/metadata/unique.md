@@ -2,7 +2,7 @@
 
 ### columns
 
-- Type: `String[]`
+- Type: `string[]`
 - Default: `null`
 - Required: `true`
 

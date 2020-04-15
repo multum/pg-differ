@@ -23,7 +23,7 @@ Defining models from `*.json` files. Equivalent to function calls `differ.define
 > Differ.prototype.sync
 
 - Arguments: (options?: [sync options](sync.md))
-- Returns: `Promise<{ queries: String[] }>`
+- Returns: `Promise<{ queries: string[] }>`
 
 Synchronization of previously defined [objects](objects.md)
 
@@ -32,7 +32,7 @@ Synchronization of previously defined [objects](objects.md)
 > Differ.prototype.getDefaultSchema
 
 - Arguments: ()
-- Returns: `String`
+- Returns: `string`
 
 Getting the **default schema**. By default it is equal to `'public'`
 
@@ -40,7 +40,7 @@ Getting the **default schema**. By default it is equal to `'public'`
 
 > Differ.prototype.setDefaultSchema
 
-- Arguments: (schema: `String`)
+- Arguments: (schema: `string`)
 - Returns: `this`
 
 Setting the **default schema**

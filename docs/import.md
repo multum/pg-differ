@@ -2,7 +2,7 @@
 
 ### path
 
-- Type: `String`
+- Type: `string`
 - Default: `null`
 - Required: `true`
 
@@ -26,7 +26,7 @@ The 'interpolate' delimiter
 
 ### locals
 
-- Type: `Object<Object|Array|String|Number>`
+- Type: `object`
 - Default: `null`
 - Required: `false`
 
