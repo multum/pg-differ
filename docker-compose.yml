@@ -1,0 +1,10 @@
+version: '3.3'
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 25432:5432
+    container_name: differ_postgres

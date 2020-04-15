@@ -30,6 +30,7 @@
   },
   "scripts": {
     "test": "jest --run-in-band",
+    "lint": "eslint --max-warnings=0 **/*.js",
     "format": "prettier --write .",
     "docs": "docsify serve docs"
   },

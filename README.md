@@ -4,7 +4,7 @@
 
 _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.postgresql.org/)_
 
-![](https://img.shields.io/travis/com/multum/pg-differ.svg?style=flat)
+![](https://github.com/multum/pg-differ/workflows/Lint%20and%20test/badge.svg)
 [![](https://img.shields.io/npm/l/pg-differ.svg?style=flat)](https://github.com/multum/pg-differ/blob/master/LICENSE)
 [![](https://img.shields.io/npm/v/pg-differ.svg?style=flat)](https://www.npmjs.com/package/pg-differ)
 ![](https://img.shields.io/codecov/c/github/multum/pg-differ.svg?style=flat)
@@ -23,21 +23,8 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
 
 ## Documentation
 
-You can find the documentation [on the website](https://multum.github.io/pg-differ/#/)
-
-## Contributing
-
-#### Issue
-
-Suggestions for introducing new features, bug reports, and any other suggestions can be written in the issue. They will be reviewed immediately.
-
-#### Pull Request
-
-Good pull requests, such as patches, improvements, and new features, are a fantastic help. They should remain focused in scope and avoid containing unrelated commits.
-
-Please **ask first** if somebody else is already working on this or the core developers think your feature is in-scope for **pg-differ**. Generally always have a related issue with discussions for whatever you are including.
-
-Please also provide a **test plan**, i.e. specify how you verified that your addition works.
+- [Documentation](https://multum.github.io/pg-differ/#/)
+- [Contributing](https://github.com/multum/pg-differ/blob/master/CONTRIBUTING.md)
 
 ## License
 
