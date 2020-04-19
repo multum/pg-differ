@@ -12,12 +12,14 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
 ## Features
 
 - Fully tested
-- [Easy-to-use](https://multum.github.io/pg-differ/#/getting-started)
 - Fully documented
 - [Table](https://multum.github.io/pg-differ/#/metadata/table) and [Sequence](https://multum.github.io/pg-differ/#/metadata/sequence) support
-- Update columns without data loss
+- Updating columns without data loss
 - Constraint and index support
 - Removing unnecessary constraints/indexes
+- [CLI](https://multum.github.io/pg-differ/#/cli)
+  - [Creating/adjustment](https://multum.github.io/pg-differ/#/cli?id=sync) of objects
+  - [Auto-generating](https://multum.github.io/pg-differ/#/cli?id=generate) schemas for existing objects on the server
 
 <img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 

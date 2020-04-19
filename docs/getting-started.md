@@ -1,4 +1,4 @@
-# Getting started
+# Getting Started
 
 !> pg-differ requires: **[Node.js](https://nodejs.org/)** **v10** or more; **[PostgreSQL Core](https://www.postgresql.org/download/)** **v10** or more
 
@@ -6,12 +6,14 @@
 npm i pg-differ
 ```
 
-## Writing object schema files
+## Writing object schemas
 
 Then create a folder with your first [object schema file](objects.md) or use the `define` method.
 
 ```bash
-mkdir objects && touch objects/name.schema.json
+mkdir objects && touch objects/users.schema.json
+# or using CLI
+pg-differ generate -c ${connectionString} --table public.users --path objects
 ```
 
 ## Initialize
