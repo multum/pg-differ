@@ -25,18 +25,22 @@ const getDiffer = (options) => {
   return new Differ({ connectionConfig, ...options });
 };
 
-const execute = (processPath, args = []) => {
+const execute = (processPath, args = [], logger) => {
   const childProcess = spawn('node', [processPath, ...args]);
   return new Promise((resolve, reject) => {
-    childProcess.stderr.once('data', (error) => {
-      reject(error.toString());
-    });
     childProcess.on('error', reject);
     childProcess.on('close', (code) => {
       return code === 0 ? resolve() : reject();
     });
-    // childProcess.stdout.pipe(concat(console.info));
+    childProcess.stderr.once('data', (error) => reject(error.toString()));
+    if (logger) {
+      childProcess.stdout.on('data', (data) => logger(data.toString()));
+    }
   });
+};
+
+const readJSON = (...pathChunks) => {
+  return JSON.parse(fs.readFileSync(path.join(...pathChunks), 'utf-8'));
 };
 
 /**
@@ -67,5 +71,6 @@ module.exports = {
   getUtils,
   getDiffer,
   execute,
+  readJSON,
   rmdirSync,
 };

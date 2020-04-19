@@ -10,9 +10,10 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const Metalize = require('metalize');
+
 const utils = require('../lib/utils');
 const parser = require('../lib/parser');
-const { Columns, Sequences, Constraints } = require('../lib/constants');
+const { Columns, Sequences, Constraints, Types } = require('../lib/constants');
 
 const toArray = (target) => {
   if (utils.isExist(target)) {
@@ -49,6 +50,12 @@ module.exports.builder = (yargs) => {
       default: false,
       type: 'boolean',
     })
+    .option('pretty-types', {
+      alias: 'pt',
+      describe: 'Using short aliases for long data type names',
+      default: true,
+      type: 'boolean',
+    })
     .option('table', {
       alias: 't',
       describe: 'Table name',
@@ -81,7 +88,7 @@ module.exports.handler = function (argv) {
       tables.forEach((name) => {
         const data = metadata.tables.get(name);
         if (data) {
-          schemas.push(_prepareTableSchema(data));
+          schemas.push(_prepareTableSchema(data, argv));
         } else {
           missing.push(name);
         }
@@ -90,7 +97,7 @@ module.exports.handler = function (argv) {
       sequences.forEach((name) => {
         const data = metadata.sequences.get(name);
         if (data) {
-          schemas.push(_prepareSequenceSchema(data));
+          schemas.push(_prepareSequenceSchema(data, argv));
         } else {
           missing.push(name);
         }
@@ -153,7 +160,7 @@ const _prepareSequenceSchema = (metadata) => {
   };
 };
 
-const _prepareTableSchema = (metadata) => {
+const _prepareTableSchema = (metadata, argv) => {
   const properties = { name: metadata.name, columns: {} };
   metadata.columns.forEach(({ name, identity, ...attrs }) => {
     const column = utils.getDiff(attrs, Columns.getDefaults(attrs.type));
@@ -179,6 +186,32 @@ const _prepareTableSchema = (metadata) => {
 
     if (utils.isExist(column.default)) {
       column.default = { type: 'literal', value: column.default };
+    }
+
+    if (argv['pretty-types']) {
+      const { DataTypes } = Types;
+      const longTypes = [
+        'time',
+        DataTypes.bitVarying,
+        DataTypes.characterVarying,
+        DataTypes.doublePrecision,
+      ];
+      if (new RegExp(`^(${longTypes.join('|')})`).test(column.type)) {
+        const parsedType = parser.dataType(column.type);
+        const alias = Object.entries(Types.Aliases).find(([, type]) => {
+          return type === parsedType.components[0];
+        });
+        if (alias) {
+          const [name] = alias;
+          column.type = name;
+          if (parsedType.components.length > 1) {
+            column.type += `(${parsedType.components.slice(1).join(',')})`;
+          }
+          if (parsedType.dimensions) {
+            column.type += new Array(parsedType.dimensions).fill('[]').join('');
+          }
+        }
+      }
     }
 
     if (Object.keys(column).length === 1) {

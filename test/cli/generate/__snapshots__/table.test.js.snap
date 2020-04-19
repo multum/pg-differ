@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`cli generate grouping schemas 1`] = `
+Object {
+  "properties": Object {
+    "columns": Object {
+      "created": Object {
+        "default": Object {
+          "type": "literal",
+          "value": "now()",
+        },
+        "type": "timestamptz(2)",
+      },
+      "deleted": "timestamp(2)",
+      "id": "integer",
+    },
+    "name": "DifferSchema.roles",
+    "unique": Array [
+      Object {
+        "columns": Array [
+          "id",
+        ],
+      },
+    ],
+  },
+  "type": "table",
+}
+`;
+
+exports[`cli generate sequence schema 1`] = `
+Object {
+  "properties": Object {
+    "max": "9999",
+    "name": "DifferSchema.users_seq",
+  },
+  "type": "sequence",
+}
+`;
+
+exports[`cli generate table schema 1`] = `
+Object {
+  "roles": Object {
+    "properties": Object {
+      "columns": Object {
+        "created": Object {
+          "default": Object {
+            "type": "literal",
+            "value": "now()",
+          },
+          "type": "timestamptz(2)",
+        },
+        "deleted": "timestamp(2)",
+        "id": "integer",
+      },
+      "name": "DifferSchema.roles",
+      "unique": Array [
+        Object {
+          "columns": Array [
+            "id",
+          ],
+        },
+      ],
+    },
+    "type": "table",
+  },
+  "users": Object {
+    "properties": Object {
+      "columns": Object {
+        "id": Object {
+          "identity": true,
+          "primary": true,
+          "type": "smallint",
+        },
+        "role": "integer",
+      },
+      "foreignKeys": Array [
+        Object {
+          "columns": Array [
+            "role",
+          ],
+          "references": Object {
+            "columns": Array [
+              "id",
+            ],
+            "table": "DifferSchema.roles",
+          },
+        },
+      ],
+      "name": "DifferSchema.users",
+    },
+    "type": "table",
+  },
+}
+`;
+
+exports[`cli generate using --no-pretty-types 1`] = `
+Object {
+  "properties": Object {
+    "columns": Object {
+      "created": Object {
+        "default": Object {
+          "type": "literal",
+          "value": "now()",
+        },
+        "type": "timestamp(2) with time zone",
+      },
+      "deleted": "timestamp(2) without time zone",
+      "id": "integer",
+    },
+    "name": "DifferSchema.roles",
+    "unique": Array [
+      Object {
+        "columns": Array [
+          "id",
+        ],
+      },
+    ],
+  },
+  "type": "table",
+}
+`;

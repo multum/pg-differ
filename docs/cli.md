@@ -37,11 +37,12 @@ pg-differ generate [options]
 Generating schemas for existing database objects
 
 Options:
-  --help            Show help                                        [boolean]
-  --version         Show version number                              [boolean]
-  --path, -p        Directory path                         [string] [required]
-  --connection, -c  Connection URI to database                        [string]
-  --group, -g       Grouping by schema names        [boolean] [default: false]
-  --table, -t       Table name                                        [string]
-  --sequence, -s    Sequence name                                     [string]
+  --help                 Show help                                                    [boolean]
+  --version              Show version number                                          [boolean]
+  --path, -p             Directory path                                     [string] [required]
+  --connection, -c       Connection URI to database                                    [string]
+  --pretty-types, -pt    Using short aliases for long data type       [boolean] [default: true]
+  --group, -g            Grouping by schema names                    [boolean] [default: false]
+  --table, -t            Table name                                                    [string]
+  --sequence, -s         Sequence name                                                 [string]
 ```
