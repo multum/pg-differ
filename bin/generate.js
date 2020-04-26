@@ -13,7 +13,18 @@ const Metalize = require('metalize');
 
 const utils = require('../lib/utils');
 const parser = require('../lib/parser');
-const { Columns, Sequences, Constraints, Types } = require('../lib/constants');
+const Types = require('../lib/types');
+const { Columns, Sequences, Constraints } = require('../lib/constants');
+
+const _simplifiedTypes = {
+  [Types.bitVarying]: 'varbit',
+  [Types.characterVarying]: 'varchar',
+  [Types.doublePrecision]: 'float8',
+  [Types.time]: 'time',
+  [Types.timeTZ]: 'timetz',
+  [Types.timeStamp]: 'timestamp',
+  [Types.timeStampTZ]: 'timestamptz',
+};
 
 const toArray = (target) => {
   if (utils.isExist(target)) {
@@ -189,27 +200,15 @@ const _prepareTableSchema = (metadata, argv) => {
     }
 
     if (argv['pretty-types']) {
-      const { DataTypes } = Types;
-      const longTypes = [
-        'time',
-        DataTypes.bitVarying,
-        DataTypes.characterVarying,
-        DataTypes.doublePrecision,
-      ];
-      if (new RegExp(`^(${longTypes.join('|')})`).test(column.type)) {
-        const parsedType = parser.dataType(column.type);
-        const alias = Object.entries(Types.Aliases).find(([, type]) => {
-          return type === parsedType.components[0];
-        });
-        if (alias) {
-          const [name] = alias;
-          column.type = name;
-          if (parsedType.components.length > 1) {
-            column.type += `(${parsedType.components.slice(1).join(',')})`;
-          }
-          if (parsedType.dimensions) {
-            column.type += new Array(parsedType.dimensions).fill('[]').join('');
-          }
+      const parsedType = Types.parse(column.type);
+      const simplified = _simplifiedTypes[parsedType.name];
+      if (simplified) {
+        column.type = simplified;
+        if (parsedType.arguments.length) {
+          column.type += `(${parsedType.arguments.join(',')})`;
+        }
+        if (parsedType.dimensions) {
+          column.type += '[]'.repeat(parsedType.dimensions);
         }
       }
     }

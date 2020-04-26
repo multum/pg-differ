@@ -1,7 +1,7 @@
 'use strict';
 
+const Types = require('../../../lib/types');
 const helpers = require('../../helpers');
-const parser = require('../../../lib/parser');
 
 describe('alter column type', () => {
   let differ;
@@ -84,29 +84,29 @@ describe('alter column type', () => {
           columns: { [column]: prevType },
         });
 
-        const normalizedPrevType = parser.dataType(prevType).raw;
+        const purePrevType = Types.parse(prevType).pure;
         expect(await differ.sync({ force: true })).toMatchObject({
           queries: [
             `drop table if exists "DifferSchema"."users" cascade;`,
-            `create table "DifferSchema"."users" ( "${column}" ${normalizedPrevType} null );`,
+            `create table "DifferSchema"."users" ( "${column}" ${purePrevType} null );`,
           ],
         });
 
-        const normalizedType = parser.dataType(type).raw;
+        const pureType = Types.parse(type).pure;
 
         differ.define('table', {
           name: table,
-          columns: { [column]: normalizedType },
+          columns: { [column]: pureType },
         });
 
         if (forbidden) {
           await expect(differ.sync({ execute: false })).rejects.toThrow(
-            `Change the column type from '${normalizedPrevType}' to '${normalizedType}' can result in data loss`
+            `Change the column type from '${purePrevType}' to '${pureType}' can result in data loss`
           );
         } else {
           expect(await differ.sync()).toMatchObject({
             queries: [
-              `alter table "DifferSchema"."users" alter column "birthday" type ${normalizedType};`,
+              `alter table "DifferSchema"."users" alter column "birthday" type ${pureType};`,
             ],
           });
           expect(await differ.sync({ execute: false })).toMatchObject({

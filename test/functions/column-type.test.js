@@ -1,78 +1,87 @@
 'use strict';
-const parser = require('../../lib/parser');
+const Types = require('../../lib/types');
 
 describe(`parse column type`, () => {
   it.each([
     [
       'numeric (16, 4)',
-      { raw: 'numeric(16,4)', components: ['numeric', 16, 4] },
+      { pure: 'numeric(16,4)', name: 'numeric', arguments: [16, 4] },
     ],
     [
       'varchar ( 255 )',
       {
-        raw: 'character varying(255)',
-        components: ['character varying', 255],
+        pure: 'character varying(255)',
+        name: 'character varying',
+        arguments: [255],
       },
     ],
     [
       'timestamp (2) with time zone',
       {
-        raw: 'timestamp(2) with time zone',
-        components: ['timestamp with time zone', 2],
+        pure: 'timestamp(2) with time zone',
+        name: 'timestamp with time zone',
+        arguments: [2],
       },
     ],
     [
       'timestamptz(2)',
       {
-        raw: 'timestamp(2) with time zone',
-        components: ['timestamp with time zone', 2],
+        pure: 'timestamp(2) with time zone',
+        name: 'timestamp with time zone',
+        arguments: [2],
       },
     ],
     [
       'time (2) with time zone',
       {
-        raw: 'time(2) with time zone',
-        components: ['time with time zone', 2],
+        pure: 'time(2) with time zone',
+        name: 'time with time zone',
+        arguments: [2],
       },
     ],
     [
       'timetz(2)',
       {
-        raw: 'time(2) with time zone',
-        components: ['time with time zone', 2],
+        pure: 'time(2) with time zone',
+        name: 'time with time zone',
+        arguments: [2],
       },
     ],
     [
       'time(2)',
       {
-        raw: 'time(2) without time zone',
-        components: ['time without time zone', 2],
+        pure: 'time(2) without time zone',
+        name: 'time without time zone',
+        arguments: [2],
       },
     ],
     [
       'int8',
       {
-        raw: 'bigint',
-        components: ['bigint'],
+        pure: 'bigint',
+        name: 'bigint',
+        arguments: [],
       },
     ],
     [
       'varchar(255)[]',
       {
-        raw: 'character varying(255)[]',
-        components: ['character varying', 255],
+        pure: 'character varying(255)[]',
+        name: 'character varying',
+        arguments: [255],
         dimensions: 1,
       },
     ],
     [
       'timetz(5)[][]',
       {
-        raw: 'time(5) with time zone[][]',
-        components: ['time with time zone', 5],
+        pure: 'time(5) with time zone[][]',
+        name: 'time with time zone',
+        arguments: [5],
         dimensions: 2,
       },
     ],
   ])('should parse "%s"', (type, expected) => {
-    expect(parser.dataType(type)).toEqual(expected);
+    expect(Types.parse(type)).toEqual(expected);
   });
 });
