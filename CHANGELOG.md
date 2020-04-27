@@ -1,3 +1,18 @@
+## 3.2.0
+
+#### Enhancement
+
+- added short aliases for long data type to `generate` command
+
+#### Bug Fix
+
+- only necessary files published on **_npm_**
+
+#### Internal
+
+- update dependencies :package:
+- refactor data type parsing
+
 ## 3.1.0
 
 #### Enhancement
