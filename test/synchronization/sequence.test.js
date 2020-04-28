@@ -23,7 +23,7 @@ describe(`sequence`, () => {
 
   beforeAll(() => {
     return utils.client.query(
-      'drop sequence if exists "DifferSchema"."users_seq";'
+      'drop sequence if exists "DifferSchema"."users_seq" cascade;'
     );
   });
 

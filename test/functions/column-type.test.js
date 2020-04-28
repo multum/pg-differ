@@ -81,6 +81,14 @@ describe(`parse column type`, () => {
         dimensions: 2,
       },
     ],
+    [
+      'custom_type( varchar(16), 64 )',
+      {
+        pure: 'custom_type(varchar(16),64)',
+        name: 'custom_type',
+        arguments: ['varchar(16)', 64],
+      },
+    ],
   ])('should parse "%s"', (type, expected) => {
     expect(Types.parse(type)).toEqual(expected);
   });
