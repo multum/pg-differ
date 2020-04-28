@@ -15,11 +15,7 @@ jobs:
           node-version: '10.x'
 
       - name: Run docker containers
-        run: |
-          docker-compose up -d
-          docker run --net pg-differ_default jwilder/dockerize \
-            -timeout 2m \
-            -wait tcp://postgres:5432
+        run: docker-compose up -d
 
       - name: Install dependencies
         run: yarn install
