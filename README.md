@@ -21,12 +21,52 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
   - [Creating/adjustment](https://multum.github.io/pg-differ/#/cli?id=sync) of objects
   - [Auto-generating](https://multum.github.io/pg-differ/#/cli?id=generate) schemas for existing objects on the server
 
-<img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
-
 ## Documentation
 
 - [Documentation](https://multum.github.io/pg-differ/#/)
 - [Contributing](https://github.com/multum/pg-differ/blob/master/CONTRIBUTING.md)
+
+## Usage Example
+
+```diff
+const Differ = require('pg-differ');
+
+const differ = new Differ({
+  connectionConfig: { host: 'localhost', port: 5432, user: 'postgres' },
+  logging: true
+});
+
+differ.define('table', {
+   name: 'users',
+   columns: {
+      id: { type: 'bigint', primary: true },
+      age: {
+-        type: 'varchar(32)',
++        type: 'varchar(64)',
++        default: '16',
+      },
++     role: { type: 'bigint' },
+   },
++  foreignKeys: [
++     {
++        columns: ['role'],
++        references: { table: 'roles', columns: ['id'] },
++     },
++  ],
+});
+
++ differ.define('table', {
++   name: 'roles',
++   columns: {
++      id: { type: 'bigint', identity: true },
++      name: 'character(255)'
++   },
++ });
+
+await differ.sync()
+```
+
+<img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 
 ## License
 
