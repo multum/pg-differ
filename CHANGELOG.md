@@ -1,3 +1,9 @@
+## 3.2.1
+
+#### Bug Fix
+
+- added missing values for `ForeignKey.[onUpdate|onDelete]`
+
 ## 3.2.0
 
 #### Enhancement
