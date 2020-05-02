@@ -27,15 +27,27 @@
         },
         "match": {
           "type": "string",
-          "enum": ["SIMPLE", "FULL", "PARTIAL"]
+          "enum": ["SIMPLE", "PARTIAL", "FULL"]
         },
         "onDelete": {
           "type": "string",
-          "enum": ["RESTRICT", "CASCADE", "NO ACTION"]
+          "enum": [
+            "NO ACTION",
+            "RESTRICT",
+            "CASCADE",
+            "SET NULL",
+            "SET DEFAULT"
+          ]
         },
         "onUpdate": {
           "type": "string",
-          "enum": ["RESTRICT", "CASCADE", "NO ACTION"]
+          "enum": [
+            "NO ACTION",
+            "RESTRICT",
+            "CASCADE",
+            "SET NULL",
+            "SET DEFAULT"
+          ]
         },
         "references": {
           "type": "object",

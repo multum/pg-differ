@@ -10,9 +10,14 @@ interface ReferenceOptions {
   columns: string[];
 }
 
-declare type ActionType = 'CASCADE' | 'RESTRICT' | 'NO ACTION';
+declare type ActionType =
+  | 'NO ACTION'
+  | 'RESTRICT'
+  | 'CASCADE'
+  | 'SET NULL'
+  | 'SET DEFAULT';
 
-declare type MatchType = 'FULL' | 'PARTIAL' | 'SIMPLE';
+declare type MatchType = 'SIMPLE' | 'PARTIAL' | 'FULL';
 
 declare type CleanOptions = {
   primaryKeys?: boolean;

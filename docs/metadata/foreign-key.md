@@ -46,7 +46,7 @@ Object with required parameters for the `type: 'foreignKey'` index
 - Default: `'NO ACTION'`
 - Required: `false`
 
-`CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`
+`NO ACTION` &#124; `RESTRICT` &#124; `CASCADE` &#124; `SET NULL` &#124; `SET DEFAULT`
 
 ### onUpdate
 
@@ -54,4 +54,4 @@ Object with required parameters for the `type: 'foreignKey'` index
 - Default: `'NO ACTION'`
 - Required: `false`
 
-`CASCADE`&#124;`RESTRICT`&#124;`NO ACTION`
+`NO ACTION` &#124; `RESTRICT` &#124; `CASCADE` &#124; `SET NULL` &#124; `SET DEFAULT`
