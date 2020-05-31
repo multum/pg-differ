@@ -28,43 +28,7 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
 
 ## Usage Example
 
-```diff
-const Differ = require('pg-differ');
-
-const differ = new Differ({
-  connectionConfig: { host: 'localhost', port: 5432, user: 'postgres' },
-  logging: true
-});
-
-differ.define('table', {
-   name: 'users',
-   columns: {
-      id: { type: 'bigint', primary: true },
-      age: {
--        type: 'varchar(32)',
-+        type: 'varchar(64)',
-+        default: '16',
-      },
-+     role: { type: 'bigint' },
-   },
-+  foreignKeys: [
-+     {
-+        columns: ['role'],
-+        references: { table: 'roles', columns: ['id'] },
-+     },
-+  ],
-});
-
-+ differ.define('table', {
-+   name: 'roles',
-+   columns: {
-+      id: { type: 'bigint', identity: true },
-+      name: 'character(255)'
-+   },
-+ });
-
-await differ.sync()
-```
+<img src='https://multum.github.io/pg-differ/usage-example.png' width='740px'/>
 
 <img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 
