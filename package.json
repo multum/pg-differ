@@ -1,6 +1,6 @@
 {
   "name": "pg-differ",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Node.js migration tool for PostgreSQL",
   "keywords": [
     "node",

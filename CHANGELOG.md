@@ -1,3 +1,10 @@
+## 3.2.2
+
+#### Bug Fix
+
+- fixed incorrect sequence update validation
+- fixed a bug that occurred when using numbers in `import.locals`
+
 ## 3.2.1
 
 #### Bug Fix
