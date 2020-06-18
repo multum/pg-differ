@@ -156,11 +156,11 @@ module.exports.handler = function (argv) {
     })
     .then(() => {
       console.info(chalk.green('Creating schemes completed'));
-      process.exit(0);
+      process.exitCode = 0;
     })
     .catch(async (error) => {
       console.error(error);
-      process.exit(1);
+      process.exitCode = 1;
     });
 };
 

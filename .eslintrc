@@ -1,5 +1,5 @@
 {
-  "extends": ["eslint:recommended", "prettier"],
+  "extends": ["eslint:recommended", "prettier", "plugin:node/recommended"],
   "plugins": ["prettier"],
   "env": { "jest": true, "node": true, "es6": true, "worker": true },
   "parserOptions": { "ecmaVersion": 2018 },

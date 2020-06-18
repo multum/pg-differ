@@ -67,6 +67,11 @@ module.exports.handler = (argv) => {
 
   differ
     .sync({ force: argv.force })
-    .then(() => process.exit(0))
-    .catch((error) => console.error(error) || process.exit(1));
+    .then(() => {
+      process.exitCode = 0;
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    });
 };

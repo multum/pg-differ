@@ -87,7 +87,12 @@ describe(`sequence`, () => {
 
     differ.define('sequence', { ...properties, max: 10 });
     await expect(differ.sync()).rejects.toThrow(
-      `You cannot increase 'min' value or decrease 'max'`
+      `You cannot decrease 'max' value`
+    );
+
+    differ.define('sequence', { ...properties, min: 2 });
+    await expect(differ.sync()).rejects.toThrow(
+      `You cannot increase 'min' value`
     );
   });
 });

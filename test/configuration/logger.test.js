@@ -12,7 +12,7 @@ describe(`logging`, () => {
     expect(logger.mock.calls).toEqual([
       [`Postgres Differ > ${chalk.green('Sync started')}`],
       [`Postgres Differ > Database does not need updating`],
-      [`Postgres Differ > ${chalk.green('Sync successful!')}`],
+      [`Postgres Differ > ${chalk.green('Sync successful')}`],
     ]);
   });
 });

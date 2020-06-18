@@ -21,16 +21,12 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
   - [Creating/adjustment](https://multum.github.io/pg-differ/#/cli?id=sync) of objects
   - [Auto-generating](https://multum.github.io/pg-differ/#/cli?id=generate) schemas for existing objects on the server
 
+<img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
+
 ## Documentation
 
 - [Documentation](https://multum.github.io/pg-differ/#/)
 - [Contributing](https://github.com/multum/pg-differ/blob/master/CONTRIBUTING.md)
-
-## Usage Example
-
-<img src='https://multum.github.io/pg-differ/usage-example.png' width='740px'/>
-
-<img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
 
 ## License
 
