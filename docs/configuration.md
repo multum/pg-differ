@@ -8,6 +8,14 @@
 
 Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic)
 
+### defaultSchema
+
+- Type: `string`
+- Default: `public`
+- Required: `false`
+
+It will be used in objects whose names do not contain a schema name
+
 ### logging
 
 - Type: `boolean | function`

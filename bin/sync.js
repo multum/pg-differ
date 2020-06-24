@@ -40,6 +40,8 @@ module.exports.builder = (yargs) => {
 };
 
 module.exports.handler = (argv) => {
+  const config = cliHelpers.getConfig(argv);
+
   let locals = null;
 
   if (argv.set) {
@@ -51,7 +53,7 @@ module.exports.handler = (argv) => {
     }, {});
   }
 
-  const differ = new Differ(cliHelpers.getConfig(argv));
+  const differ = new Differ(config);
 
   const directory = path.resolve(process.cwd(), argv.path);
 

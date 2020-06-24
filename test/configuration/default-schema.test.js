@@ -2,16 +2,24 @@
 
 const helpers = require('../helpers');
 
-describe(`method differ.setDefaultSchema()`, () => {
-  it(`should change default schema`, function () {
-    const differ = helpers.getDiffer();
-    differ.define('table', { name: 'users', columns: { id: 'int' } });
+describe(`default schema`, () => {
+  it(`should change using config property`, function () {
+    const differ = helpers.getDiffer({ defaultSchema: 'DifferSchema' });
+    const users = differ.define('table', {
+      name: 'users',
+      columns: { id: 'int' },
+    });
+    expect(users.getObjectName()).toEqual('DifferSchema.users');
+  });
 
-    const users = differ.objects.get('users');
+  it(`should change using differ.setDefaultSchema() method`, function () {
+    const differ = helpers.getDiffer();
+    const users = differ.define('table', {
+      name: 'users',
+      columns: { id: 'int' },
+    });
 
     expect(differ.getDefaultSchema()).toEqual('public');
-    expect(users.getObjectName()).toEqual('public.users');
-    expect(users.getQuotedObjectName()).toEqual('"public"."users"');
 
     differ.setDefaultSchema('DifferSchema');
 
