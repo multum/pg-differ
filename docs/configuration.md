@@ -11,7 +11,7 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 ### defaultSchema
 
 - Type: `string`
-- Default: `public`
+- Default: `'public'`
 - Required: `false`
 
 It will be used in objects whose names do not contain a schema name

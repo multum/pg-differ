@@ -1,17 +1,5 @@
 # CLI
 
-## Usage example {docsify-ignore}
-
-```bash
-# connection='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
-
-# 'sync' command
-pg-differ sync --connection ${connection} --set mySchema=public --path ./objects --silent
-
-# 'generate' command
-pg-differ generate --connection ${connection} --table public.users --table public.roles --path ./objects
-```
-
 ## Configuration file
 
 By default, the CLI will try to use the file `config.js` or `config.json`. You can modify that path either via the `--config` flag
@@ -26,6 +14,18 @@ module.exports = {
     host: '127.0.0.1',
   },
 };
+```
+
+## Commands
+
+```bash
+# connection='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
+
+# 'sync' command
+pg-differ sync --connection ${connection} --set mySchema=public --path ./objects --silent
+
+# 'generate' command
+pg-differ generate --connection ${connection} --table public.users --table public.roles --path ./objects
 ```
 
 ### sync

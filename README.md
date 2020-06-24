@@ -18,7 +18,7 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
 - Constraint and index support
 - Removing unnecessary constraints/indexes
 - [CLI](https://multum.github.io/pg-differ/#/cli)
-  - [Creating/adjustment](https://multum.github.io/pg-differ/#/cli?id=sync) of objects
+  - [Synchronization](https://multum.github.io/pg-differ/#/cli?id=sync)
   - [Auto-generating](https://multum.github.io/pg-differ/#/cli?id=generate) schemas for existing objects on the server
 
 <img src='https://multum.github.io/pg-differ/screencast.svg' width='640px'/>
