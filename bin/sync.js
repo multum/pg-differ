@@ -8,38 +8,35 @@
 
 const path = require('path');
 const Differ = require('../lib');
+const cliHelpers = require('./cli-helpers');
 
 module.exports.builder = (yargs) => {
-  yargs
-    .usage('\n$0 sync [options]')
-    .option('path', {
+  yargs.usage('\n$0 sync [options]').options({
+    ...cliHelpers.getCommonOptions(),
+    path: {
       alias: 'p',
       describe: 'Directory path',
       demandOption: true,
       type: 'string',
-    })
-    .option('connection', {
-      alias: 'c',
-      describe: 'Connection URI to database',
-      type: 'string',
-    })
-    .option('set', {
+    },
+    set: {
       alias: 's',
       describe: 'Variable to replace placeholder in schema files',
       type: 'string',
-    })
-    .option('force', {
+    },
+    force: {
       alias: 'f',
       default: false,
       describe: 'Force synchronization of tables and sequences',
       type: 'boolean',
-    })
-    .option('silent', {
+    },
+    silent: {
       alias: 'S',
       default: false,
       describe: 'Disable printing messages through the console',
       type: 'boolean',
-    });
+    },
+  });
 };
 
 module.exports.handler = (argv) => {
@@ -54,12 +51,7 @@ module.exports.handler = (argv) => {
     }, {});
   }
 
-  const differ = new Differ({
-    logging: !argv.silent,
-    connectionConfig: {
-      connectionString: argv.connection,
-    },
-  });
+  const differ = new Differ(cliHelpers.getConfig(argv));
 
   const directory = path.resolve(process.cwd(), argv.path);
 

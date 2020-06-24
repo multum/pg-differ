@@ -12,6 +12,22 @@ pg-differ sync --connection ${connection} --set mySchema=public --path ./objects
 pg-differ generate --connection ${connection} --table public.users --table public.roles --path ./objects
 ```
 
+## Configuration file
+
+By default, the CLI will try to use the file `config.js` or `config.json`. You can modify that path either via the `--config` flag
+
+```js
+module.exports = {
+  // you can use the key 'connection' instead of 'connectionConfig'
+  connectionConfig: {
+    user: 'postgres',
+    password: 'postgres',
+    database: 'postgres',
+    host: '127.0.0.1',
+  },
+};
+```
+
 ### sync
 
 ```
@@ -22,6 +38,7 @@ Synchronization previously prepared schemes
 Options:
   --help            Show help                                                         [boolean]
   --version         Show version number                                               [boolean]
+  --config, -C      Path to configuration file                                         [string]
   --path, -p        Directory path                                          [string] [required]
   --connection, -c  Connection URI to database                                         [string]
   --set, -s         Variable to replace placeholder in schema files                    [string]
@@ -39,6 +56,7 @@ Generating schemas for existing database objects
 Options:
   --help                 Show help                                                    [boolean]
   --version              Show version number                                          [boolean]
+  --config, -C           Path to configuration file                                    [string]
   --path, -p             Directory path                                     [string] [required]
   --connection, -c       Connection URI to database                                    [string]
   --pretty-types, -pt    Using short aliases for long data type       [boolean] [default: true]

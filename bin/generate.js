@@ -15,6 +15,7 @@ const utils = require('../lib/utils');
 const parser = require('../lib/parser');
 const Types = require('../lib/types');
 const { Columns, Sequences, Constraints } = require('../lib/constants');
+const cliHelpers = require('./cli-helpers');
 
 const _simplifiedTypes = {
   [Types.bitVarying]: 'varbit',
@@ -44,48 +45,48 @@ module.exports.builder = (yargs) => {
       }
     })
     .usage('\n$0 generate [options]')
-    .option('path', {
-      alias: 'p',
-      describe: 'Directory path',
-      demandOption: true,
-      type: 'string',
-    })
-    .option('connection', {
-      alias: 'c',
-      describe: 'Connection URI to database',
-      type: 'string',
-    })
-    .option('group', {
-      alias: 'g',
-      describe: 'Grouping by folders with schemas as names',
-      default: false,
-      type: 'boolean',
-    })
-    .option('pretty-types', {
-      alias: 'pt',
-      describe: 'Using short aliases for long data type names',
-      default: true,
-      type: 'boolean',
-    })
-    .option('table', {
-      alias: 't',
-      describe: 'Table name',
-      type: 'string',
-    })
-    .option('sequence', {
-      alias: 's',
-      describe: 'Sequence name',
-      type: 'string',
+    .options({
+      ...cliHelpers.getCommonOptions(),
+      path: {
+        alias: 'p',
+        describe: 'Directory path',
+        demandOption: true,
+        type: 'string',
+      },
+      group: {
+        alias: 'g',
+        describe: 'Grouping by folders with schemas as names',
+        default: false,
+        type: 'boolean',
+      },
+      table: {
+        alias: 't',
+        describe: 'Table name',
+        type: 'string',
+      },
+      sequence: {
+        alias: 's',
+        describe: 'Sequence name',
+        type: 'string',
+      },
+      'pretty-types': {
+        alias: 'pt',
+        describe: 'Using short aliases for long data type names',
+        default: true,
+        type: 'boolean',
+      },
     });
 };
 
 module.exports.handler = function (argv) {
+  const { connectionConfig } = cliHelpers.getConfig(argv);
+
   const tables = toArray(argv.table);
   const sequences = toArray(argv.sequence);
 
   const metalize = new Metalize({
     dialect: 'postgres',
-    connectionConfig: argv.connection,
+    connectionConfig,
   });
 
   console.info(chalk.green('Creating schemas...'));
