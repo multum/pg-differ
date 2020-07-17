@@ -14,7 +14,12 @@ const Metalize = require('metalize');
 const utils = require('../lib/utils');
 const parser = require('../lib/parser');
 const Types = require('../lib/types');
-const { Columns, Sequences, Constraints } = require('../lib/constants');
+const {
+  Columns,
+  Sequences,
+  Constraints,
+  Indexes,
+} = require('../lib/constants');
 const cliHelpers = require('./cli-helpers');
 
 const _simplifiedTypes = {
@@ -230,6 +235,12 @@ const _prepareTableSchema = (metadata, argv) => {
   if (properties.foreignKeys) {
     properties.foreignKeys = properties.foreignKeys.map((foreignKey) => {
       return utils.getDiff(foreignKey, Constraints.ForeignKeyDefaults);
+    });
+  }
+
+  if (properties.indexes) {
+    properties.indexes = properties.indexes.map((index) => {
+      return utils.getDiff(index, Indexes.Defaults);
     });
   }
 

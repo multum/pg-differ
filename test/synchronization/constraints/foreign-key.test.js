@@ -20,7 +20,7 @@ require('../test-factories').indexOrConstraintTest('foreignKeys', {
   ],
   expectQueries: [
     `alter table "DifferSchema"."roles" add unique ( "id" );`,
-    `alter table "DifferSchema"."users" add foreign key ( "role" ) references "DifferSchema"."roles" ( "id" ) match SIMPLE on update NO ACTION on delete NO ACTION;`,
+    `alter table "DifferSchema"."users" add foreign key ( "role" ) references "DifferSchema"."roles" ( "id" );`,
   ],
   expectDropQueries: [
     `alter table "DifferSchema"."users" drop constraint "users_role_fkey";`,

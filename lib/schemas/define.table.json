@@ -101,7 +101,17 @@
     "indexes": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/extension"
+        "type": "object",
+        "required": ["columns"],
+        "properties": {
+          "columns": {
+            "type": "array"
+          },
+          "using": {
+            "type": "string",
+            "enum": ["btree", "hash", "gist", "gin"]
+          }
+        }
       }
     },
     "unique": {

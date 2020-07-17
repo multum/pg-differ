@@ -47,10 +47,6 @@ interface ColumnOptions {
   formerNames?: string[];
 }
 
-interface IndexOptions {
-  columns: string[];
-}
-
 interface SequenceProperties {
   name: string;
   start?: string | number;
@@ -73,11 +69,24 @@ interface CheckOptions {
   condition: string;
 }
 
+interface IndexOptions {
+  columns: string[];
+  using: 'btree' | 'hash' | 'gist' | 'gin';
+}
+
+interface PrimaryKeyOptions {
+  columns: string[];
+}
+
+interface UniqueOptions {
+  columns: string[];
+}
+
 interface TableProperties {
   name: string;
   columns: { [name: string]: ColumnOptions };
-  primaryKey?: IndexOptions;
-  unique?: IndexOptions[];
+  primaryKey?: PrimaryKeyOptions;
+  unique?: UniqueOptions[];
   indexes?: IndexOptions[];
   foreignKeys?: ForeignKeyOptions[];
   checks?: CheckOptions[];
