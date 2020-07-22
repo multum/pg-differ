@@ -1,3 +1,15 @@
+## 3.3.0
+
+#### Enhancement
+
+- added `indexes[].using` option
+- added `defaultSchema` option to constructor
+- added **config file** support for **_CLI_**
+
+#### Internal
+
+- update dependencies :package:
+
 ## 3.2.2
 
 #### Bug Fix
