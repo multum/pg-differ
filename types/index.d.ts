@@ -125,6 +125,7 @@ interface ImportOptions {
 
 interface DifferOptions {
   connectionConfig: object;
+  defaultSchema?: string;
   logging?: boolean | Function;
 }
 
