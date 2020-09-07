@@ -5,7 +5,7 @@
 _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.postgresql.org/)_
 
 ![](https://github.com/multum/pg-differ/workflows/Lint%20and%20test/badge.svg)
-[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat)](https://github.com/multum/pg-differ/blob/master/LICENSE)
+[![](https://img.shields.io/npm/l/pg-differ.svg?style=flat)](https://github.com/multum/pg-differ/blob/main/LICENSE)
 [![](https://img.shields.io/npm/v/pg-differ.svg?style=flat)](https://www.npmjs.com/package/pg-differ)
 ![](https://img.shields.io/codecov/c/github/multum/pg-differ.svg?style=flat)
 
@@ -26,8 +26,8 @@ _[Node.js](https://nodejs.org/en/) migration tool for [PostgreSQL](https://www.p
 ## Documentation
 
 - [Documentation](https://multum.github.io/pg-differ/#/)
-- [Contributing](https://github.com/multum/pg-differ/blob/master/CONTRIBUTING.md)
+- [Contributing](https://github.com/multum/pg-differ/blob/main/CONTRIBUTING.md)
 
 ## License
 
-**pg-differ** is open source software [licensed as MIT](https://github.com/multum/pg-differ/blob/master/LICENSE).
+**pg-differ** is open source software [licensed as MIT](https://github.com/multum/pg-differ/blob/main/LICENSE).
