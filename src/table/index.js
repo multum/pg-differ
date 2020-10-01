@@ -23,10 +23,7 @@ const { INTEGER, CHARACTER, BOOLEAN } = TYPES.GROUPS;
 
 const validate = require('../validate');
 
-const _parseSchema = R.pipe(
-  validate.tableDefinition,
-  parser.schema
-);
+const _parseSchema = R.pipe(validate.tableDefinition, parser.schema);
 
 const _setupSequences = ({ columns, tableName, client, forceCreate }) => {
   const sequenceColumns = columns.filter(column => column.autoIncrement);
@@ -580,14 +577,11 @@ Table._read = async (client, options) => {
     name: fullName,
   });
 
-  const metalize = new Metalize({
-    dialect: 'postgres',
-    client,
-  });
+  const metalize = new Metalize('postgres');
 
-  const structures = await metalize.read.tables([fullName]);
+  const metadata = await metalize.find({ tables: [fullName] }, { client });
 
-  const structure = structures.get(fullName);
+  const structure = metadata.tables.get(fullName);
 
   if (!structure) {
     return undefined;

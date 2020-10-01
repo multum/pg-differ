@@ -138,13 +138,13 @@ function Sequence(options) {
 }
 
 Sequence._read = async (client, options) => {
-  const metalize = new Metalize({ client, dialect: 'postgres' });
+  const metalize = new Metalize('postgres');
 
   const [_schemaName = 'public', _sequenceName] = parser.name(options.name);
   const fullName = `${_schemaName}.${_sequenceName}`;
 
-  const structures = await metalize.read.sequences([fullName]);
-  return structures.get(fullName);
+  const metadata = await metalize.find({ sequences: [fullName] }, { client });
+  return metadata.sequences.get(fullName);
 };
 
 module.exports = Sequence;

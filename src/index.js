@@ -189,13 +189,16 @@ function Differ(options) {
     const tables = [..._tables.values()];
     const sequences = [..._sequences.values()];
 
-    const metalize = new Metalize({ client: _client, dialect: 'postgres' });
+    const metalize = new Metalize('postgres');
 
-    const tableStructures = await metalize.read.tables(
-      tables.map(t => t._name)
-    );
-    const sequenceStructures = await metalize.read.sequences(
-      sequences.map(s => s._name)
+    await _client.query('set search_path to public');
+
+    const structure = await metalize.find(
+      {
+        tables: tables.map(t => t._name),
+        sequences: sequences.map(s => s._name),
+      },
+      { client: _client }
     );
 
     const databaseVersion = await _getDatabaseVersion();
@@ -213,7 +216,7 @@ function Differ(options) {
         await _sync({
           process: PROCESSES.UPDATING_SEQUENCES,
           promises: sequences.map(sequence =>
-            sequence._getSqlChanges(sequenceStructures)
+            sequence._getSqlChanges(structure.sequences)
           ),
         }),
         await _sync({
@@ -224,7 +227,7 @@ function Differ(options) {
             OPERATIONS.DROP_UNIQUE,
           ],
           promises: tables.map(table =>
-            table._getSqlCleaningExtensions(tableStructures)
+            table._getSqlCleaningExtensions(structure.tables)
           ),
         }),
         await _sync({
@@ -237,7 +240,7 @@ function Differ(options) {
             OPERATIONS.SET_DEFAULT,
           ],
           promises: tables.map(table =>
-            table._getSqlCreateOrAlterTable(tableStructures)
+            table._getSqlCreateOrAlterTable(structure.tables)
           ),
         }),
         await _sync({
@@ -247,7 +250,7 @@ function Differ(options) {
             OPERATIONS.ADD_PRIMARY_KEY,
           ],
           promises: tables.map(table =>
-            table._getSqlAddingExtensions(tableStructures)
+            table._getSqlAddingExtensions(structure.tables)
           ),
         }),
       ];
@@ -275,7 +278,7 @@ function Differ(options) {
         await _sync({
           process: PROCESSES.UPDATING_SEQUENCE_VALUES,
           promises: tables.map(table =>
-            table._getSqlSequenceActualize(tableStructures)
+            table._getSqlSequenceActualize(structure.tables)
           ),
         })
       );
