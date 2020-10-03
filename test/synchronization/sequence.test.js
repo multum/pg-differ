@@ -81,18 +81,23 @@ describe(`sequence`, () => {
     });
   });
 
-  it(`should get an error making incorrect changes`, async function () {
+  it(`should change range with reset`, async function () {
     differ.define('sequence', properties);
     await differ.sync({ force: true });
 
     differ.define('sequence', { ...properties, max: 10 });
-    await expect(differ.sync()).rejects.toThrow(
-      `You cannot decrease 'max' value`
-    );
+    expect(await differ.sync()).toMatchObject({
+      queries: ['alter sequence "DifferSchema"."users_seq" maxvalue 10;'],
+    });
 
-    differ.define('sequence', { ...properties, min: 2 });
-    await expect(differ.sync()).rejects.toThrow(
-      `You cannot increase 'min' value`
-    );
+    differ.define('sequence', { ...properties, start: 2, min: 2 });
+    expect(await differ.sync()).toMatchObject({
+      queries: [
+        'alter sequence "DifferSchema"."users_seq" minvalue 2 maxvalue 10000 start 2 restart with 2;',
+      ],
+    });
+    expect(await differ.sync({ execute: false })).toMatchObject({
+      queries: [],
+    });
   });
 });

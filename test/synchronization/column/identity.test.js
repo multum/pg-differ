@@ -94,6 +94,28 @@ describe('identity', () => {
     });
   });
 
+  it('should change identity range with reset', async function () {
+    differ.define('table', {
+      name: 'DifferSchema.users',
+      columns: { id: { type: 'int', identity: true } },
+    });
+    await differ.sync({ force: true });
+
+    differ.define('table', {
+      name: 'DifferSchema.users',
+      columns: { id: { type: 'int', identity: { start: 999, min: 999 } } },
+    });
+
+    expect(await differ.sync()).toMatchObject({
+      queries: [
+        'alter table "DifferSchema"."users" alter column "id" set minvalue 999 set start 999 restart with 999;',
+      ],
+    });
+    expect(await differ.sync({ execute: false })).toMatchObject({
+      queries: [],
+    });
+  });
+
   it('should adjust identity sequences', async function () {
     differ.define('table', {
       name: 'DifferSchema.users',
