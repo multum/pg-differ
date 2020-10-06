@@ -49,4 +49,12 @@ describe(`utils`, () => {
   ])('utils.omit() [%#]', (object, keys, expected) => {
     expect(utils.omit(keys, object)).toEqual(expected);
   });
+
+  it.each([
+    [{ foo: 1 }, 'foo', true],
+    [{ foo: undefined }, 'foo', true],
+    [{ bar: 1 }, 'foo', false],
+  ])('utils.has() [%#]', (object, key, expected) => {
+    expect(utils.has(key, object)).toEqual(expected);
+  });
 });

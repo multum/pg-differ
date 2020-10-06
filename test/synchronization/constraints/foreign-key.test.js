@@ -13,7 +13,7 @@ require('../test-factories').indexOrConstraintTest('foreignKeys', {
       foreignKeys: [
         {
           columns: ['role'],
-          references: { table: 'DifferSchema.roles', columns: ['id'] },
+          references: { table: 'roles', columns: ['id'] },
         },
       ],
     },
