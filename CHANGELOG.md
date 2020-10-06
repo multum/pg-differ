@@ -1,3 +1,21 @@
+## 3.4.0
+
+#### Enhancement
+
+- significantly improve **identity column** update. You can now increase the minimum value and decrease the maximum value
+- add reset `search_path` to `public` value for more accurate reading of database metadata
+
+
+#### Bug Fix
+
+- add removal of **serial sequence** before setting `column.identity` property. Fix [#96](https://github.com/multum/pg-differ/issues/96)
+- fix the use of the `defaultSchema` in the `foreignKeys[].references.table`
+
+#### Internal
+
+- bump dependencies :package:
+- improve codebase :sparkles:
+
 ## 3.3.0
 
 #### Enhancement
