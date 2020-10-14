@@ -1,14 +1,15 @@
 'use strict';
 
 const path = require('path');
-
 const helpers = require('../../helpers');
+const TempFileStorage = require('../../temp-file-storege');
 const { connectionString } = require('../../pg.config');
 
 const cliPath = path.join(helpers.rootPath, 'bin', 'cli');
-const dictionary = path.join(__dirname, '__schemas__');
 
 describe(`cli generate`, () => {
+  const tmp = TempFileStorage.allocateSpace();
+  const { path: dictionary } = tmp.dir();
   const roles = {
     name: 'DifferSchema.roles',
     unique: [{ columns: ['id'] }],
@@ -52,10 +53,6 @@ describe(`cli generate`, () => {
     differ.define('table', users);
     differ.define('sequence', sequence);
     return differ.sync({ force: true });
-  });
-
-  afterEach(() => {
-    helpers.rmdirSync(dictionary, { recursive: true });
   });
 
   it(`table schema`, async function () {

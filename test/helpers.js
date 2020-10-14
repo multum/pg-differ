@@ -4,8 +4,8 @@ const { spawn } = require('child_process');
 const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
-const Differ = require('../lib');
 const connectionConfig = require('./pg.config');
+const Differ = require('../');
 
 const rootPath = path.join(__dirname, '..');
 

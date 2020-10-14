@@ -119,6 +119,9 @@ interface SyncResult {
 interface ImportOptions {
   path: string;
   match?: RegExp;
+  /**
+   * @deprecated will be removed in v4.0
+   */
   interpolate?: RegExp;
   locals?: { [key: string]: any };
 }
@@ -153,7 +156,6 @@ declare class Differ {
    * differ.import('./objects');
    * differ.import({
    *   path: './objects',
-   *   interpolate: /\[([\s\S]+?)]/g,
    *   pattern: /.*\.schema.json$/
    * });
    */

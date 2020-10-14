@@ -1,9 +1,0 @@
-{
-  "type": "table",
-  "properties": {
-    "name": "${tables.users}",
-    "columns": {
-      "id": "bigint"
-    }
-  }
-}
