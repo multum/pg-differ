@@ -14,7 +14,7 @@ const createQuery =
   'create sequence "DifferSchema"."users_seq" increment 10 maxvalue 10000;';
 
 describe(`sequence`, () => {
-  const utils = helpers.getUtils();
+  const connection = helpers.getConnection();
 
   let differ;
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe(`sequence`, () => {
   });
 
   beforeAll(() => {
-    return utils.client.query(
+    return connection.client.query(
       'drop sequence if exists "DifferSchema"."users_seq" cascade;'
     );
   });

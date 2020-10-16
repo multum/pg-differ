@@ -9,16 +9,20 @@ const Differ = require('../');
 
 const rootPath = path.join(__dirname, '..');
 
-const getUtils = () => {
-  const utils = {};
+const getConnection = () => {
+  const connection = {};
   beforeAll(() => {
-    utils.client = new Client(connectionConfig);
-    return utils.client.connect();
+    connection.client = new Client(connectionConfig);
+    connection.client._querySpy = jest.spyOn(connection.client, 'query');
+    return connection.client.connect();
+  });
+  afterEach(() => {
+    connection.client._querySpy.mockClear();
   });
   afterAll(() => {
-    return utils.client.end();
+    return connection.client.end();
   });
-  return utils;
+  return connection;
 };
 
 const getDiffer = (options) => {
@@ -68,7 +72,7 @@ const rmdirSync = (target, options = {}) => {
 
 module.exports = {
   rootPath,
-  getUtils,
+  getConnection,
   getDiffer,
   execute,
   readJSON,

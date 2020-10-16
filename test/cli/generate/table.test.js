@@ -2,13 +2,13 @@
 
 const path = require('path');
 const helpers = require('../../helpers');
-const TempFileStorage = require('../../temp-file-storege');
+const Temp = require('../../temp');
 const { connectionString } = require('../../pg.config');
 
 const cliPath = path.join(helpers.rootPath, 'bin', 'cli');
 
 describe(`cli generate`, () => {
-  const tmp = TempFileStorage.allocateSpace();
+  const tmp = Temp.allocateSpace();
   const { path: dictionary } = tmp.dir();
   const roles = {
     name: 'DifferSchema.roles',

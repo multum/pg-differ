@@ -1,9 +1,9 @@
 'use strict';
 
-const TempFileStorage = require('./temp-file-storege');
+const Temp = require('./temp');
 
 module.exports = async () => {
-  TempFileStorage.cleanup();
+  Temp.cleanup();
   const { __pg_client__: client } = global;
   await client.query(`drop schema if exists "DifferSchema" cascade;`);
   return client.end();

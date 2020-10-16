@@ -28,10 +28,9 @@ describe(`utils`, () => {
 
   it.each([
     [{}, true],
-    [[], true],
     [{ foo: undefined }, false],
-  ])('utils.isEmpty(%s)', (target, expected) => {
-    expect(utils.isEmpty(target)).toBe(expected);
+  ])('utils.isEmptyObject(%s)', (target, expected) => {
+    expect(utils.isEmptyObject(target)).toBe(expected);
   });
 
   it.each([

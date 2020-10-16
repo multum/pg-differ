@@ -7,7 +7,7 @@ describe('identity', () => {
   beforeEach(() => {
     differ = helpers.getDiffer();
   });
-  const utils = helpers.getUtils();
+  const connection = helpers.getConnection();
   it('should create table with identity column', async function () {
     differ.define('table', {
       name: 'DifferSchema.users',
@@ -123,7 +123,7 @@ describe('identity', () => {
     });
     await differ.sync({ force: true, adjustIdentitySequences: true });
 
-    await utils.client.query(
+    await connection.client.query(
       `insert into "DifferSchema"."users" (id) values(50)`
     );
     differ.define('table', {
@@ -139,7 +139,7 @@ describe('identity', () => {
       ],
     });
 
-    await utils.client.query(
+    await connection.client.query(
       `insert into "DifferSchema"."users" (id) values(100)`
     );
 

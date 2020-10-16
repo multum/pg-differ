@@ -3,7 +3,7 @@
 const helpers = require('../helpers');
 
 describe('table', () => {
-  const utils = helpers.getUtils();
+  const connection = helpers.getConnection();
   let differ;
 
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('table', () => {
   });
 
   beforeAll(() => {
-    return utils.client.query(
+    return connection.client.query(
       `drop table if exists "DifferSchema"."users" cascade;`
     );
   });

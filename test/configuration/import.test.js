@@ -3,10 +3,10 @@
 const path = require('path');
 const { ImportError } = require('../../');
 const helpers = require('../helpers');
-const TempFileStorage = require('../temp-file-storege');
+const Temp = require('../temp');
 
 describe(`method differ.import()`, () => {
-  const tmp = TempFileStorage.allocateSpace();
+  const tmp = Temp.allocateSpace();
 
   it('should import the schema from the file', function () {
     const differ = helpers.getDiffer();

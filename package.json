@@ -57,16 +57,16 @@
     "ajv": "6.12.5",
     "chalk": "^4.1.0",
     "metalize": "0.1.4",
-    "pg": "8.4.0",
-    "yargs": "^16.0.3"
+    "pg": "^8.4.1",
+    "yargs": "^16.1.0"
   },
   "devDependencies": {
-    "eslint": "^7.10.0",
+    "eslint": "^7.11.0",
     "eslint-config-prettier": "^6.12.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.3.0",
-    "jest": "^26.5.2",
+    "jest": "^26.5.3",
     "lint-staged": "^10.4.0",
     "prettier": "^2.1.2",
     "uuid": "^8.3.1"
