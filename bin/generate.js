@@ -201,6 +201,14 @@ const _prepareTableSchema = (metadata, argv) => {
       }
     }
 
+    const unique = metadata.unique.find(({ columns }) => {
+      return columns.includes(name);
+    });
+    if (unique && unique.columns.length === 1) {
+      metadata.unique.splice(metadata.unique.indexOf(unique), 1);
+      column.unique = true;
+    }
+
     if (utils.isExist(column.default)) {
       column.default = { type: 'literal', value: column.default };
     }

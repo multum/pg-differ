@@ -12,16 +12,12 @@ Object {
         "type": "timestamptz(2)",
       },
       "deleted": "timestamp(2)",
-      "id": "integer",
+      "id": Object {
+        "type": "integer",
+        "unique": true,
+      },
     },
     "name": "DifferSchema.roles",
-    "unique": Array [
-      Object {
-        "columns": Array [
-          "id",
-        ],
-      },
-    ],
   },
   "type": "table",
 }
@@ -50,16 +46,12 @@ Object {
           "type": "timestamptz(2)",
         },
         "deleted": "timestamp(2)",
-        "id": "integer",
+        "id": Object {
+          "type": "integer",
+          "unique": true,
+        },
       },
       "name": "DifferSchema.roles",
-      "unique": Array [
-        Object {
-          "columns": Array [
-            "id",
-          ],
-        },
-      ],
     },
     "type": "table",
   },
@@ -105,16 +97,12 @@ Object {
         "type": "timestamp(2) with time zone",
       },
       "deleted": "timestamp(2) without time zone",
-      "id": "integer",
+      "id": Object {
+        "type": "integer",
+        "unique": true,
+      },
     },
     "name": "DifferSchema.roles",
-    "unique": Array [
-      Object {
-        "columns": Array [
-          "id",
-        ],
-      },
-    ],
   },
   "type": "table",
 }
