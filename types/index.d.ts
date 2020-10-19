@@ -118,7 +118,7 @@ interface SyncResult {
 
 interface ImportOptions {
   path: string;
-  match?: RegExp;
+  pattern?: RegExp;
   /**
    * @deprecated will be removed in v4.0
    */
@@ -153,14 +153,16 @@ declare class Differ {
 
   /**
    * @example
-   * differ.import('./objects');
    * differ.import({
    *   path: './objects',
    *   pattern: /.*\.schema.json$/
+   *   locals
    * });
+   * differ.import('./objects', locals);
    */
   // @ts-ignore
-  import(options: string | ImportOptions): this;
+  import(options: ImportOptions): this;
+  import(path: string, locals?: object): this;
 
   /**
    * @example

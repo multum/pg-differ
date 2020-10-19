@@ -40,9 +40,7 @@ const allocateSpace = () => {
   const file = ({ data, ext, encoding = 'utf-8' }) => {
     const file = path.join(allocatedDir, `${uuid.v4()}.${ext}`);
     fs.writeFileSync(file, data, encoding);
-    return {
-      path: file,
-    };
+    return { path: file };
   };
 
   const json = (options) => {
