@@ -1,10 +1,20 @@
+## 3.5.0
+
+#### Enhancement
+
+- add new **interpolation syntax** for using variables in schemas
+- add `locals` as the second argument for `import()`
+
+#### Internal
+
+- improve test :gem:
+
 ## 3.4.0
 
 #### Enhancement
 
 - significantly improve **identity column** update. You can now increase the minimum value and decrease the maximum value
 - add reset `search_path` to `public` value for more accurate reading of database metadata
-
 
 #### Bug Fix
 

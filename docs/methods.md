@@ -13,7 +13,8 @@ Object definition
 
 > Differ.prototype.import
 
-- Arguments: (options: `FolderPath` | [import options](import.md))
+- Arguments: (path: `FolderPath`, locals?: `object`)
+- Arguments: (options: [import options](import.md))
 - Returns: `this`
 
 Defining models from `*.json` files. Equivalent to function calls `differ.define(...)`

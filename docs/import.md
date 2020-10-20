@@ -22,7 +22,7 @@ Regular expression to filter folder files
 - Default: `/\${([\s\S]+?)}/g`
 - Required: `false`
 
-The 'interpolate' delimiter
+[Deprecated] The 'interpolate' delimiter
 
 ### locals
 
@@ -31,3 +31,31 @@ The 'interpolate' delimiter
 - Required: `false`
 
 An object to import into the `*.json` files as locals
+
+```javascript
+// objects/role.schema.json
+/**
+{
+  "type": "table",
+  "properties": {
+    "name": "${schema}.role", // using a variable as part of a string
+    "columns": {
+      "id": {
+        "type": "int",
+        "identity": { "$": "sequenceOptions" } // using a variable as JSON data
+      },
+      // ...
+    } 
+  }
+}
+*/
+
+// index.js
+differ.import({
+  path: 'objects/role.schema.json',
+  locals: {
+    schema: 'public',
+    sequenceOptions: { min: 1000, start: 1000 },
+  },
+});
+```
