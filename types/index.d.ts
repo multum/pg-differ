@@ -160,7 +160,6 @@ declare class Differ {
    * });
    * differ.import('./objects', locals);
    */
-  // @ts-ignore
   import(options: ImportOptions): this;
   import(path: string, locals?: object): this;
 
