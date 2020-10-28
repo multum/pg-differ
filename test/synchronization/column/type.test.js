@@ -3,7 +3,7 @@
 const Types = require('../../../lib/types');
 const helpers = require('../../helpers');
 
-describe('alter column type', () => {
+describe('column.type', () => {
   let differ;
   beforeEach(() => {
     differ = helpers.getDiffer();

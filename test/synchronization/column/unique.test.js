@@ -2,7 +2,7 @@
 
 const helpers = require('../../helpers');
 
-describe('unique column', () => {
+describe('column.unique', () => {
   let differ;
   beforeEach(() => {
     differ = helpers.getDiffer();

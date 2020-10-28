@@ -2,7 +2,7 @@
 
 const helpers = require('../../helpers');
 
-describe('identity', () => {
+describe('column.identity', () => {
   let differ;
   beforeEach(() => {
     differ = helpers.getDiffer();
