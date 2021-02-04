@@ -73,6 +73,10 @@ describe('column.type', () => {
       to: ['numeric(24)[][]'],
       forbidden: true,
     },
+    {
+      from: 'json',
+      to: ['jsonb'],
+    },
   ].forEach(({ from: prevType, to: types, forbidden }) => {
     const table = 'DifferSchema.users';
     const column = 'birthday';
