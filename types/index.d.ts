@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { Client } from 'pg';
+
 interface ReferenceOptions {
   table: string;
   columns: string[];
@@ -127,7 +129,7 @@ interface ImportOptions {
 }
 
 interface DifferOptions {
-  connectionConfig: object;
+  connectionConfig: object | Client;
   defaultSchema?: string;
   logging?: boolean | Function;
 }
