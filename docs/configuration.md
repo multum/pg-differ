@@ -2,11 +2,13 @@
 
 ### connectionConfig
 
-- Type: `object`
+- Type: `object | Client`
 - Default: `null`
 - Required: `true`
 
-Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic)
+Connection configuration object for [node-postgres](https://node-postgres.com/features/connecting#programmatic).
+
+It can be an existing `pg.Client` instance, too. In this case the instance already has to be connected.
 
 ### defaultSchema
 
@@ -14,7 +16,7 @@ Connection configuration object for [node-postgres](https://node-postgres.com/fe
 - Default: `'public'`
 - Required: `false`
 
-It will be used in objects whose names do not contain a schema name
+It will be used in objects whose names do not contain a schema name.
 
 ### logging
 
@@ -22,4 +24,4 @@ It will be used in objects whose names do not contain a schema name
 - Default: `console.info`
 - Required: `false`
 
-Option to enable logging in the console or callback of the format `function(...messages) {}` for displaying a message about changes
+Option to enable logging in the console or callback of the format `function(...messages) {}` for displaying a message about changes.
